@@ -34,9 +34,41 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 Repeatable = true,
                 QuestText = "You found a discarded pouch containing [color=yellow][b]{gold}[/b][/color] gold!",
                 TriggerChance = 10.0,
+                BlockedBy = null,
                 Rewards = new QuestReward()
                 { Gold = 12, Experience = 3, MonsterKills = 0, BossKills = 0, Progress = 7, Stamina = 0, OtherReward = UniqueRewards.None }
             });
+
+            MasterQuestBook.Add(new Quest()
+            {
+                QuestId = 3300,
+                TriggerFloors = new int[] { },
+                LevelRequirement = 0,
+                PrerequisiteQuest = null,
+                DepthRequirement = 1,
+                Repeatable = false,
+                BlockedBy = null,
+                QuestText = "You found a discarded pouch containing [color=yellow][b]{gold}[/b][/color] gold! You notice something else as well, however. A strange coin of a type you've never seen before.... 💫 It's of a dark metal infused with diamond-like reflective particulates. You aren't sure what it means, but you can feel a faint sense of magic resonating within the peciluar metal.",
+                TriggerChance = 20.0,
+                Rewards = new QuestReward()
+                { Gold = 4, Experience = 5, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
+            });
+
+            MasterQuestBook.Add(new Quest()
+            {
+                QuestId = 3301,
+                TriggerFloors = new int[] { },
+                LevelRequirement = 0,
+                PrerequisiteQuest = 3300,
+                DepthRequirement = 1,
+                Repeatable = false,
+                BlockedBy = null,
+                QuestText = "The coin you found during a previous expedition seems to resonate in response to something as if being tugged at the end of a fishing line. As you veer towards the direction of the coin's pull, a strange sense of euphoria fills your senses. You can hear thoughts entering your head even as the natural light around you burns into darkness. [i]Find us~[/i] it moans painfully, desperately.. [i]Find us, before it's t--[/i] The voice is abruptly cut off, light returning. As you look around, no trace of the voice's origin seems to remain.",
+                TriggerChance = 5.0,
+                Rewards = new QuestReward()
+                { Gold = 0, Experience = 15, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
+            });
+
             MasterQuestBook.Add(new BoonQuest()
             {
                 QuestId = 2010,
@@ -47,10 +79,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 Repeatable = false,
                 QuestText = "You found a boon of [color=cyan][b]{boontype}[/b][/color]! This boon auguments your offensive slot to increase it's base effectiveness.",
                 TriggerChance = 0.1,
+                BlockedBy = null,
                 BoonType = Enums.BoonTypes.Sharpness,
                 Rewards = new QuestReward()
                 { Gold = 0, Experience = 0, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
             });
+
             MasterQuestBook.Add(new BoonQuest()
             {
                 QuestId = 2010,
@@ -61,10 +95,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 Repeatable = false,
                 QuestText = "You found a boon of [color=cyan][b]{boontype}[/b][/color]! This boon auguments your defensive slot to increase it's base effectiveness.",
                 TriggerChance = 0.1,
+                BlockedBy = null,
                 BoonType = Enums.BoonTypes.Resiliance,
                 Rewards = new QuestReward()
                 { Gold = 0, Experience = 0, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
-            }); MasterQuestBook.Add(new BoonQuest()
+            });
+
+            MasterQuestBook.Add(new BoonQuest()
             {
                 QuestId = 2010,
                 TriggerFloors = new int[] { },
@@ -74,6 +111,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 Repeatable = false,
                 QuestText = "You found a boon of [color=cyan][b]{boontype}[/b][/color]! This boon auguments your passive slot to increase it's base effectiveness.",
                 TriggerChance = 0.1,
+                BlockedBy = null,
                 BoonType = Enums.BoonTypes.Empowerment,
                 Rewards = new QuestReward()
                 { Gold = 0, Experience = 0, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
@@ -128,6 +166,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 }
                 hitQuest.GrantReward(pc);
                 hitQuests.Add(hitQuest);
+                break;
             }
             return hitQuests;
         }
