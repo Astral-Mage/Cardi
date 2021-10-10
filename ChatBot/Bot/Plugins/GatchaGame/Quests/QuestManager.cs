@@ -26,6 +26,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
         {
             MasterQuestBook.Add(new Quest()
             {
+                QuestName = "Discarded Coin Pouch",
                 QuestId = 1034,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -41,6 +42,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new Quest()
             {
+                QuestName = "The Strange Coin",
                 QuestId = 3300,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -56,6 +58,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new Quest()
             {
+                QuestName = "The Strange Coin",
                 QuestId = 3301,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -71,6 +74,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new BoonQuest()
             {
+                QuestName = "Sharpness Boon",
                 QuestId = 2010,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -87,6 +91,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new BoonQuest()
             {
+                QuestName = "Resiliance Boon",
                 QuestId = 2010,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -103,6 +108,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new BoonQuest()
             {
+                QuestName = "Empowerment Boon",
                 QuestId = 2010,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
@@ -151,7 +157,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
             {
                 double roll = Rng.NextDouble() * 100.0;
 
-                List<Quest> tQ = availableQuests.Where(x => x.TriggerChance >= roll && (x.TriggerFloors.Contains(fc.floor) || x.TriggerFloors.Length == 0)).ToList();
+                List<Quest> tQ = availableQuests.Where(x => x.TriggerChance >= roll && (x.TriggerFloors.Contains(fc.floor) || x.TriggerFloors.Length == 0) && (x.BlockedBy == null || !pc.CompletedQuests.Contains(x.BlockedBy.Value))).ToList();
                 if (tQ.Count <= 0)
                 {
                     continue;

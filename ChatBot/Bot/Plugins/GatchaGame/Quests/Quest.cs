@@ -23,6 +23,9 @@
         public bool RewardERR { get; set; }
 
         public int? BlockedBy { get; set; }
+
+        public string QuestName { get; set; }
+
         public Quest()
         {
             RewardERR = false;
