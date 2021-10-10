@@ -313,7 +313,7 @@ namespace ChatBot
             }
             catch (Exception e)
             {
-                throw new Exception($"Error connectint to chat: {e}");
+                throw new Exception($"Error connecting to chat: {e}");
             }
         }
 
