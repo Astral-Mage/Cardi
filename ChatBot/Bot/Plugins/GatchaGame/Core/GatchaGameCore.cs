@@ -396,13 +396,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 foreach (var v in pc.ActiveSockets.Where(x => x.SocketType == SocketTypes.Armor))
                 {
-                    cardStr += $"\\n                      {boonAddition} [b]🛡️ [/b]";
+                    cardStr += $"\\n                      {boonAddition} [b]🛡️  [/b]";
                     cardStr += $"{v.GetRarityString()} {v.GetName()}";
                 }
             }
             else
             {
-                cardStr += $"\\n                      {boonAddition} [b]🛡️ [/b]";
+                cardStr += $"\\n                      {boonAddition} [b]🛡️  [/b]";
                 cardStr += "Birthday Suit";
             }
 
