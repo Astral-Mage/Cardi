@@ -44,6 +44,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
         {
             string toReturn = string.Empty;
             toReturn += $"[sup]";
+            toReturn += $"[color=pink][Passive][/color]";
 
             if (StatModifiers.Count > 0)
             {

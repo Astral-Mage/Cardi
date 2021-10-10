@@ -236,8 +236,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 pc.AddStat(v.Key, v.Value);
             }
 
+            // if we cleared the room fully
             if (Enemies.Count(x => x.Status != Enums.CharacterStatusTypes.Dead && x.Status != Enums.CharacterStatusTypes.Undefined && x.Status != Enums.CharacterStatusTypes.Vengeful) <= 0)
+            {
                 rs.RoomCleared = this;
+                pc.AddStat(Enums.StatTypes.Prg, RoomProgress);
+            }
 
             return rs;
         }

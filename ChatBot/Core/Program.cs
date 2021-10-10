@@ -72,7 +72,7 @@ namespace ChatBot
             //{
             //    Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
             //    RngGeneration.GenerateNewCharacterStats(pc);
-            //    pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.xp * 0.175));
+            //    pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.xp * 0.07));
             //    pc.Name = card.name;
             //    pc.DisplayName = card.nickname;
             //    pc.Signature = card.signature;
@@ -85,13 +85,12 @@ namespace ChatBot
             //    pc.AvailableSockets.Add(SocketTypes.Passive);
             //    pc.AvailableSockets.Add(SocketTypes.Active);
             //
+            //    pc.AddStat(StatTypes.Sds, card.level);
+            //    pc.AddStat(StatTypes.Kil, card.killed);
             //
-            //    if (card.weaponperklvl == 1)
-            //        pc.BoonsEarned.Add(BoonTypes.Sharpness);
-            //    if (card.gearperklvl == 1)
-            //        pc.BoonsEarned.Add(BoonTypes.Resiliance);
-            //    if (card.specialperklvl == 1)
-            //        pc.BoonsEarned.Add(BoonTypes.Empowerment);
+            //    if (card.weaponperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Sharpness);
+            //    if (card.gearperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Resiliance);
+            //    if (card.specialperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Empowerment);
             //
             //
             //    var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>();
@@ -119,7 +118,7 @@ namespace ChatBot
             ValidateArgument(out string Username,               UserNameArg, cliArgDict);
             ValidateArgument(out string Password,               PassWordArg, cliArgDict);
             ValidateArgument(out string CharacterName,          CharacterNameArg, cliArgDict);
-            ValidateArgument(out string StartingChannel,        StartingChannelArg, cliArgDict);
+            ValidateArgument(out string StartingChannel,        StartingChannelArg, cliArgDict, true);
             ValidateArgument(out CommandChar,                   CommandCharArg, cliArgDict);
             ValidateArgument(out Ops,                           OpsListArg, cliArgDict);
 
@@ -294,21 +293,22 @@ namespace ChatBot
                     return false;
                 }
 
-                Chat.JoinedChannelHandler           = HandleJoinedChannel;
-                Chat.LeftChannelHandler             = HandleLeftChannel;
-                Chat.PrivateChannelsReceivedHandler = HandlePrivateChannelsReceived;
-                Chat.PublicChannelsReceivedHandler  = HandlePublicChannelsReceived;
                 Chat.MessageHandler                 = HandleMessageReceived;
 
                 Chat.ConnectToChat(userName, passWord, characterName);
 
-                Thread.Sleep(1000);
-                Chat.JoinChannel(startingChannel);
+                if (!string.IsNullOrWhiteSpace(startingChannel))
+                {
+                    Thread.Sleep(500);
+                    Chat.JoinChannel(startingChannel);
+                }
 
+                // initiate the loop
                 while (Chat.IsConnected())
                 {
                     Update();
                 }
+
                 return false;
             }
             catch (Exception e)

@@ -68,6 +68,7 @@ namespace ChatBot
         static void HandlePublicChannelsReceived(object sender, ChannelEventArgs e)
         {
             // check and join starting channel here
+
         }
     }
 }

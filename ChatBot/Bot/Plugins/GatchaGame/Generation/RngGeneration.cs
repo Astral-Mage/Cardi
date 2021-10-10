@@ -14,6 +14,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
     {
         public readonly static Random Rng = new Random();
 
+        private const int BaseGatchaItemMaxClip = 30;
+
         public static List<EnemyCard> GenerateEnemyCluster(FloorCard fc, Cards.PlayerCard pc, int maxEnemies = 3)
         {
             List<EnemyCard> toReturn = new List<EnemyCard>();
@@ -168,7 +170,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
         public static Socket GenerateRandomPassive(out int valRolled)
         {
             PassiveSocket toReturn = new PassiveSocket();
-            int roll = Rng.Next(1, 80);
+            int roll = Rng.Next(1, BaseGatchaItemMaxClip);
             valRolled = roll;
             int rarity = (int)Math.Pow(Math.Log10(0.3f * roll), 10) + 1;
             toReturn.SocketRarity = (RarityTypes)rarity;
@@ -216,7 +218,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
         {
 
             EquipmentSocket toReturn = ((Rng.Next(2) == 0) ? (EquipmentSocket)new WeaponSocket() : new ArmorSocket());
-            int roll = Rng.Next(1, 30);
+            int roll = Rng.Next(1, BaseGatchaItemMaxClip);
             valRolled = roll;
             int rarity = (int)Math.Pow(Math.Log10(0.3f * roll), 10) + 1;
             toReturn.SocketRarity = (RarityTypes)rarity;
