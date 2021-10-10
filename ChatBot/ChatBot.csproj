@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1CC9A5C1-572E-4889-BD6B-7A8D39E0FD6D}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>ChatBot</RootNamespace>
+    <AssemblyName>ChatBot</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Accord, Version=3.8.0.0, Culture=neutral, PublicKeyToken=fa1a88e29555ccf7, processorArchitecture=MSIL">
+      <HintPath>..\packages\Accord.3.8.0\lib\net46\Accord.dll</HintPath>
+    </Reference>
+    <Reference Include="ChatApi">
+      <HintPath>..\Api\ChatApi.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.SQLite, Version=1.0.113.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.113.1\lib\net46\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WatsonWebsocket">
+      <HintPath>..\Api\WatsonWebsocket.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Bot\BotCore.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Command\Command.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Command\CommandEnums.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Command\CommandStrings.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\Combat\BaseEnemy.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\CommandActions\GameCoreCommandActions.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\CommandActions\SetCoreCommandActions.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\CommandActions\UpgradeCoreCommandActions.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\Dive.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Events\DiveResults.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Events\Event.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Events\EventManager.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Minigames\PlayingCards\Player.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Minigames\PlayingCards\Game.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Minigames\PlayingCards\PlayingCard.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Minigames\PlayingCards\PlayingCards.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Minigames\PlayingCards\RankAndSuit.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\BoonTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Quests\BoonQuest.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Cards\BaseCard.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Cards\EnemyCard.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Cards\PlayerCard.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Cards\Stats\BaseStats.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Cards\Stats\Modifier.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\DiveAction.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\GatchaRollAction.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\Rooms\DiveResults.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\Rooms\RoomResults.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\SubMenus\InventorySubMenuCore.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\SubMenus\SetSubMenuCore.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Data\Data.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\BlurbTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\CardTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\CharacterStatusTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\ClassTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\SpeciesTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\TurnSteps.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\DamageTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\EquipmentPrefixes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\EquipmentSuffixes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\EquipmentTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\ArmorTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\RarityTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\SocketTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\StatTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Enums\WeaponTypes.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\GatchaGameCore.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Generation\RngGeneration.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Core\Rooms\Room.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Quests\Quest.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Quests\QuestManager.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Quests\QuestReward.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\ActiveSocket.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\ArmorSocket.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\EquipmentSocket.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\PassiveSocket.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\Socket.cs" />
+    <Compile Include="Bot\Plugins\GatchaGame\Sockets\WeaponSocket.cs" />
+    <Compile Include="Bot\Plugins\PluginBase.cs" />
+    <Compile Include="Core\Handlers.cs" />
+    <Compile Include="Core\Program.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\SetCore.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Enums.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Cards\FloorCard.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Data\FloorDb.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\GameCore.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Data\GameDb.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Cards\PlayerCard.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Bot\Plugins\DungeonDiver\Core\UpgradeCore.cs" />
+    <Compile Include="Utility\Utility.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6.1 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.113.1\build\net46\System.Data.SQLite.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\Accord.3.8.0\build\Accord.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Accord.3.8.0\build\Accord.targets'))" />
+  </Target>
+  <Import Project="..\packages\Accord.3.8.0\build\Accord.targets" Condition="Exists('..\packages\Accord.3.8.0\build\Accord.targets')" />
+</Project>
