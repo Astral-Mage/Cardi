@@ -134,7 +134,7 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
         /// <param name="recipient">who to send the reply to, if a dm</param>
         public override void Respond(string channel, string message, string recipient)
         {
-            Api.SendReply(channel, message, recipient);
+            Api.SendMessage(channel, message, recipient);
         }
 
         public void HandleUserCommands(string command, string channel, string message, PlayerCard pc)

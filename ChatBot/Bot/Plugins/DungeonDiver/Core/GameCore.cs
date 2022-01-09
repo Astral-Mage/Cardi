@@ -71,7 +71,7 @@ namespace ChatBot.Bot.Plugins
                 recipient = string.Empty;
             }
 
-            Api.SendReply(channel, message, recipient);
+            Api.SendMessage(channel, message, recipient);
         }
 
         /// <summary>

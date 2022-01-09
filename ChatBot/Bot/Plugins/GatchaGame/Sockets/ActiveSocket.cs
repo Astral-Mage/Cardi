@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
 {
@@ -15,6 +11,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
         }
 
         public override string GetShortDescription()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string LevelUp()
         {
             throw new NotImplementedException();
         }

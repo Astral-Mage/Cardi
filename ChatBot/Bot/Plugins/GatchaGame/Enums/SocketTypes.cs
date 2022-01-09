@@ -10,8 +10,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
     {
         Weapon,
         Armor,
-        Equipment,
         Passive,
+        Equipment,
         Active,
     }
 }

@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ChatApi;
+
+
 using ChatBot.Bot.Plugins;
+using ChatBot.Bot.Plugins.GatchaGame.Generation;
+using ChatBot.Bot.Plugins.GatchaGame.Enums;
+using ChatBot.Bot.Plugins.GatchaGame.Data;
+
 
 #if DEBUG
 using ChatBot.Bot.Plugins.GatchaGame;
-using ChatBot.Bot.Plugins.GatchaGame.Data;
-using ChatBot.Bot.Plugins.GatchaGame.Enums;
-using ChatBot.Bot.Plugins.GatchaGame.Generation;
 #else
-using ChatBot.Bot.Plugins;
+using ChatBot.Bot.Plugins.GatchaGame;
 #endif
 
 namespace ChatBot
@@ -30,6 +33,8 @@ namespace ChatBot
         static readonly string OpsListArg           = "OpsList";
         // -----------------------------------------------
 
+        static string StartingChannel = string.Empty;
+
         /// <summary>
         /// Our chat interface
         /// </summary>
@@ -39,11 +44,6 @@ namespace ChatBot
         /// Our bot interface
         /// </summary>
         static BotCore Bot;
-
-        /// <summary>
-        /// F-list ticket and character information
-        /// </summary>
-        static TicketInformation TicketInfo;
 
         /// <summary>
         /// Our main command character
@@ -61,42 +61,18 @@ namespace ChatBot
         static List<string> FailedCliArgs = new List<string>();
 
         /// <summary>
+        /// The bot's character name
+        /// </summary>
+        public static string CharacterName = string.Empty;
+
+        /// <summary>
         /// Our main entry point
         /// </summary>
         static void Main(string[] args)
         {
             // import data from other game
-
-            //var ocards = GameDb.GetAllCards();
-            //foreach (var card in ocards)
-            //{
-            //    Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
-            //    RngGeneration.GenerateNewCharacterStats(pc);
-            //    pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.xp * 0.07));
-            //    pc.Name = card.name;
-            //    pc.DisplayName = card.nickname;
-            //    pc.Signature = card.signature;
-            //    pc.SpeciesDisplayName = card.species;
-            //    pc.ClassDisplayName = card.mainClass;
-            //    pc.SetStat(StatTypes.Sta, 1200 * 90);
-            //    pc.MaxInventory = 10;
-            //    pc.AvailableSockets.Add(SocketTypes.Weapon);
-            //    pc.AvailableSockets.Add(SocketTypes.Armor);
-            //    pc.AvailableSockets.Add(SocketTypes.Passive);
-            //    pc.AvailableSockets.Add(SocketTypes.Active);
-            //
-            //    pc.AddStat(StatTypes.Sds, card.level);
-            //    pc.AddStat(StatTypes.Kil, card.killed);
-            //
-            //    if (card.weaponperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Sharpness);
-            //    if (card.gearperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Resiliance);
-            //    if (card.specialperklvl == 1) pc.BoonsEarned.Add(BoonTypes.Empowerment);
-            //
-            //
-            //    var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>();
-            //    gcards.Add(pc);
-            //    DataDb.AddNewUser(pc);
-            //}
+            //TransferUserData();
+            //TransferFloorData();
 
             // cli arg parsing and validation
             if (args.Length == 0)
@@ -126,7 +102,6 @@ namespace ChatBot
 
             if (!ConfirmCliArgumentValidation())
             {
-                PrintHelp();
                 Environment.Exit(-1);
             }
 
@@ -134,7 +109,6 @@ namespace ChatBot
             {
                 try
                 {
-
                     RunChat(Username, Password, CharacterName, StartingChannel, CommandChar, Ops);
                 }
                 catch(Exception e)
@@ -147,11 +121,7 @@ namespace ChatBot
             Environment.Exit(0);
         }
 
-        static void PrintHelp()
-        {
-            //Console.WriteLine("Welcome to Help.");
-        }
-
+        #region Validation
         static bool ConfirmCliArgumentValidation()
         {
             if (FailedCliArgs.Any())
@@ -207,7 +177,7 @@ namespace ChatBot
             }
 
             argVal = rawArgs[argName];
-            Console.WriteLine($"{argName} --- {argVal}");
+            Console.WriteLine($"{argName} --- {((argName.Equals(PassWordArg, StringComparison.InvariantCultureIgnoreCase)) ? "************" : $"{argVal}")}");
         }
 
         static void ValidateArgument(out int argVal, string argName, Dictionary<string, string> rawArgs, bool isOptional = false)
@@ -252,6 +222,7 @@ namespace ChatBot
             flagVal = true;
             Console.WriteLine($"{flagName} --- {flagVal}");
         }
+#endregion
 
         /// <summary>
         /// Connection loop for easier retries
@@ -260,7 +231,6 @@ namespace ChatBot
         static bool RunChat(string userName, string passWord, string characterName, string startingChannel, string commandChar, List<string> opsList)
         {
             if (Chat != null) Chat = null;
-            if (TicketInfo != null) TicketInfo = null;
             if (Bot != null)
             {
                 Bot.Shutdown();
@@ -274,34 +244,25 @@ namespace ChatBot
                 Bot = new BotCore();
 
                 // Add our plugins here ////////////////////////////////////////////////
-
 #if DEBUG
                 Bot.AddPlugin(new GatchaGame(Chat, commandChar));
 #else
-                Bot.AddPlugin(new GameCore(Chat));
+                Bot.AddPlugin(new GatchaGame(Chat, commandChar));
 #endif
-
                 // End Plugin Adding ///////////////////////////////////////////////////
 
+                CharacterName = characterName;
 
-
-                TicketInfo = Chat.GetTicketInformation(userName, passWord);
-
-                if (!string.IsNullOrWhiteSpace(TicketInfo.error))
-                {
-                    Console.WriteLine("Error obtaining ticket information");
-                    return false;
-                }
-
+                Chat.ConnectedToChat                = ConnectedToChat;
                 Chat.MessageHandler                 = HandleMessageReceived;
+                Chat.JoinedChannelHandler           = HandleJoinedChannel;
+                Chat.CreatedChannelHandler          = HandleCreatedChannel;
+                Chat.LeftChannelHandler             = HandleLeftChannel;
+                Chat.PrivateChannelsReceivedHandler = HandlePrivateChannelsReceived;
+                Chat.PublicChannelsReceivedHandler  = HandlePublicChannelsReceived;
 
                 Chat.ConnectToChat(userName, passWord, characterName);
-
-                if (!string.IsNullOrWhiteSpace(startingChannel))
-                {
-                    Thread.Sleep(500);
-                    Chat.JoinChannel(startingChannel);
-                }
+                StartingChannel = startingChannel;
 
                 // initiate the loop
                 while (Chat.IsConnected())
@@ -322,7 +283,104 @@ namespace ChatBot
         /// </summary>
         static void Update()
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(10000);
+
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        static void TransferFloorData()
+        {
+            var ofloors = FloorDb.GetAllFloors();
+            foreach (var floor in ofloors)
+            {
+                DataDb.AddNewFloor(floor);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        static void TransferUserData()
+        {
+
+            var ocards = GameDb.GetAllCards();
+            foreach (var card in ocards)
+            {
+                Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
+                RngGeneration.GenerateNewCharacterStats(pc);
+                pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 4), false, false, false);
+                pc.AddStat(StatTypes.Gld, card.level * 3, false, false, false);
+
+                pc.Name = card.name;
+                pc.DisplayName = card.nickname;
+                if (string.IsNullOrWhiteSpace(pc.DisplayName)) pc.DisplayName = pc.Name;
+                pc.Signature = card.signature;
+                pc.SpeciesDisplayName = card.species;
+                pc.ClassDisplayName = card.mainClass;
+                pc.AvailableSockets.Add(SocketTypes.Weapon);
+                pc.AvailableSockets.Add(SocketTypes.Armor);
+                pc.AvailableSockets.Add(SocketTypes.Passive);
+
+                pc.AddStat(StatTypes.Sds, card.level * 2, false, false, false);
+                pc.AddStat(StatTypes.Kil, card.killed, false, false, false);
+
+                var tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Weapon, 1);
+                tws.NameOverride = (string.IsNullOrWhiteSpace(card.weapon)) ? tws.NameOverride : card.weapon;
+                pc.ActiveSockets.Add(tws);
+
+                tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Armor, 1);
+                tws.NameOverride = (string.IsNullOrWhiteSpace(card.gear)) ? tws.NameOverride : card.gear;
+                pc.ActiveSockets.Add(tws);
+
+                tws = RngGeneration.GenerateRandomPassive(out _, 1);
+                tws.NameOverride = (string.IsNullOrWhiteSpace(card.special)) ? tws.NameOverride : card.special;
+                pc.ActiveSockets.Add(tws);
+
+                if (card.weaponperklvl == 1)
+                {
+                    pc.BoonsEarned.Add(BoonTypes.Sharpness);
+                    pc.CompletedQuests.Add(2010);
+                }
+                if (card.gearperklvl == 1)
+                {
+                    pc.BoonsEarned.Add(BoonTypes.Resiliance);
+                    pc.CompletedQuests.Add(2011);
+                }
+                if (card.specialperklvl == 1)
+                {
+                    pc.BoonsEarned.Add(BoonTypes.Empowerment);
+                    pc.CompletedQuests.Add(3302);
+                    pc.CompletedQuests.Add(3301);
+                }
+
+
+                var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>
+                {
+                    pc
+                };
+
+                // check for level up here
+                //int val1;
+                //int curlvl;
+                //int val2;
+                //do
+                //{
+                //    // -150 + 300x^1.8
+                //    val1 = pc.GetStat(StatTypes.Exp);
+                //    curlvl = pc.GetStat(StatTypes.Lvl);
+                //    val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
+                //    if (val1 > val2)
+                //    {
+                //        // leveled up
+                //        pc.LevelUp();
+                //
+                //    }
+                //} while (val1 > val2);
+
+                DataDb.AddNewUser(pc);
+            }
         }
     }
 }

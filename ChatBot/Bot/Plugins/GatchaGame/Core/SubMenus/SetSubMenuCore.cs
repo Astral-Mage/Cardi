@@ -53,7 +53,38 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
         public void SetHelpAction(string sendingUser)
         {
-            string toSend = "[b]Set Help[/b]\\nThis is where you can customize your card to your liking!";
+            string toSend = string.Empty;
+
+            toSend += $"[color=white]" +
+                $"         Welcome to [b][color={"blue"}]{CommandStrings.Set} {CommandStrings.Help}[/color][/b]!" +
+                $"\\n    " +
+                $"\\nAll commands in this section are called in format: [color={"blue"}]{CommandChar}{CommandStrings.Set} «Command» ⁕Value⁕[/color]." +
+                $"\\nExample: Type [color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Weapon} Aru's Super Cool Weapon![/color]" +
+                $"\\n" +
+                $"\\n[{CommandStrings.Set}] is a system that allows you to customize the look of your card. Don't like" +
+                $"\\nthat boring weapon with great stats? Rename it! Want to add a little extra flair" +
+                $"\\nto your name that'll really make your enemies tremble? Easy! Want to brag about" +
+                $"\\nsomething unique? Write it in your signature! There's so much you can do here," +
+                $"\\nso take your time customizing your card to your liking." +
+                $"\\n" +
+                $"\\nIt's worth pointing out that passing any of these commands in without a value" +
+                $"\\nwill reset it to it's original display name." +
+                $"\\n" +
+                $"\\nType [color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Weapon}[/color] to reset your equipped weapon's name." +
+                $"\\n" +
+                $"\\nThe list of [{CommandStrings.Set}] options are as follows:" +
+                $"\\n" +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Weapon} My Tail 😀[/color] overrides your equipped weapon's name." +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Armor} My Shoulderpad 😀[/color] overrides your equipped armor's name." +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Special} 😀 Kamehameha[/color] overrides your equipped special's name." +
+                $"\\n" +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Species} Snek Gurl [sup]Hiss~[/sup][/color] overrides your species." +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Class} Super Squeezer[/color] overrides your class." +
+                $"\\n" +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Signature} I'm basically the cutest~[/color] sets your signature." +
+                $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Nickname} Rebekk Aboo[/color] overrides your display name." +
+                $"[/color]";
+
             Respond(null, toSend, sendingUser);
         }
 

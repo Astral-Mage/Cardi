@@ -10,7 +10,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards.Stats
     [Serializable]
     public class BaseStats
     {
-        public Dictionary<StatTypes, int> Stats;
+        public Dictionary<StatTypes, double> Stats;
         public List<Modifier> Modifiers;
 
         public void AddModifier(StatTypes statType, int numTurns, TurnSteps updateStep)
@@ -19,6 +19,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards.Stats
         }
 
         public int GetStat(StatTypes type, bool baseStat = false)
+        {
+            return Convert.ToInt32(Math.Floor(Stats[type]));
+        }
+
+        public double GetPreciseStat(StatTypes type, bool baseStat = false)
         {
             return Stats[type];
         }
@@ -48,7 +53,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards.Stats
 
         public BaseStats()
         {
-            Stats = new Dictionary<StatTypes, int>();
+            Stats = new Dictionary<StatTypes, double>();
             Modifiers = new List<Modifier>();
         }
     }

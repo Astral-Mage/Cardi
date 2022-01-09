@@ -1,10 +1,6 @@
 ﻿using Accord;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
 {
@@ -24,7 +20,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
         public override string GetShortDescription()
         {
             string toReturn = string.Empty;
-            toReturn += $"[color=pink][{ItemType.GetDescription()}][/color]";
+            //toReturn += $"[color=pink][{ItemType.GetDescription()}][/color]";
             return toReturn;
         }
     }

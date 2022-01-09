@@ -1,5 +1,6 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Cards.Stats;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
+using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
         public double LevelScaleValue;
         public List<Socket> Inventory;
         public int MaxInventory;
+        public CharacterStatusTypes Status;
 
         public BaseStats Stats;
         public int CurrentVitality;
@@ -35,9 +37,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             Stats = stats;
         }
 
-        public void AddStat(StatTypes type, int value)
+        public void AddStat(StatTypes type, int value, bool includeModifiers = false, bool includeEquipment = false, bool includePassives = false)
         {
-            SetStat(type, GetStat(type) + value);
+            SetStat(type, GetPreciseStat(type, includeModifiers, includeEquipment, includePassives) + value);
+        }
+
+        public void AddStat(StatTypes type, double value, bool includeModifiers = false, bool includeEquipment = false, bool includePassives = false)
+        {
+            SetStat(type, GetPreciseStat(type, includeModifiers, includeEquipment, includePassives) + value);
         }
 
         public void SetStat(StatTypes type, int value)
@@ -45,12 +52,27 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             Stats.Stats[type] = value;
         }
 
-        public virtual int GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = true)
+        public void SetStat(StatTypes type, double value)
+        {
+            Stats.Stats[type] = value;
+        }
+
+        public double GetPreciseStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = false)
+        {
+            return Internal_GetStat(type, includeModifiers, includeEquipment, includePassives, includeLevels);
+        }
+
+        public virtual int GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = false)
+        {
+            return Convert.ToInt32(Math.Floor(Internal_GetStat(type, includeModifiers, includeEquipment, includePassives, includeLevels)));
+        }
+
+        private double Internal_GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = false)
         {
             if (!Stats.TryGetStat(type, out int stat))
             {
-                Stats.AddStat(type, 0);
-                stat = 1;
+                stat = 0;
+                Stats.AddStat(type, stat);
             }
 
             if (!includeModifiers && !includeEquipment && !includePassives)
@@ -98,6 +120,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             return stat;
         }
 
+        public virtual string LevelUp()
+        {
+            return string.Empty;
+        }
+
         public void Update(TurnSteps turnStep)
         {
             var modsToUpdate = Stats.Modifiers.Where(x => x.UpdateStep == turnStep).ToList();
@@ -122,6 +149,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
 
             LevelScaleValue = 1.6;
             BoonsEarned = new List<BoonTypes>();
+
+            Status = CharacterStatusTypes.Undefined;
         }
 
         private BaseCard()

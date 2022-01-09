@@ -2,13 +2,12 @@
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
 using System;
-using System.Collections.Generic;
 
 namespace ChatBot.Bot.Plugins.GatchaGame
 {
     public partial class GatchaGame : PluginBase
     {
-        const int COST_TO_ROLL = 10;
+        int COST_TO_ROLL = 10;
 
         public void RollAction(int rollCount, string user, string channel)
         {
@@ -50,28 +49,33 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                 Socket generatedItem;
                 int valRolled = -1;
-                SocketTypes st = (SocketTypes)RngGeneration.Rng.Next(Enum.GetNames(typeof(SocketTypes)).Length);
+                int idk = RngGeneration.Rng.Next(0, 3);
+                SocketTypes st = (SocketTypes)idk;
                 switch (st)
                 {
-                    case SocketTypes.Equipment:
                     case SocketTypes.Weapon:
                     case SocketTypes.Armor:
                         {
-                            generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled);
+                            if (st == SocketTypes.Weapon)
+                            {
+                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Weapon, 1);
+                            }
+                            else
+                            {
+                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Armor, 1);
+                            }
                         }
                         break;
-                    case SocketTypes.Active:
                     case SocketTypes.Passive:
                         {
-                            st = SocketTypes.Passive;
-                            generatedItem = RngGeneration.GenerateRandomPassive(out valRolled);
+                            generatedItem = RngGeneration.GenerateRandomPassive(out valRolled, 1);
                         }
                         break;
                     default:
                         throw new Exception("Error generating item. Contact admin.");
                 }
                 if (curRoll > 0) replyString += "\\n";
-                replyString += $"{pc.DisplayName} rolled: [sup]({valRolled}/79)[/sup][b]{generatedItem.GetRarityString()} {generatedItem.GetName()}[/b] {generatedItem.GetShortDescription()}";
+                replyString += $"{pc.DisplayName} rolled: [sup]({valRolled}/{RngGeneration.BaseGatchaItemMaxClip})[/sup][b]{generatedItem.GetRarityString()} {generatedItem.GetName()}[/b] {generatedItem.GetShortDescription()}";
 
                 if ((int)generatedItem.SocketRarity <= pc.GetStat(StatTypes.Adr))
                 {
@@ -93,7 +97,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
             pc.SetStat(StatTypes.Sds, starDust);
             Data.DataDb.UpdateCard(pc);
-            Respond(channel, replyString, user);
+            Respond(string.Empty, replyString, user);
         }
     }
 }

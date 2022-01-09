@@ -9,15 +9,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
 {
     public class EnemyCard : BaseCard
     {
-        public CharacterStatusTypes Status;
         public string StatusReason;
 
-        public EnemyCard() : base(Enums.CardTypes.EnemyCard)
+        public EnemyCard() : base(CardTypes.EnemyCard)
         {
-            Status = CharacterStatusTypes.Undefined;
+            LevelScaleValue = 1.2;
         }
 
-        public override int GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = true)
+        public override int GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = false)
         {
             if (!Stats.TryGetStat(type, out int stat))
             {

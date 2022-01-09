@@ -328,8 +328,10 @@ namespace ChatBot.Bot.Plugins
         {
             if (!GameDb.UserExists(sendingUser))
             {
-                PlayerCard newPlayer = new PlayerCard();
-                newPlayer.name = sendingUser;
+                PlayerCard newPlayer = new PlayerCard()
+                {
+                    name = sendingUser
+                };
                 if (GameDb.AddNewUser(newPlayer))
                 {
                     Respond(channel, $"Welcome, {sendingUser}. Thanks for playing! Use -card to see your player card. Use -dive to make your first dungeon run!\\nJust so you know, talking in the channel reduces your cooldown. Roleplaying reduces it even faster! Use -help to learn more commands.", sendingUser);
@@ -382,15 +384,17 @@ namespace ChatBot.Bot.Plugins
             }
 
             FloorCard pfc = FloorDb.GetAllFloors().Last();
-            FloorCard fc = new FloorCard();
-            fc.firstseen = DateTime.Now;
-            fc.floor = pfc.floor + 1;
-            fc.enemies = new List<string>();
-            fc.notes = description;
-            fc.rawenemies = string.Empty;
-            fc.currentxp = 0;
-            fc.neededxp = (int)(pfc.neededxp * 1.2);
-            fc.name = floorName;
+            FloorCard fc = new FloorCard()
+            {
+                firstseen = DateTime.Now,
+                floor = pfc.floor + 1,
+                enemies = new List<string>(),
+                notes = description,
+                rawenemies = string.Empty,
+                currentxp = 0,
+                neededxp = (int)(pfc.neededxp * 1.2),
+                name = floorName
+            };
             FloorDb.AddNewFloor(fc);
 
             Respond(null, $"You've successfully created floor [b]{fc.floor}:[/b] {fc.name} - {fc.notes}", pc.name);

@@ -16,11 +16,17 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
         public string NameOverride;
         public string SocketDescription;
 
+        public string SocketRaritySymbol;
+        public string SocketRarityColor;
+
+        public int BaseLevelUpCost;
+        public RarityTypes MaxRarity;
+
         public Dictionary<StatTypes, int> StatModifiers;
 
         public string GetRarityString()
         {
-            return $"[color=cyan][{(int)SocketRarity}💠][/color]";
+            return $"[color=cyan][{(int)SocketRarity}][/color][b][color={SocketRarityColor}]{SocketRaritySymbol}[/color][/b]";
         }
 
         public abstract string GetShortDescription();
@@ -34,6 +40,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
             SocketRarity = RarityTypes.One;
             SocketType = SocketTypes.Passive;
             StatModifiers = new Dictionary<StatTypes, int>();
+            SocketRarityColor = "white";
+            SocketRaritySymbol = "💠";
+            BaseLevelUpCost = 55;
+            MaxRarity = RarityTypes.Thirty;
         }
+
+        public abstract string LevelUp();
     }
 }

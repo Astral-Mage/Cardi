@@ -12,6 +12,9 @@ namespace ChatBot.Bot.Plugins
         /// </summary>
         public ApiConnection Api;
 
+        /// <summary>
+        /// 
+        /// </summary>
         public string CommandChar;
 
         /// <summary>

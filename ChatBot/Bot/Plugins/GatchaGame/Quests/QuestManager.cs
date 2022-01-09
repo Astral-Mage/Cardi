@@ -74,6 +74,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 
             MasterQuestBook.Add(new BoonQuest()
             {
+                QuestName = "Empowerment Boon",
+                QuestId = 3302,
+                TriggerFloors = new int[] { },
+                LevelRequirement = 0,
+                PrerequisiteQuest = 3301,
+                DepthRequirement = 2,
+                Repeatable = false,
+                QuestText = "You pull out the strange coin you've been carrying with you as a sudden wave of presense washes over you. The coin glimmers, as if in a final breath of power, before fading into a dull gray weight upon your palm. Something pulses within, as if the power had transferred itself to you. You have found a boon of [color=cyan][b]{boontype}[/b][/color]! This boon auguments your passive slot to increase it's base effectiveness. It seems whatever spirit the metal once held has passed on, it's energies empowering you.",
+                TriggerChance = 3.0,
+                BlockedBy = null,
+                BoonType = Enums.BoonTypes.Empowerment,
+                Rewards = new QuestReward()
+                { Gold = 0, Experience = 30, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
+            });
+
+            MasterQuestBook.Add(new BoonQuest()
+            {
                 QuestName = "Sharpness Boon",
                 QuestId = 2010,
                 TriggerFloors = new int[] { },
@@ -92,7 +109,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
             MasterQuestBook.Add(new BoonQuest()
             {
                 QuestName = "Resiliance Boon",
-                QuestId = 2010,
+                QuestId = 2011,
                 TriggerFloors = new int[] { },
                 LevelRequirement = 0,
                 PrerequisiteQuest = null,
@@ -102,23 +119,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
                 TriggerChance = 0.1,
                 BlockedBy = null,
                 BoonType = Enums.BoonTypes.Resiliance,
-                Rewards = new QuestReward()
-                { Gold = 0, Experience = 0, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
-            });
-
-            MasterQuestBook.Add(new BoonQuest()
-            {
-                QuestName = "Empowerment Boon",
-                QuestId = 2010,
-                TriggerFloors = new int[] { },
-                LevelRequirement = 0,
-                PrerequisiteQuest = null,
-                DepthRequirement = 2,
-                Repeatable = false,
-                QuestText = "You found a boon of [color=cyan][b]{boontype}[/b][/color]! This boon auguments your passive slot to increase it's base effectiveness.",
-                TriggerChance = 0.1,
-                BlockedBy = null,
-                BoonType = Enums.BoonTypes.Empowerment,
                 Rewards = new QuestReward()
                 { Gold = 0, Experience = 0, MonsterKills = 0, BossKills = 0, Progress = 0, Stamina = 0, OtherReward = UniqueRewards.None }
             });

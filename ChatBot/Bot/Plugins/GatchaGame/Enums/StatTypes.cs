@@ -10,17 +10,16 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
     [Serializable]
     public enum StatTypes
     {
-        Atk,
-        Pdf,
-        Mdf,
-        Con,
-        Spd,
+        Atk, // attack chance
+        Pdf, // physical def
+        Mdf, // magic def
+        Con, // temp hp, basically
+        Spd, // attack speed
         Crt, // crit dmg multiplier
-        Red,
-        Dmg,
+        Dmg, // base raw danage
         Vit, // health
         Eva, // evasion
-        Int,
+        Int, // magic damage boost
         Prg, // progress
         Sta, // stamina
         StM, // stamina max
@@ -31,7 +30,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Sds, // stardust
         Rom, // rooms cleared
         Adr, // auto-delete rarity threshold
-        Dex,
+        Dex, // phyiscal dmg boost
         Cs1, // class 1
         Sps, // species
         Exp, // experience
@@ -40,6 +39,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Ats, // attack spread modifier
         Upg, // number of level-up upgrades available
         Upe, // number of level-up upgrades equipped
+        Bly, // times successfully bullied a target
+        Sbm, // times submitted to bullying
+        Dwi, // duels won
+        Dlo, // duels lost
+        Pvr, // pvp rank
+        Foc, // focus stat
     }
 
     public enum StatPrefixes
@@ -56,8 +61,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Spd,
         [Description("Critical")]
         Crt, // crit dmg multiplier
-        [Description("-")]
-        Red,
         [Description("-")]
         Dmg,
         [Description("Tenacious")]
@@ -102,6 +105,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Ats, // attack spread modifier
         Upg, // number of level-up upgrades available
         Upe, // number of level-up upgrades equipped
+        Bly, // times successfully bullied a target
+        Sbm, // times submitted to bullying
+        Dwi, // duels won
+        Dlo, // duels lost
+        Pvr, // pvp rank
+        Foc, // focus stat
     }
 
     public enum StatSuffixes
@@ -118,7 +127,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Spd,
         [Description("Elegy")]
         Crt, // crit dmg multiplier
-        Red,
         Dmg,
         [Description("Hunger")]
         Vit, // health
@@ -148,5 +156,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Ats, // attack spread modifier
         Upg, // number of level-up upgrades available
         Upe, // number of level-up upgrades equipped
+        Bly, // times successfully bullied a target
+        Sbm, // times submitted to bullying
+        Dwi, // duels won
+        Dlo, // duels lost
+        Pvr, // pvp rank
+        Foc, // focus stat
     }
 }

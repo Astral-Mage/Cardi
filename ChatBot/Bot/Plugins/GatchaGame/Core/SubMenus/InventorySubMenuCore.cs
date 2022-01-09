@@ -85,7 +85,33 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
         public void InventoryHelpAction(string sendingUser)
         {
-            string toSend = "[b]Inventory Help[/b]\\nThis is where you can customize your card to your liking!";
+            string toSend = string.Empty;
+
+            toSend += $"[color=white]" +
+                $"         Welcome to [b][color={"red"}]{CommandStrings.Box} {CommandStrings.Help}[/color][/b]!" +
+                $"\\n    " +
+                $"\\nAll commands in this section are called in format: [color={"red"}]{CommandChar}{CommandStrings.Box} «Command» ⁕Value⁕[/color]." +
+                $"\\nExample: Type [color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.AutoTrash} 1[/color]" +
+                $"\\n" +
+                $"\\n[{CommandStrings.Box}] is a system that allows you to manage the items you'll collect while using" +
+                $"\\nthe Gatcha. Your box can store a maximum number of items. Once your box fills" +
+                $"\\nup, additional items won't be saved, so make sure you're careful! You can use your" +
+                $"\\nbox to delete items or upgrade items. You can not use the [set] command on items" +
+                $"\\nin your box. Trashing an item refunds a small amount of stardust." +
+                $"\\n" +
+                $"\\nType [color={"red"}]{CommandChar}{CommandStrings.Box}[/color] to view your box." +
+                $"\\n" +
+                $"\\nThe list of [{CommandStrings.Box}] options are as follows:" +
+                $"\\n" +
+                $"\\n[color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.AutoTrashLong} ⁕Value⁕[/color] automatically trashes items this rarity or lower." +
+                $"\\n[color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.Trash} ⁕Value⁕[/color] trashes the item in target box slot." +
+                $"\\n         [sub][color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.Trash} ⁕Value⁕,⁕Value⁕,⁕Value⁕,...[/color] trashes multiple box slots at once.[/sub]" +
+                $"\\n         [sub][color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.Trash} all[/color] trashes all box slots at once.[/sub]" +
+
+                $"\\n" +
+                $"\\n[color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.Upgrade} ⁕Value⁕[/color] Attempts to upgrade the item in the target box slot." +
+                $"[/color]";
+
             Respond(null, toSend, sendingUser);
         }
 
@@ -104,9 +130,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 case CommandStrings.Help:
                     {
-                        SetHelpAction(user);
+                        InventoryHelpAction(user);
                     }
                     break;
+                case CommandStrings.AutoTrashLong:
                 case CommandStrings.AutoTrash:
                     {
                         if (!int.TryParse(message.Trim(), out int rarity))
@@ -117,6 +144,53 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         InventoryAutoTrashAction(user, rarity);
                         Respond(channel, $"Gatcha Autotrash Rarity set to: {rarity}. Items of this rarity or lower will be auto-converted to currency.", user);
+                    }
+                    break;
+                case CommandStrings.Upgrade:
+                    {
+                        // get user
+                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
+                        {
+                            return;
+                        }
+
+                        // determine which item is to be upgraded
+                        if (!Int32.TryParse(message, out int res))
+                        {
+                            return;
+                        }
+
+                        if (res < 1) return;
+                        if (res > card.MaxInventory) return;
+
+                        if (card.Inventory[res-1] == null)
+                        {
+                            return;
+                        }
+
+                        Socket sock = card.Inventory[res - 1];
+
+                        if (sock.SocketRarity >= sock.MaxRarity)
+                        {
+                            Respond(channel, $"Already Max Rarity.", card.Name);
+                            break;
+                        }
+
+                        // check if user has enough gold
+                        var costToLevel = Convert.ToInt32(sock.BaseLevelUpCost * (1.0 + (.2 * card.GetStat(StatTypes.Lvl))));
+                        if (card.GetStat(StatTypes.Gld) >= costToLevel && sock.SocketRarity < sock.MaxRarity)
+                        {
+                            // if user has enough gold, call item's upgrade
+                            string extraInfo = sock.LevelUp();
+                            card.Inventory[res - 1] = sock;
+                            card.SetStat(StatTypes.Gld, card.GetStat(StatTypes.Gld) - costToLevel);
+                            Data.DataDb.UpdateCard(card);
+                            Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "": "Gained " + extraInfo)}", card.Name);
+                        }
+                        else
+                        {
+                            Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade this item. [sub]([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})[/sub]", card.Name);
+                        }
                     }
                     break;
                 case CommandStrings.Trash:
@@ -144,6 +218,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         {
                             iVals.Add(val);
                         }
+                        else if (message.Equals("all", StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            InventoryTrashAction(user, null, channel);
+                            return;
+                        }
                         else
                         {
                             Respond(channel, "Please enter a valid number value.", user);
@@ -159,6 +238,17 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         public void InventoryTrashAction(string user, List<int> values, string channel)
         {
             RngGeneration.TryGetCard(user, out Cards.PlayerCard pc);
+
+            if (values == null)
+            {
+                values = new List<int>();
+
+                for (int i = 0; i <= pc.MaxInventory; i++)
+                {
+                    values.Add(i);
+                }
+            }
+
             values = values.OrderByDescending(x => x).ToList();
             int totalConvertedStardust = 0;
             int totalItemsRemoved = 0;
@@ -203,7 +293,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             Data.DataDb.UpdateCard(pc);
 
             if (values.Count > 1)
-                Respond(channel, $"{pc.DisplayName}, you destroyed {totalItemsRemoved} item(s)" + $" ➤ [b][color=black][color=purple]{totalConvertedStardust}[/color][/color] Stardust", user);
+                Respond(channel, $"[/color]{pc.DisplayName}[color={BASE_COLOR}], you destroyed {totalItemsRemoved} item(s)" + $" ➤ [/color][b][color=black][color=purple]{totalConvertedStardust}[/color][/color] [color={BASE_COLOR}]Stardust", user);
         }
 
         public void InventoryAutoTrashAction(string user, int value)
@@ -219,7 +309,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
                 new Command(CommandStrings.AutoTrash, BotCommandRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
+                new Command(CommandStrings.AutoTrashLong, BotCommandRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
                 new Command(CommandStrings.Trash, BotCommandRestriction.Whisper, CommandSecurity.None, "converts an inventory item into stardust or gold"),
+                new Command(CommandStrings.Upgrade, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold"),
             };
         }
     }

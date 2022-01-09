@@ -46,14 +46,14 @@
                 pc.CompletedQuests.Add(QuestId);
             }
 
-            if (Rewards.Gold != 0) pc.SetStat(Enums.StatTypes.Gld, Rewards.Gold);
-            if (Rewards.Experience != 0) pc.AddStat(Enums.StatTypes.Exp, Rewards.Experience);
-            //if (Rewards.Progress != 0) pc.AddStat(Enums.StatTypes.Prg, Rewards.Progress);
+            if (Rewards.Gold != 0) pc.AddStat(Enums.StatTypes.Gld, Rewards.Gold, false, false, false);
+            if (Rewards.Experience != 0) pc.AddStat(Enums.StatTypes.Exp, Rewards.Experience, false, false, false);
+            if (Rewards.Progress != 0) pc.AddStat(Enums.StatTypes.Prg, Rewards.Progress, false, false, false);
 
-            if (Rewards.MonsterKills != 0) pc.AddStat(Enums.StatTypes.Kil, Rewards.MonsterKills);
-            if (Rewards.BossKills != 0) pc.AddStat(Enums.StatTypes.KiB, Rewards.BossKills);
+            if (Rewards.MonsterKills != 0) pc.AddStat(Enums.StatTypes.Kil, Rewards.MonsterKills, false, false, false);
+            if (Rewards.BossKills != 0) pc.AddStat(Enums.StatTypes.KiB, Rewards.BossKills, false, false, false);
 
-            if (Rewards.Stamina != 0) pc.AddStat(Enums.StatTypes.Sta, Rewards.Stamina);
+            if (Rewards.Stamina != 0) pc.AddStat(Enums.StatTypes.Sta, Rewards.Stamina, false, false, false);
         }
     }
 }

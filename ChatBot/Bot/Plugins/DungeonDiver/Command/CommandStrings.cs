@@ -26,6 +26,8 @@ namespace ChatBot.Bot.Plugins
         public const string Upgrade = "upgrade";
         public const string Set = "set";
         public const string Leaderboard = "lb";
+        public const string LeaderboardLong = "leaderboard";
+
         public const string AddFloor = "addfloor";
         public const string Deck = "deck";
 
@@ -38,20 +40,49 @@ namespace ChatBot.Bot.Plugins
         public const string Signature = "sig";
         public const string Nickname = "nick";
 
-        public const string JoinChannel = "joinchannel";
-        public const string LeaveChannel = "leavechannel";
+        public const string JoinChannel = "jc";
+        public const string JoinChannelLong = "joinchannel";
+
+        public const string LeaveChannel = "lc";
+        public const string LeaveChannelLong = "leavechannel";
+
         public const string AddTempOp = "addtop";
 
         public const string PlayingCards_NewGame = "new";
 
         public const string Roll = "roll";
-        public const string AutoTrash = "autotrash";
-        public const string Inventory = "box";
+        public const string AutoTrash = "at";
+        public const string AutoTrashLong = "autotrash";
+        public const string Box = "box";
         public const string Trash = "trash";
         public const string Equip = "equip";
         public const string Unequip = "unequip";
-        public const string Divefloor = "divefloor";
+        public const string Divefloor = "df";
+        public const string DivefloorLong = "divefloor";
+
         public const string Status = "status";
 
+        public const string RequestDuel = "rd";
+        public const string RequestDuelLong = "requestduel";
+        public const string AcceptDuel = "ad";
+        public const string AcceptDuelLong = "acceptduel";
+        public const string DenyDuel = "dd";
+        public const string DenyDuelLong = "denyduel";
+        public const string CancelDuel = "cd";
+        public const string CancelDuelLong = "cancelduel";
+        public const string StartDuel = "sd";
+        public const string StartDuelLong = "startduel";
+
+        public const string Bully = "bully";
+        public const string Submit = "submit";
+        public const string Fight = "fight";
+
+        public const string Focus = "focus";
+
+        public const string MoreHelp = "mh";
+        public const string MoreHelpLong = "morehelp";
+        public const string Verbose = "verbose";
+        public const string StardustCooldown = "bcs";
+        public const string Reset = "reset";
     }
 }

@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
+using System.Timers;
+using System.IO;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Data
 {
@@ -19,52 +21,131 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         static readonly string floorTable = "Floors";
         static readonly string blurbTable = "TextBlurbs";
 
+        /// <summary>
+        /// db name
+        /// </summary>
+        static readonly string databaseName = "GatchaGame.db";
+        static readonly string datetimeArg = "{DTN}";
+        static readonly string nameSplitArg = ".bak";
+        static readonly string datetimeSaveTemplate = "yyyy-dd-M--HH-mm-ss";
+
+        /// <summary>
+        /// backup variables
+        /// </summary>
+        static readonly string backupNameArg = $"{databaseName}{nameSplitArg}{datetimeArg}";
+        static readonly int backupMaxCount = 500;
+        static readonly TimeSpan backupInterval = new TimeSpan(1, 0, 0);
+        static readonly string backupFolderPath = @"..\..\Databases\Backups\";
+        static Timer backupTimer;
+
+        /// <summary>
+        /// threading locker
+        /// </summary>
+        static readonly object threadLock = new object();
 
         /// <summary>
         /// database location
         /// </summary>
 #if DEBUG
-        static readonly string connString = @"Data Source = ..\..\Databases\Debug\GatchaGame.db; Version=3;";
+        static readonly string connectionPath = @"..\..\Databases\Debug\";
+        static readonly string connString = @"Data Source = " + connectionPath + databaseName + @"; Version=3;";
 #else
-        static readonly string connString = @"Data Source = ..\..\Databases\Release\GatchaGame.db; Version=3;";
+        static readonly string connectionPath = @"..\..\Databases\Release\";
+        static readonly string connString = @"Data Source = " + connectionPath + databaseName + @"; Version=3;";
 #endif
+
+        private static void CheckAndStartTimer()
+        {
+            if (backupTimer == null)
+                backupTimer = new Timer();
+
+            if (backupTimer.Enabled)
+                return;
+
+            backupTimer = new Timer(backupInterval.TotalMilliseconds);
+            backupTimer.Elapsed += BackupTimer_Elapsed;
+            backupTimer.Enabled = true;
+
+            TimerStuffInternal();
+
+            backupTimer.Start();
+        }
+
+        private static void TimerStuffInternal()
+        {
+            string basePath = AppDomain.CurrentDomain.BaseDirectory;
+
+
+            // check for cleanup
+            if (!Directory.Exists(basePath + backupFolderPath))
+                Directory.CreateDirectory(basePath + backupFolderPath);
+
+            var tbf = Directory.GetFiles(basePath + backupFolderPath);
+            List<string> backupFiles = new List<string>();
+            foreach (var v in tbf)
+            {
+                if (Path.GetFileName(v).StartsWith($"{databaseName}{nameSplitArg}"))
+                {
+                    backupFiles.Add(v);
+                }
+            }
+            if (backupFiles.Count >= backupMaxCount)
+            {
+                backupFiles = backupFiles.OrderBy(x => File.GetCreationTime(x).Ticks).ToList();
+                File.Delete(backupFiles.First());
+            }
+
+            // create backup
+            File.Copy(basePath + connectionPath + databaseName, basePath + backupFolderPath + backupNameArg.Replace(datetimeArg, DateTime.Now.ToString(datetimeSaveTemplate)));
+        }
+
+        private static void BackupTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            TimerStuffInternal();
+        }
+
         /// <summary>
         /// returns cards of all current players
         /// </summary>
         /// <returns>list of cards</returns>
         public static List<Cards.PlayerCard> GetAllCards()
         {
-            List<Cards.PlayerCard> toReturn = new List<Cards.PlayerCard>();
-
-            try
+            lock(threadLock)
             {
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                List<Cards.PlayerCard> toReturn = new List<Cards.PlayerCard>();
+
+                try
                 {
-                    connection.Open();
-                    string sql = $"SELECT * FROM {playerTable};";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        connection.Open();
+                        string sql = $"SELECT * FROM {playerTable};";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                         {
-                            while (reader.Read())
+                            using (SQLiteDataReader reader = command.ExecuteReader())
                             {
+                                while (reader.Read())
+                                {
 
-                                Cards.PlayerCard card = JsonConvert.DeserializeObject<Cards.PlayerCard>(Convert.ToString(reader["data"]));
-                                card.SetStats(JsonConvert.DeserializeObject<BaseStats>(Convert.ToString(reader["stats"])));
+                                    Cards.PlayerCard card = JsonConvert.DeserializeObject<Cards.PlayerCard>(Convert.ToString(reader["data"]));
+                                    card.SetStats(JsonConvert.DeserializeObject<BaseStats>(Convert.ToString(reader["stats"])));
 
-                                toReturn.Add(card);
+                                    toReturn.Add(card);
+                                }
+                                reader.Close();
                             }
-                            reader.Close();
+                            command.Dispose();
                         }
-                        command.Dispose();
+                        connection.Close();
+                        return toReturn;
                     }
-                    connection.Close();
+                }
+                catch (Exception)
+                {
                     return toReturn;
                 }
-            }
-            catch (Exception)
-            {
-                return toReturn;
             }
         }
 
@@ -75,19 +156,24 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>true if successful</returns>
         public static bool DeleteCard(string user)
         {
-            int result = -1;
-            using (SQLiteConnection connection = new SQLiteConnection(connString))
+            lock(threadLock)
             {
-                connection.Open();
-                string sql = $"delete from {playerTable} WHERE name = '{user}'";
-                using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                CheckAndStartTimer();
+
+                int result = -1;
+                using (SQLiteConnection connection = new SQLiteConnection(connString))
                 {
-                    result = command.ExecuteNonQuery();
-                    command.Dispose();
+                    connection.Open();
+                    string sql = $"delete from {playerTable} WHERE name like '{user}'";
+                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    {
+                        result = command.ExecuteNonQuery();
+                        command.Dispose();
+                    }
+                    connection.Close();
                 }
-                connection.Close();
+                return result == 1;
             }
-            return result == 1;
         }
 
         private static List<Socket> ConvertJObjectToInventory(JArray jObj)
@@ -208,72 +294,97 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// </summary>
         /// <param name="pc">card of the user to update</param>
         /// <returns>true if successful</returns>
-        public static bool UpdateCard(Cards.PlayerCard pc)
+        public static bool UpdateCard(Cards.PlayerCard pc, bool ignoreNoEquipCheck = true)
         {
-            try
+            lock (threadLock)
             {
-                int result = -1;
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                try
                 {
-                    connection.Open();
-                    string sql = $"UPDATE {playerTable} SET data = @data, stats = @stats, box = @box, activesockets = @activesockets WHERE name = @name;";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    int result = -1;
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@box", ConvertInventoryToJObject(pc.Inventory).ToString()));
-                        pc.Inventory = new List<Socket>();
+                        connection.Open();
+                        string sql = $"UPDATE {playerTable} SET data = @data, stats = @stats, box = @box, activesockets = @activesockets WHERE name like @name;";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                        {
+                            command.Parameters.Add(new SQLiteParameter("@box", ConvertInventoryToJObject(pc.Inventory).ToString()));
+                            pc.Inventory = new List<Socket>();
 
-                        command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(pc.ActiveSockets).ToString()));
-                        pc.ActiveSockets = new List<Socket>();
+                            if (!ignoreNoEquipCheck && pc.ActiveSockets.Count < 1)
+                            {
+                                try
+                                {
+                                    throw new Exception();
+                                }
+                                catch(Exception e)
+                                {
+                                    Console.WriteLine($"wtf something emptied out {pc.Name}'s active sockets: {e.ToString()}");
+                                    return false;
+                                }
+                            }
+
+                            command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(pc.ActiveSockets).ToString()));
+                            pc.ActiveSockets = new List<Socket>();
 
 
-                        command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(pc.GetStats())));
-                        command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(pc)));
-                        command.Parameters.Add(new SQLiteParameter("@name", pc.Name));
-                        result = command.ExecuteNonQuery();
-                        command.Dispose();
+                            command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(pc.GetStats())));
+                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(pc)));
+                            command.Parameters.Add(new SQLiteParameter("@name", pc.Name));
+                            result = command.ExecuteNonQuery();
+                            command.Dispose();
+                        }
+                        connection.Close();
+                        return result == 1;
                     }
-                    connection.Close();
-                    return result == 1;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return false;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
+
         }
 
         public static List<string> GetBlurbs(BlurbTypes blurbType)
         {
-            List<string> toReturn = new List<string>();
-            try
+            lock (threadLock)
             {
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                List<string> toReturn = new List<string>();
+                try
                 {
-                    connection.Open();
-                    string sql = $"SELECT ALL Blurb FROM {blurbTable} WHERE BlurbType = @blurb;";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@blurb", (int)blurbType));
-                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        connection.Open();
+                        string sql = $"SELECT ALL Blurb FROM {blurbTable} WHERE BlurbType = @blurb;";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                         {
-                            while (reader.Read())
+                            command.Parameters.Add(new SQLiteParameter("@blurb", (int)blurbType));
+                            using (SQLiteDataReader reader = command.ExecuteReader())
                             {
-                                toReturn.Add(reader["blurb"].ToString());
+                                while (reader.Read())
+                                {
+                                    toReturn.Add(reader["blurb"].ToString());
+                                }
+                                reader.Close();
                             }
-                            reader.Close();
+                            command.Dispose();
                         }
-                        command.Dispose();
+                        connection.Close();
+                        return toReturn;
                     }
-                    connection.Close();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
                     return toReturn;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return toReturn;
-            }
+
         }
 
         /// <summary>
@@ -283,38 +394,44 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>card, if found</returns>
         public static Cards.PlayerCard GetCard(string user)
         {
-            Cards.PlayerCard toReturn = null;
-            try
+            lock (threadLock)
             {
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                Cards.PlayerCard toReturn = null;
+                try
                 {
-                    connection.Open();
-                    string sql = $"SELECT name, data, stats, box, activesockets FROM {playerTable} WHERE name = @name;";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@name", user));
-                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        connection.Open();
+                        string sql = $"SELECT name, data, stats, box, activesockets FROM {playerTable} WHERE name like @name;";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                         {
-                            while (reader.Read())
+                            command.Parameters.Add(new SQLiteParameter("@name", user));
+                            using (SQLiteDataReader reader = command.ExecuteReader())
                             {
-                                toReturn = JsonConvert.DeserializeObject<Cards.PlayerCard>(Convert.ToString(reader["data"]));
-                                toReturn.SetStats(JsonConvert.DeserializeObject<BaseStats>(Convert.ToString(reader["stats"])));
-                                toReturn.Inventory = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["box"])));
-                                toReturn.ActiveSockets = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["activesockets"])));
+                                while (reader.Read())
+                                {
+                                    toReturn = JsonConvert.DeserializeObject<Cards.PlayerCard>(Convert.ToString(reader["data"]));
+                                    toReturn.SetStats(JsonConvert.DeserializeObject<BaseStats>(Convert.ToString(reader["stats"])));
+                                    toReturn.Inventory = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["box"])));
+                                    toReturn.ActiveSockets = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["activesockets"])));
+                                }
+                                reader.Close();
                             }
-                            reader.Close();
+                            command.Dispose();
                         }
-                        command.Dispose();
+                        connection.Close();
+                        return toReturn;
                     }
-                    connection.Close();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
                     return toReturn;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return toReturn;
-            }
+
         }
 
         /// <summary>
@@ -324,35 +441,41 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>true if user exists</returns>
         public static bool UserExists(string user)
         {
-            int toReturn = -1;
-            try
+            lock (threadLock)
             {
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
-                {
-                    connection.Open();
-                    string sql = $"SELECT COUNT(name) AS Count FROM {playerTable} WHERE name = '{user}';";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
-                    {
-                        using (SQLiteDataReader reader = command.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                toReturn = Convert.ToInt32(reader["Count"]);
-                                break;
-                            }
-                            reader.Close();
-                        }
-                        command.Dispose();
-                    }
-                    connection.Close();
+                CheckAndStartTimer();
 
+                int toReturn = -1;
+                try
+                {
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
+                    {
+                        connection.Open();
+                        string sql = $"SELECT COUNT(name) AS Count FROM {playerTable} WHERE name like '{user}';";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                        {
+                            using (SQLiteDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    toReturn = Convert.ToInt32(reader["Count"]);
+                                    break;
+                                }
+                                reader.Close();
+                            }
+                            command.Dispose();
+                        }
+                        connection.Close();
+
+                    }
+                    return toReturn == 1;
                 }
-                return toReturn == 1;
+                catch (Exception)
+                {
+                    return toReturn == 1;
+                }
             }
-            catch (Exception)
-            {
-                return toReturn == 1;
-            }
+
         }
 
         /// <summary>
@@ -362,43 +485,49 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>treu if successful</returns>
         public static bool AddNewUser(Cards.PlayerCard pc)
         {
-            int toReturn = -1;
-            try
+            lock (threadLock)
             {
-                string query = $"INSERT INTO {playerTable} (name, data, stats, box, activesockets) VALUES (@name, @data, @stats, @box, @activesockets);";
+                CheckAndStartTimer();
 
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                int toReturn = -1;
+                try
                 {
-                    connection.Open();
-                    using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                    string query = $"INSERT INTO {playerTable} (name, data, stats, box, activesockets) VALUES (@name, @data, @stats, @box, @activesockets);";
+
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        command.CommandText = query;
-                        command.CommandType = System.Data.CommandType.Text;
-                        command.Parameters.Add(new SQLiteParameter("@box", ConvertInventoryToJObject(pc.Inventory)));
-                        pc.Inventory = new List<Socket>();
+                        connection.Open();
+                        using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                        {
+                            command.CommandText = query;
+                            command.CommandType = System.Data.CommandType.Text;
+                            command.Parameters.Add(new SQLiteParameter("@box", ConvertInventoryToJObject(pc.Inventory)));
+                            pc.Inventory = new List<Socket>();
 
-                        command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(pc.ActiveSockets)));
-                        pc.ActiveSockets = new List<Socket>();
+                            command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(pc.ActiveSockets)));
+                            pc.ActiveSockets = new List<Socket>();
 
-                        command.Parameters.Add(new SQLiteParameter("@name", pc.Name));
-                        command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(pc)));
-                        command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(pc.GetStats())));
-
-
+                            command.Parameters.Add(new SQLiteParameter("@name", pc.Name));
+                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(pc)));
+                            command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(pc.GetStats())));
 
 
-                        toReturn = command.ExecuteNonQuery();
-                        command.Dispose();
+
+
+                            toReturn = command.ExecuteNonQuery();
+                            command.Dispose();
+                        }
+                        connection.Close();
                     }
-                    connection.Close();
-                }
 
-                return toReturn == 1;
+                    return toReturn == 1;
+                }
+                catch (Exception)
+                {
+                    return toReturn == 1;
+                }
             }
-            catch (Exception)
-            {
-                return toReturn == 1;
-            }
+
         }
 
         ///////////////////////////////////////
@@ -410,29 +539,35 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>true if successful</returns>
         public static bool UpdateFloor(FloorCard fc)
         {
-            try
+            lock (threadLock)
             {
-                int result = -1;
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                try
                 {
-                    connection.Open();
-                    string sql = $"UPDATE {floorTable} SET data = @data WHERE level = @level;";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    int result = -1;
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(fc)));
-                        command.Parameters.Add(new SQLiteParameter("@level", fc.floor));
-                        result = command.ExecuteNonQuery();
-                        command.Dispose();
+                        connection.Open();
+                        string sql = $"UPDATE {floorTable} SET data = @data WHERE level = @level;";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                        {
+                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(fc)));
+                            command.Parameters.Add(new SQLiteParameter("@level", fc.floor));
+                            result = command.ExecuteNonQuery();
+                            command.Dispose();
+                        }
+                        connection.Close();
+                        return result == 1;
                     }
-                    connection.Close();
-                    return result == 1;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return false;
                 }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return false;
-            }
+
         }
 
         /// <summary>
@@ -442,31 +577,37 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>treu if successful</returns>
         public static bool AddNewFloor(FloorCard fc)
         {
-            int toReturn = -1;
-            try
+            lock (threadLock)
             {
-                string query = $"INSERT INTO {floorTable} (data) VALUES (@data);";
+                CheckAndStartTimer();
 
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                int toReturn = -1;
+                try
                 {
-                    connection.Open();
-                    using (SQLiteCommand command = new SQLiteCommand(query, connection))
-                    {
-                        command.CommandText = query;
-                        command.CommandType = System.Data.CommandType.Text;
-                        command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(fc)));
-                        toReturn = command.ExecuteNonQuery();
-                        command.Dispose();
-                    }
-                    connection.Close();
-                }
+                    string query = $"INSERT INTO {floorTable} (data) VALUES (@data);";
 
-                return toReturn == 1;
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
+                    {
+                        connection.Open();
+                        using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                        {
+                            command.CommandText = query;
+                            command.CommandType = System.Data.CommandType.Text;
+                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(fc)));
+                            toReturn = command.ExecuteNonQuery();
+                            command.Dispose();
+                        }
+                        connection.Close();
+                    }
+
+                    return toReturn == 1;
+                }
+                catch (Exception)
+                {
+                    return toReturn == 1;
+                }
             }
-            catch (Exception)
-            {
-                return toReturn == 1;
-            }
+
         }
 
         /// <summary>
@@ -475,35 +616,41 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         /// <returns>list of cards</returns>
         public static List<FloorCard> GetAllFloors()
         {
-            List<FloorCard> toReturn = new List<FloorCard>();
-
-            try
+            lock (threadLock)
             {
-                using (SQLiteConnection connection = new SQLiteConnection(connString))
+                CheckAndStartTimer();
+
+                List<FloorCard> toReturn = new List<FloorCard>();
+
+                try
                 {
-                    connection.Open();
-                    string sql = $"SELECT * FROM {floorTable};";
-                    using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
                     {
-                        using (SQLiteDataReader reader = command.ExecuteReader())
+                        connection.Open();
+                        string sql = $"SELECT * FROM {floorTable};";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                         {
-                            while (reader.Read())
+                            using (SQLiteDataReader reader = command.ExecuteReader())
                             {
-                                FloorCard card = JsonConvert.DeserializeObject<FloorCard>(Convert.ToString(reader["data"]));
-                                toReturn.Add(card);
+                                while (reader.Read())
+                                {
+                                    FloorCard card = JsonConvert.DeserializeObject<FloorCard>(Convert.ToString(reader["data"]));
+                                    toReturn.Add(card);
+                                }
+                                reader.Close();
                             }
-                            reader.Close();
+                            command.Dispose();
                         }
-                        command.Dispose();
+                        connection.Close();
+                        return toReturn.OrderBy(x => x.floor).ToList();
                     }
-                    connection.Close();
-                    return toReturn.OrderBy(x => x.floor).ToList();
+                }
+                catch (Exception)
+                {
+                    return toReturn;
                 }
             }
-            catch (Exception)
-            {
-                return toReturn;
-            }
+
         }
     }
 }

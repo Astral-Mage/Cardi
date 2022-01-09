@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Data;
+using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Quests;
 using System;
@@ -9,7 +10,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 {
     public partial class GatchaGame : PluginBase
     {
-        int BaseStaminaToDive = 45;
+        int REQUIRED_DIVE_STAMINA = 90;
+        //int BaseStaminaToDive = Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds);
 
         public void DiveAction(string channel, string user, string message)
         {
@@ -19,19 +21,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard pc))
                 return;
 
-            int curSta = (pc.GetStat(Enums.StatTypes.Sta) / 1200);
-            if ( curSta < BaseStaminaToDive)
+            //int artificalmax = 90;
+            //double pants = 90.0 / pc.GetStat(StatTypes.StM);
+            double whatever = XPMULT * pc.GetStat(StatTypes.Sta);
+
+            int curSta = (pc.GetStat(Enums.StatTypes.Sta));
+            if ( curSta < Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds))
             {
-                Respond(channel, $"You need [color=red]{curSta}[/color][b]/{BaseStaminaToDive}[/b] stamina to dive.", user);
+                Respond(channel, $"You need {Math.Round(whatever, 0)}/{Math.Floor(XPMULT * pc.GetStat(StatTypes.StM))} stamina to dive.", user);
                 return;
             }
 
-            int toAdd = pc.GetStat(Enums.StatTypes.Sta) - (45 * 1200);
-            if (toAdd > 108000)
-                toAdd = 108000;
+            int newStam = pc.GetStat(Enums.StatTypes.Sta) - Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds);
+            if (newStam < 0)
+                newStam = 0;
 
             // reduce the player's stamina
-            pc.SetStat(Enums.StatTypes.Sta, toAdd);
+            pc.SetStat(Enums.StatTypes.Sta, newStam);
 
             var floorData = Data.DataDb.GetAllFloors();
             int floorChoice = pc.GetStat(Enums.StatTypes.Dff);
@@ -59,6 +65,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             pc.CurrentVitality = pc.GetStat(Enums.StatTypes.Vit);
             diveResults.FloorCard = floorData.First(x => x.floor.Equals(floorChoice));
             string allResponseData = string.Empty;
+            string levelBlurb = string.Empty;
             int roomCount = 0;
             do
             {
@@ -73,7 +80,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 }
 
                 
-                allResponseData += "\\n" + $"Room {roomCount++}: " + responseData ?? string.Empty;
+                allResponseData += "\\n" + $"Room {roomCount++}:\\n" + responseData ?? string.Empty;
 
                 // check for level up here
                 int val1;
@@ -89,7 +96,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     {
                         // leveled up
                         diveResults.LevelUps++;
-                        pc.AddStat(Enums.StatTypes.Lvl, 1);
+                        levelBlurb = pc.LevelUp();
 
                     }
                 } while (val1 > val2);
@@ -108,10 +115,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
 
             // post results
-            ParseResultsAndReply(diveResults, channel, pc, hitQuests, includeFullClearBonus, allResponseData);
+            ParseResultsAndReply(diveResults, channel, pc, hitQuests, includeFullClearBonus, allResponseData, levelBlurb);
         }
 
-        public void ParseResultsAndReply(Core.Rooms.DiveResults results, string channel, Cards.PlayerCard pc, List<Quest> hitQuests, bool includeFullClearBonus = false, string extraResponseData = "")
+        public void ParseResultsAndReply(Core.Rooms.DiveResults results, string channel, Cards.PlayerCard pc, List<Quest> hitQuests, bool includeFullClearBonus = false, string extraResponseData = "", string levelBlurb = "")
         {
             var unpackedResults = results.CombinedRoomResults;
 
@@ -154,7 +161,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             var allblurbs = Data.DataDb.GetBlurbs(Enums.BlurbTypes.Defeated);
             string defeatedBlurb = allblurbs[RngGeneration.Rng.Next(allblurbs.Count)];
 
-            defeatedBlurb = defeatedBlurb.Replace("{enemies}", $"{totalKills}");
+            defeatedBlurb = defeatedBlurb.Replace("{enemies}", $"[color=red]{totalKills}[/color]");
 
             if (pc.ActiveSockets.Count(x => x.SocketType == Enums.SocketTypes.Weapon) > 0)
             {
@@ -183,17 +190,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 defeatedBlurb = defeatedBlurb.Replace("{passive}", $"Bashful Gaze");
             }
 
-            replyString += $"{pc.DisplayName}, you entered [b]{totalRoomsCleared}[/b] room(s) on floor [b]{results.FloorCard.floor}[/b]: {results.FloorCard.name}. {defeatedBlurb}. You gained " +
-                $"[color=yellow][b]{totalGoldGained}[/b][/color] gold, gained [color=purple][b]{totalStardustGained}[/b][/color] stardust, gained [color=green][b]{totalExpGained}[/b][/color] experience, contributed [color=blue][b]{totalProgressMade}[/b][/color] progress,";
-
-            if (totalLevelUps < 1)
-            {
-                replyString += $" and lasted [b][color=red]{totalRounds}[/color][/b] total rounds of combat.";
-            }
-            else
-            {
-                replyString += $" lasted {totalRounds} total rounds of combat, and leveled up {totalLevelUps} time(s)!";
-            }
+            replyString += $"{pc.DisplayName}, you entered [b]{totalRoomsCleared}[/b] room(s) on floor [b]{results.FloorCard.floor}[/b]: {results.FloorCard.name}. {defeatedBlurb}.";
 
             if (hitQuests.Count > 0)
             {
@@ -209,6 +206,19 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 }
             }
 
+            replyString += "[b]";
+            replyString += " You gained " +
+              $"[color=yellow][b]{totalGoldGained}[/b][/color] gold, gained [color=purple][b]{totalStardustGained}[/b][/color] stardust, gained [color=green][b]{totalExpGained}[/b][/color] experience, contributed [color=blue][b]{totalProgressMade}[/b][/color] progress,";
+
+            if (totalLevelUps < 1)
+            {
+                replyString += $" and lasted [b][color=red]{totalRounds}[/color][/b] total rounds of combat.";
+            }
+            else
+            {
+                replyString += $" lasted {totalRounds} total rounds of combat, and leveled up {totalLevelUps} time(s)!{(string.IsNullOrWhiteSpace(levelBlurb) ? "" : " " + levelBlurb)}";
+            }
+
             if (includeFullClearBonus)
             {
                 int bonus = RngGeneration.Rng.Next(2, 7);
@@ -220,28 +230,36 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         toAdd = 1;
                     if (bonus * .2 > 2)
                         toAdd = 2;
-                    pc.AddStat(Enums.StatTypes.Sds, toAdd);
+                    pc.AddStat(Enums.StatTypes.Sds, toAdd, false, false, false);
                 }
                 else if (lvlDiff > 2)
                 {
-                    pc.AddStat(Enums.StatTypes.Sds, (int)(bonus * .5));
+                    pc.AddStat(Enums.StatTypes.Sds, (int)(bonus * .5), false, false, false);
                     toAdd = (int)(bonus * .5);
                 }
                 else if (lvlDiff < -2)
                 {
-                    pc.AddStat(Enums.StatTypes.Sds, (int)(bonus * 1.5));
+                    pc.AddStat(Enums.StatTypes.Sds, (int)(bonus * 1.5), false, false, false);
                     toAdd = (int)(bonus * 1.5);
                 }
                 else
                 {
-                    pc.AddStat(Enums.StatTypes.Sds, bonus);
+                    pc.AddStat(Enums.StatTypes.Sds, bonus, false, false, false);
                     toAdd = bonus;
                 }
                 replyString += $" You fully cleared this wing and found [color=purple][b]{toAdd}[/b][/color] extra stardust along the way. ";
             }
 
-            //if (string.IsNullOrWhiteSpace(channel))
-            //    replyString += " [sub]" + extraResponseData + "[/sub]";
+            replyString += "[/b]";
+
+            if (pc.Verbose)
+            {
+                if (string.IsNullOrWhiteSpace(channel))
+                {
+                    replyString += " [sub]" + extraResponseData + "[/sub]";
+                }
+            }
+
 
             Data.DataDb.UpdateCard(pc);
 

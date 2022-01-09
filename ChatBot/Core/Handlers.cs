@@ -30,6 +30,11 @@ namespace ChatBot
             Bot.HandleMessage(e.channel, Utility.ReplaceFirst(e.message, command, "").TrimStart(), e.user, command.ToLowerInvariant(), isOp);
         }
 
+        static void ConnectedToChat(object sender, ChannelEventArgs e)
+        {
+
+        }
+
         /// <summary>
         /// We've joined a channel
         /// </summary>
@@ -37,6 +42,15 @@ namespace ChatBot
         /// <param name="e">our event args</param>
         static void HandleJoinedChannel(object sender, ChannelEventArgs e)
         {
+            if (e.userJoining.Equals(CharacterName))
+                Chat.SetStatus(ChatStatus.DND, $"[session={e.name}]{(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code)}[/session] [color=pink]DM me with {CommandChar}{"help"} to get started![/color]", CharacterName);
+
+        }
+
+        static void HandleCreatedChannel(object sender, ChannelEventArgs e)
+        {
+            //Chat.Mod_InviteUserToChannel("Astral Mage", e.code);
+            //Chat.SetStatus(ChatStatus.DND, $"[session={e.name}]{(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code)}[/session] [color=green]Welcome to the testing grounds.[/color]", CharacterName);
 
         }
 
@@ -57,7 +71,29 @@ namespace ChatBot
         /// <param name="e">our event args</param>
         static void HandlePrivateChannelsReceived(object sender, ChannelEventArgs e)
         {
+            var privateChannels = Chat.RequestChannelList(ChannelType.Private);
+
             // check and join starting channel here
+            if (privateChannels.Any(x => x.Code.Equals(StartingChannel, System.StringComparison.InvariantCultureIgnoreCase)))
+            {
+                Chat.JoinChannel(StartingChannel);
+            }
+            else if (privateChannels.Any(x => x.Name.Equals(StartingChannel, System.StringComparison.InvariantCultureIgnoreCase)))
+            {
+                Chat.JoinChannel(privateChannels.First(x => x.Name.Equals(StartingChannel, System.StringComparison.InvariantCultureIgnoreCase)).Code);
+            }
+
+#if DEBUG
+            //string roomname = "Aelia's Secret Testing Ground";
+            //if (!Chat.RequestChannelList(ChannelType.Private).Any(x => x.Code.Equals("adh-1a7c52c105ef5420b73b", System.StringComparison.InvariantCultureIgnoreCase)))
+            //{
+            //    Chat.CreateChannel(roomname);
+            //}
+            //else
+            //{
+            //    Chat.JoinChannel(roomname);
+            //}
+#endif
         }
 
         /// <summary>
@@ -67,8 +103,6 @@ namespace ChatBot
         /// <param name="e">our event args</param>
         static void HandlePublicChannelsReceived(object sender, ChannelEventArgs e)
         {
-            // check and join starting channel here
-
         }
     }
 }
