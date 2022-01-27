@@ -7,7 +7,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 {
     public partial class GatchaGame : PluginBase
     {
-        int COST_TO_ROLL = 10;
+        int COST_TO_ROLL = 0;
 
         public void RollAction(int rollCount, string user, string channel)
         {
@@ -48,7 +48,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 starDust -= COST_TO_ROLL;
 
                 Socket generatedItem;
-                int valRolled = -1;
+                int valRolled;
                 int idk = RngGeneration.Rng.Next(0, 3);
                 SocketTypes st = (SocketTypes)idk;
                 switch (st)
@@ -58,17 +58,17 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         {
                             if (st == SocketTypes.Weapon)
                             {
-                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Weapon, 1);
+                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Weapon);
                             }
                             else
                             {
-                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Armor, 1);
+                                generatedItem = RngGeneration.GenerateRandomEquipment(out valRolled, EquipmentTypes.Armor);
                             }
                         }
                         break;
                     case SocketTypes.Passive:
                         {
-                            generatedItem = RngGeneration.GenerateRandomPassive(out valRolled, 1);
+                            generatedItem = RngGeneration.GenerateRandomPassive(out valRolled);
                         }
                         break;
                     default:
@@ -97,7 +97,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
             pc.SetStat(StatTypes.Sds, starDust);
             Data.DataDb.UpdateCard(pc);
-            Respond(string.Empty, replyString, user);
+            Respond(channel, replyString, user);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             List<EnemyCard> Enemies = new List<EnemyCard>();
             Enemies = RngGeneration.GenerateEnemyCluster(fc, pc);
             responseExtra = string.Empty;
-            responseExtra += $"NumEn: {Enemies.Count}";
+            responseExtra += $"NumEn: {Enemies.Count} ";
             DateTime now = DateTime.Now;
 
             // order us for combat

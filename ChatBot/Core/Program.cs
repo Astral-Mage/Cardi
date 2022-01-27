@@ -58,7 +58,7 @@ namespace ChatBot
         /// <summary>
         /// A collection of any failed cli args in validation check
         /// </summary>
-        static List<string> FailedCliArgs = new List<string>();
+        static readonly List<string> FailedCliArgs = new List<string>();
 
         /// <summary>
         /// The bot's character name
@@ -310,8 +310,8 @@ namespace ChatBot
             {
                 Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
                 RngGeneration.GenerateNewCharacterStats(pc);
-                pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 4), false, false, false);
-                pc.AddStat(StatTypes.Gld, card.level * 3, false, false, false);
+                pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 10), false, false, false);
+                pc.AddStat(StatTypes.Gld, card.level * 5, false, false, false);
 
                 pc.Name = card.name;
                 pc.DisplayName = card.nickname;
@@ -352,7 +352,6 @@ namespace ChatBot
                 {
                     pc.BoonsEarned.Add(BoonTypes.Empowerment);
                     pc.CompletedQuests.Add(3302);
-                    pc.CompletedQuests.Add(3301);
                 }
 
 
@@ -362,22 +361,22 @@ namespace ChatBot
                 };
 
                 // check for level up here
-                //int val1;
-                //int curlvl;
-                //int val2;
-                //do
-                //{
-                //    // -150 + 300x^1.8
-                //    val1 = pc.GetStat(StatTypes.Exp);
-                //    curlvl = pc.GetStat(StatTypes.Lvl);
-                //    val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
-                //    if (val1 > val2)
-                //    {
-                //        // leveled up
-                //        pc.LevelUp();
-                //
-                //    }
-                //} while (val1 > val2);
+                int val1;
+                int curlvl;
+                int val2;
+                do
+                {
+                    // -150 + 300x^1.8
+                    val1 = pc.GetStat(StatTypes.Exp);
+                    curlvl = pc.GetStat(StatTypes.Lvl);
+                    val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
+                    if (val1 > val2)
+                    {
+                        // leveled up
+                        pc.LevelUp();
+                
+                    }
+                } while (val1 > val2);
 
                 DataDb.AddNewUser(pc);
             }

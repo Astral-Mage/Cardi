@@ -23,6 +23,17 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         /// </summary>
         public EncounterTracker encounterTracker = new EncounterTracker();
 
+        public bool HandleNonCommand(string channel, string user, string message)
+        {
+            if (message.Split(' ').ToList().Any(x => x.StartsWith(CommandChar) && x.StripPunctuation().Equals($"{CommandStrings.Card}", StringComparison.OrdinalIgnoreCase)))
+            {
+                SmallCardAction(channel, message, user);
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// handles all received messages, parsing them where appropriate
         /// </summary>
@@ -60,6 +71,79 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         }
 
         /// <summary>
+        /// returns a small card.
+        /// </summary>
+        /// <param name="channel">origin channel</param>
+        /// <param name="message">original message</param>
+        /// <param name="user">sending user</param>
+        /// <param name="showsig">whether to show the signature or not</param>
+        public void SmallCardAction(string channel, string message, string user)
+        {
+            if (!Data.DataDb.UserExists(user))
+                return;
+
+            Cards.PlayerCard pc = null;
+
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                if (!RngGeneration.TryGetCard(message, out Cards.PlayerCard tempCard))
+                {
+                    RngGeneration.TryGetCard(user, out tempCard);
+                    pc = tempCard;
+                }
+                else
+                {
+                    pc = tempCard;
+                }
+            }
+            else
+            {
+                RngGeneration.TryGetCard(user, out pc);
+            }
+
+            if (pc == null)
+            {
+                Respond(channel, "Invalid character name.", user);
+                return;
+            }
+
+            // display card
+            string cardStr = string.Empty;
+
+            string displayname = (string.IsNullOrWhiteSpace(pc.DisplayName)) ? pc.Name : pc.DisplayName;
+            string species = (string.IsNullOrWhiteSpace(pc.SpeciesDisplayName)) ? ((SpeciesTypes)pc.GetStat(StatTypes.Sps)).GetDescription() : pc.SpeciesDisplayName;
+            string cClass = (string.IsNullOrWhiteSpace(pc.ClassDisplayName)) ? ((ClassTypes)pc.GetStat(StatTypes.Cs1)).GetDescription() : pc.ClassDisplayName;
+
+            //int artificalmax = 90;
+            //double pants = 90.0 / pc.GetStat(StatTypes.StM);
+            double whatever = XPMULT * pc.GetStat(StatTypes.Sta);
+
+            cardStr += $"[b]Lvl: [/b]{pc.GetStat(StatTypes.Lvl)} | [b]Name: [/b]{displayname} | [b]Species: [/b]{species} | [b]Class: [/b]{cClass} | ";
+
+            string boonAddition = (pc.BoonsEarned.Contains(BoonTypes.Sharpness)) ? $"[color=cyan]◉[/color]" : $"[color=white]•[/color]";
+            if (pc.ActiveSockets.Count(x => x.SocketType == SocketTypes.Weapon) > 0)
+            {
+                foreach (var v in pc.ActiveSockets.Where(x => x.SocketType == SocketTypes.Weapon))
+                {
+                    cardStr += $"{boonAddition} ";
+                    cardStr += $"{v.GetRarityString()} {v.GetName()}";
+                }
+            }
+            else
+            {
+                cardStr += $"{boonAddition} ";
+                cardStr += "Bare Hands";
+            }
+
+            if (!string.IsNullOrWhiteSpace(pc.Signature))
+            {
+                cardStr += $"\\n                      {pc.Signature}";
+            }
+
+            Respond(channel, cardStr, user);
+        }
+
+        /// <summary>
         /// creates a list of valid commands for this plugin
         /// </summary>
         /// <returns></returns>
@@ -77,6 +161,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 new Command(CommandStrings.Set, BotCommandRestriction.Both, CommandSecurity.None, "handles various set commands", "help"),
                 new Command(CommandStrings.Box, BotCommandRestriction.Both, CommandSecurity.None, "handles various inventory commands", "help"),
                 new Command(CommandStrings.Card, BotCommandRestriction.Both, CommandSecurity.None, "displays details about the character"),
+                new Command(CommandStrings.Smite, BotCommandRestriction.Both, CommandSecurity.Ops, "displays short details about the character"),
+
                 new Command(CommandStrings.Upgrade, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold", "help"),
 
                 new Command(CommandStrings.Equip, BotCommandRestriction.Both, CommandSecurity.None, "equips items"),
@@ -114,6 +200,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 case CommandStrings.BaseCooldown:
                     {
+                        if (!isOp)
+                            return true;
+
                         if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
                         {
                             break;
@@ -122,8 +211,25 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         BaseCooldownAction(channel, message, card);
                     }
                     break;
+                case CommandStrings.Smite:
+                    {
+                        if (!isOp)
+                            return true;
+
+                        if (!RngGeneration.TryGetCard(message, out Cards.PlayerCard card))
+                        {
+                            break;
+                        }
+
+                        Data.DataDb.DeleteCard(card.Name);
+                        Respond(channel, $"{card.DisplayName} has been smote.", user);
+                    }
+                    break;
                 case CommandStrings.StardustCooldown:
                     {
+                        if (!isOp)
+                            return true;
+
                         if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
                         {
                             break;
@@ -134,10 +240,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Reset:
                     {
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
+                        if (!RngGeneration.TryGetCard(user, out _))
                         {
                             break;
                         }
+
+                        if (!isOp)
+                            return true;
 
                         //List<string> messageBroken = 
                         string cdTarget = message.Substring(message.Length - (LastUsedCooldownType.LastDive.GetDescription().ToString() + " ").Length).Replace(" ", "");
@@ -184,8 +293,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         if (!isOp)
                             return true;
 
-                        int result = -1;
-                        ChatStatus sta = ChatStatus.Online;
+                        int result;
+                        ChatStatus sta;
 
                         try
                         {
@@ -361,7 +470,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
 
                         ucard.Verbose = !ucard.Verbose;
-                        Respond(null, $"Combat verbosity changed to {(ucard.Verbose == true ? "[color=green]Enabled[/color]" : "[coplor=orange]Disabled[/color]")}. This only takes effect in whispers.", ucard.Name);
+                        Data.DataDb.UpdateCard(ucard);
+                        Respond(null, $"Combat verbosity changed to {(ucard.Verbose == true ? "[color=green]Enabled[/color]" : "[color=orange]Disabled[/color]")}. This only takes effect in whispers.", ucard.Name);
                     }
                     break;
                 case CommandStrings.Help:
@@ -397,7 +507,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Card:
                     {
-                        CardAction(channel, message, user);
+                        CardAction(null, message, user, true);
                     }
                     break;
                 case CommandStrings.Equip:
@@ -512,16 +622,16 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         {
                             break;
                         }
-                        
-                        if (string.IsNullOrWhiteSpace(channel))
-                        {
-                            break;
-                        }
 
                         if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
                         {
                             BullyHelpAction(user);
                             return true;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(channel))
+                        {
+                            break;
                         }
 
                         if (!Data.DataDb.UserExists(message))
@@ -538,7 +648,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if ((targetCard.LastTriggeredCds[LastUsedCooldownType.LastBullied] + targetCard.BaseCooldowns[PlayerActionTimeoutTypes.HasBeenBulliedCooldown]) > DateTime.Now)
                         {
-                            Respond(null, $"{targetCard.DisplayName} has been bullied too recently, {ucard.DisplayName}.", user);
+                            Respond(channel, $"{targetCard.DisplayName} has been bullied too recently, {ucard.DisplayName}.", user);
+                            break;
+                        }
+
+                        if (targetCard.Name == ucard.Name)
+                        {
+                            Respond(channel, $"If you want to bully yourself, {targetCard.DisplayName}, go find a sad anime to watch.", user);
                             break;
                         }
 
@@ -595,6 +711,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         // add the encounter
                         encounterTracker.AddEncounter(enc);
                         Data.DataDb.UpdateCard(ucard);
+                        Data.DataDb.UpdateCard(targetCard);
                         Respond(channel, $"{ucard.DisplayName} is attempting to bully you, {targetCard.DisplayName}! [sub][color=pink]You can submit by replying with: {CommandChar}{CommandStrings.Submit}[/color] | [color=red]You can fight back by replying with: {CommandChar}{CommandStrings.Fight}[/color][/sub]", string.Empty);
                     }
                     break;
@@ -609,7 +726,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         Cards.BaseCard enemyCard = null;
                         foreach (var v in encounterTracker.PendingEncounters)
                         {
-                            if (v.Value.Bullied.Equals(ucard))
+                            if (v.Value.Bullied.Name.Equals(ucard.Name))
                             {
                                 enc = v.Value;
                                 enemyCard = v.Value.Bully;
@@ -718,6 +835,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                             break;
                         }
 
+                        // refresh encounter cards
+                        var tec = (enemyCard as Cards.PlayerCard);
+                        RngGeneration.TryGetCard(enemyCard.Name, out tec);
+                        enc.Bully = tec;
+                        enc.Bullied = ucard;
+
                         // timeout stuff
                         DateTime timeoutTime = enc.CreationDate + enc.PrepTimeout;
                         DateTime rightNow = DateTime.Now;
@@ -727,8 +850,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                             // kill the encounter
                             encounterTracker.KillEncounter(enc);
                             ucard.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
-                            (enemyCard as Cards.PlayerCard).LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
-                            Data.DataDb.UpdateCard((enemyCard as Cards.PlayerCard));
+                            tec.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
+                            Data.DataDb.UpdateCard(tec);
                             Data.DataDb.UpdateCard(ucard);
                             break;
                         }
@@ -739,7 +862,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
 
                         // start fight here
-                        Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(ucard.DisplayName) ? ucard.Name : ucard.DisplayName)} and {enemyCard.DisplayName}! Check it out here ⇒", string.Empty);
+                        Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(ucard.DisplayName) ? ucard.Name : ucard.DisplayName)} and {tec.DisplayName}! Check it out here ⇒", string.Empty);
                         enc.StartASyncEncounter(Api, Api.GetChannelByNameOrCode(channel));
                     }
                     break;
@@ -1053,22 +1176,29 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             if (!Data.DataDb.UserExists(user))
                 return;
 
-            Cards.PlayerCard pc;
+            Cards.PlayerCard pc = null;
+
             if (!string.IsNullOrWhiteSpace(message))
             {
-                if (!RngGeneration.TryGetCard(message, out pc))
+                if (!RngGeneration.TryGetCard(message, out Cards.PlayerCard tempCard))
                 {
-                    Respond(channel, $"Invalid user specified.", user);
-                    return;
+                    RngGeneration.TryGetCard(user, out tempCard);
+                    pc = tempCard;
                 }
                 else
                 {
-                    RngGeneration.TryGetCard(user, out pc);
+                    pc = tempCard;
                 }
             }
             else
             {
                 RngGeneration.TryGetCard(user, out pc);
+            }
+
+            if (pc == null)
+            {
+                Respond(channel, "Invalid character name.", user);
+                return;
             }
 
             // display card
@@ -1115,7 +1245,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 foreach (var v in pc.ActiveSockets.Where(x => x.SocketType == SocketTypes.Armor))
                 {
                     cardStr += $"\\n                      {boonAddition} ";
-                    cardStr += $"{v.GetRarityString()} {v.GetName()}";
+                    cardStr += $"{v.GetRarityString()} {v.GetName()} {v.GetShortDescription()}";
                 }
             }
             else
@@ -1131,7 +1261,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 foreach (var v in pc.ActiveSockets.Where(x => x.SocketType == SocketTypes.Passive))
                 {
                     cardStr += $"\\n                      {boonAddition} ";
-                    cardStr += $"{v.GetRarityString()} {v.GetName()}";
+                    cardStr += $"{v.GetRarityString()} {v.GetName()} {v.GetShortDescription()}";
                 }
             }
             else
@@ -1202,10 +1332,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         /// <param name="channel">source channel</param>
         /// <param name="user">source user</param>
         /// <param name="message">message the user sent</param>
-        public void HandleNonCommand(string channel, string user, string message)
-        {
-
-        }
+        //public void HandleNonCommand(string channel, string user, string message)
+        //{
+        //
+        //}
 
         /// <summary>
         /// replies via the f-list api

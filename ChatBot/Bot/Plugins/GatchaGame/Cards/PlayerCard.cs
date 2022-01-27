@@ -101,28 +101,28 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
 
         public override string LevelUp()
         {
-            double levelMult = .1;
-            double focusMult = .15;
+            double levelMult = 0;
+            double focusMult = 0;
             List<KeyValuePair<StatTypes, double>> levelOutputs = new List<KeyValuePair<StatTypes, double>>();
 
             AddStat(StatTypes.Lvl, 1, false, false, false);
 
 
-            levelOutputs.Add(LevelUpStat(StatTypes.Vit, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Atk, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Dmg, levelMult));
+            levelOutputs.Add(LevelUpStat(StatTypes.Vit, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Atk, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Dmg, levelMult, true, RngGeneration.Rng.Next(1, 5)));
 
-            levelOutputs.Add(LevelUpStat(StatTypes.Mdf, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Pdf, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Con, levelMult));
+            levelOutputs.Add(LevelUpStat(StatTypes.Mdf, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Pdf, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Con, levelMult, true, RngGeneration.Rng.Next(1, 5)));
 
-            levelOutputs.Add(LevelUpStat(StatTypes.Spd, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Crt, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Int, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Dex, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Crc, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Ats, levelMult));
-            levelOutputs.Add(LevelUpStat(StatTypes.Eva, levelMult));
+            levelOutputs.Add(LevelUpStat(StatTypes.Spd, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Crt, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Int, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Dex, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Crc, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Ats, levelMult, true, RngGeneration.Rng.Next(1, 5)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Eva, levelMult, true, RngGeneration.Rng.Next(1, 5)));
 
             // focus stats
             StatTypes focStat;
@@ -134,11 +134,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             {
                 focStat = (StatTypes)GetStat(StatTypes.Foc);
             }
-            levelOutputs.Add(LevelUpStat(focStat, focusMult, true, RngGeneration.Rng.Next(2, 6)));
+            levelOutputs.Add(LevelUpStat(focStat, focusMult, true, RngGeneration.Rng.Next(3, 6)));
+
+            // vit boost
+            levelOutputs.Add(new KeyValuePair<StatTypes, double>(StatTypes.Vit, RngGeneration.Rng.Next(10, 16)));
 
             // random bonus stat
             focStat = RngGeneration.GetRandomFocusableStat();
-            levelOutputs.Add(LevelUpStat(focStat, focusMult, true));
+            levelOutputs.Add(LevelUpStat(focStat, focusMult, true, RngGeneration.Rng.Next(2, 6)));
 
             // compose level-up string
             string levelOutput = string.Empty;

@@ -1,5 +1,10 @@
-﻿namespace ChatBot.Bot.Plugins.GatchaGame.Quests
+﻿using ChatBot.Bot.Plugins.GatchaGame.Cards.Stats;
+using System;
+using System.Collections.Generic;
+
+namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 {
+    [Serializable]
     public class Quest
     {
         public int QuestId { get; set; }
@@ -10,7 +15,7 @@
 
         public bool Repeatable { get; set; }
 
-        public int? PrerequisiteQuest { get; set; }
+        public List<int> PrerequisiteQuest { get; set; }
 
         public int DepthRequirement { get; set; }
 
@@ -46,14 +51,13 @@
                 pc.CompletedQuests.Add(QuestId);
             }
 
-            if (Rewards.Gold != 0) pc.AddStat(Enums.StatTypes.Gld, Rewards.Gold, false, false, false);
-            if (Rewards.Experience != 0) pc.AddStat(Enums.StatTypes.Exp, Rewards.Experience, false, false, false);
-            if (Rewards.Progress != 0) pc.AddStat(Enums.StatTypes.Prg, Rewards.Progress, false, false, false);
 
-            if (Rewards.MonsterKills != 0) pc.AddStat(Enums.StatTypes.Kil, Rewards.MonsterKills, false, false, false);
-            if (Rewards.BossKills != 0) pc.AddStat(Enums.StatTypes.KiB, Rewards.BossKills, false, false, false);
+            foreach (var v in Rewards.Stats.Stats)
+            {
+                if (Rewards.Stats.GetStat(v.Key) != 0)
+                    pc.AddStat(v.Key, v.Value, false, false, false);
 
-            if (Rewards.Stamina != 0) pc.AddStat(Enums.StatTypes.Sta, Rewards.Stamina, false, false, false);
+            }
         }
     }
 }

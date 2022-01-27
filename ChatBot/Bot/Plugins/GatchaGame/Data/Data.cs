@@ -9,16 +9,18 @@ using System.Data.SQLite;
 using System.Linq;
 using System.Timers;
 using System.IO;
+using ChatBot.Bot.Plugins.GatchaGame.Quests;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Data
 {
-    class DataDb
+    public static class DataDb
     {
         /// <summary>
         /// table name
         /// </summary>
         static readonly string playerTable = "Players";
         static readonly string floorTable = "Floors";
+        static readonly string questTable = "Quests";
         static readonly string blurbTable = "TextBlurbs";
 
         /// <summary>
@@ -326,9 +328,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                             }
 
                             command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(pc.ActiveSockets).ToString()));
-                            pc.ActiveSockets = new List<Socket>();
-
-
                             command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(pc.GetStats())));
                             command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(pc)));
                             command.Parameters.Add(new SQLiteParameter("@name", pc.Name));
@@ -336,8 +335,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                             command.Dispose();
                         }
                         connection.Close();
-                        return result == 1;
                     }
+                    return result == 1;
                 }
                 catch (Exception e)
                 {
@@ -607,7 +606,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                     return toReturn == 1;
                 }
             }
-
         }
 
         /// <summary>
@@ -643,6 +641,80 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                         }
                         connection.Close();
                         return toReturn.OrderBy(x => x.floor).ToList();
+                    }
+                }
+                catch (Exception)
+                {
+                    return toReturn;
+                }
+            }
+
+        }
+
+        public static bool AddNewQuest(Quest quest)
+        {
+            lock (threadLock)
+            {
+                CheckAndStartTimer();
+
+                int toReturn = -1;
+                try
+                {
+                    string query = $"INSERT INTO {questTable} (id, data) VALUES (@id, @data);";
+
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
+                    {
+                        connection.Open();
+                        using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                        {
+                            command.CommandText = query;
+                            command.CommandType = System.Data.CommandType.Text;
+                            command.Parameters.Add(new SQLiteParameter("@id", quest.QuestId));
+                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(quest)));
+                            toReturn = command.ExecuteNonQuery();
+                            command.Dispose();
+                        }
+                        connection.Close();
+                    }
+
+                    return toReturn == 1;
+                }
+                catch (Exception ex)
+                {
+                    return toReturn == 1;
+                }
+            }
+        }
+
+        public static List<Quest> LoadQuests()
+        {
+            lock (threadLock)
+            {
+                CheckAndStartTimer();
+
+                List<Quest> toReturn = new List<Quest>();
+
+                try
+                {
+                    using (SQLiteConnection connection = new SQLiteConnection(connString))
+                    {
+                        connection.Open();
+                        string sql = $"SELECT * FROM {questTable};";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                        {
+                            using (SQLiteDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    Quest quest = JsonConvert.DeserializeObject<Quest>(Convert.ToString(reader["data"]));
+                                    toReturn.Add(quest);
+                                }
+                                reader.Close();
+                            }
+                            command.Dispose();
+                        }
+                        connection.Close();
+                        return toReturn;
                     }
                 }
                 catch (Exception)

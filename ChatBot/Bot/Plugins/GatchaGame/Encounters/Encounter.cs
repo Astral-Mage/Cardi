@@ -170,7 +170,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
             {
                 StartEncounter();
                 Rounds++;
-                if (Rounds < 4)
+                if (Rounds < 2)
                 {
                     string outRes = string.Empty;
                     do
@@ -199,11 +199,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
                     lastEncounterResults = lastRes;
                 }
 
-                if (Rounds == 3)
+                if (Rounds == 1)
                 {
                     tPants?.Invoke();
                 }
-                else if (Rounds >= 4)
+                else if (Rounds >= 2)
                 {
                     lock (tLocker)
                     {
@@ -367,12 +367,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
             results = new EncounterResults();
             turncounter++;
             EncounterCard previousEc = null;
+
+            results.ResponseStr += $"Turn {turncounter}:\\n";
+
             foreach (var ec in orderedbyturns)
             {
                 /////////////
                 // setup step
                 /////////////
-                results.ResponseStr += $"Turn {turncounter}:\\n";
                 if (previousEc != ec)
                 {
                     if (ec.Participant.Status == CharacterStatusTypes.Alive)
@@ -423,23 +425,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
                 ////////////////
                 EncounterCard ce = availableEnemies[RngGeneration.Rng.Next(0, availableEnemies.Count - 1)];
                 BaseCard currentEnemy = ce.Participant;
-                int critChance = (int)Math.Sqrt(.5 * combatant.GetStat(Enums.StatTypes.Crc));
-                int critDmgMultiplier = (int)(20 + (0.1 * combatant.GetStat(Enums.StatTypes.Crt)));
-                int hitChance = (combatant.CardType == Enums.CardTypes.PlayerCard ? 70 : 65) + (int)(.5 * Math.Sqrt(combatant.GetStat(Enums.StatTypes.Atk)));
-                int baseDmg = combatant.GetStat(Enums.StatTypes.Dmg);
+                int critChance = (int)Math.Sqrt(.5 * combatant.GetStat(StatTypes.Crc));
+                int critDmgMultiplier = (int)(20 + (0.1 * combatant.GetStat(StatTypes.Crt)));
+                int hitChance = 80 + (int)(.5 * Math.Sqrt(combatant.GetStat(StatTypes.Atk)));
+                int baseDmg = combatant.GetStat(StatTypes.Dmg);
                 bool isMagical = false;
 
-                if (combatant.ActiveSockets.Count(x => x.SocketType == Enums.SocketTypes.Weapon) == 1)
+                if (combatant.ActiveSockets.Count(x => x.SocketType == SocketTypes.Weapon) == 1)
                 {
-                    WeaponSocket ws = (WeaponSocket)combatant.ActiveSockets.First(x => x.SocketType == Enums.SocketTypes.Weapon);
-                    if (ws.DamageType == Enums.DamageTypes.Physical)
+                    WeaponSocket ws = (WeaponSocket)combatant.ActiveSockets.First(x => x.SocketType == SocketTypes.Weapon);
+                    if (ws.DamageType == DamageTypes.Physical)
                     {
-                        baseDmg = (int)(baseDmg * (1 + (.1 * Math.Sqrt(.2 * combatant.GetStat(Enums.StatTypes.Dex)))));
+                        baseDmg = (int)(baseDmg * (1 + (.1 * Math.Sqrt(.2 * combatant.GetStat(StatTypes.Dex)))));
                     }
                     else
                     {
                         isMagical = true;
-                        double multiplier = 1 + (.1 * Math.Sqrt(.1 * combatant.GetStat(Enums.StatTypes.Int)));
+                        double multiplier = 1 + (.1 * Math.Sqrt(.1 * combatant.GetStat(StatTypes.Int)));
                         baseDmg = (int)(baseDmg * multiplier);
                     }
 
@@ -461,25 +463,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
 
 
                 // spread
-                int spread = 10 - (int)Math.Sqrt(.3 * (combatant.GetStat(Enums.StatTypes.Ats)));
+                int spread = 10 - (int)Math.Sqrt(.3 * (combatant.GetStat(StatTypes.Ats)));
                 if (spread < 0) spread = 0;
 
                 // determine dmg roll
-                //double lowrollpercent = (.1 - (spread * .001));
                 double mypercent = baseDmg * (spread * .01);
                 int lowRoll = Convert.ToInt32(baseDmg - mypercent);
                 if (lowRoll < 0) lowRoll = 0;
-                int highRoll = Convert.ToInt32(baseDmg + mypercent);
-                if (highRoll < 1) highRoll = 1;
+                int highRoll = baseDmg;
 
                 // roll for total dmg
                 int totalDmg = RngGeneration.Rng.Next(lowRoll, highRoll);
 
                 // add sharpness boon
-                if (combatant.BoonsEarned.Contains(Enums.BoonTypes.Sharpness)) totalDmg = Convert.ToInt32(totalDmg * 1.05);
+                if (combatant.BoonsEarned.Contains(BoonTypes.Sharpness)) totalDmg = Convert.ToInt32(totalDmg * 1.05);
 
                 // add resiliance boon
-                if (combatant.BoonsEarned.Contains(Enums.BoonTypes.Resiliance)) totalDmg = Convert.ToInt32(totalDmg * 1.05);
+                if (combatant.BoonsEarned.Contains(BoonTypes.Resiliance)) totalDmg = Convert.ToInt32(totalDmg * 1.05);
 
                 // check for crit and add crit dmg
                 if (RngGeneration.Rng.Next(101) < critChance)
@@ -489,9 +489,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
                 // defender step
                 ////////////////
                 int baseEvasion = 0 + (int)(.5 * Math.Sqrt(currentEnemy.GetStat(Enums.StatTypes.Eva)));
-                int mdf = currentEnemy.GetStat(Enums.StatTypes.Mdf);
-                int pdf = currentEnemy.GetStat(Enums.StatTypes.Pdf);
-                int baseDmgReduction = (int)(isMagical ? (0.3 * pdf) + mdf : (0.3 * mdf) + pdf) + (int)(currentEnemy.GetStat(Enums.StatTypes.Con) * 0.3);
+                int mdf = currentEnemy.GetStat(StatTypes.Mdf);
+                int pdf = currentEnemy.GetStat(StatTypes.Pdf);
+                int baseDmgReduction = (int)(isMagical ? (0.3 * pdf) + mdf : (0.3 * mdf) + pdf) + (int)(currentEnemy.GetStat(StatTypes.Con) * 0.3);
 
                 // add empowerment boon
                 if (currentEnemy.BoonsEarned.Contains(Enums.BoonTypes.Empowerment)) baseDmgReduction = Convert.ToInt32(totalDmg * 1.05);
@@ -515,20 +515,18 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
 
                     // level difference multiplier
                     double diff = 0;
-                    if (combatant.CardType == CardTypes.PlayerCard && currentEnemy.CardType == CardTypes.PlayerCard)
+                    if (combatant.CardType == CardTypes.PlayerCard)
                     {
                         diff = combatant.GetStat(StatTypes.Lvl) - currentEnemy.GetStat(StatTypes.Lvl);
                     }
 
-                    if (diff < 0)
-                    {
-                        if (diff < 5) diff = 5;
+                    if (diff < -5) diff = -5;
+                    if (diff > 5) diff = 5;
 
-                        diff *= -5;
-                        diff *= .01;
-                        val = Convert.ToInt32(val * diff);
-                        if (val < 1) val = 1;
-                    }
+                    diff *= 7;
+                    diff *= .01;
+                    val += Convert.ToInt32(val * diff);
+                    if (val < 1) val = 1;
 
                     // deal the damage
                     currentEnemy.CurrentVitality -= val;

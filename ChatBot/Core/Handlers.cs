@@ -12,7 +12,7 @@ namespace ChatBot
         /// <param name="e">our event args</param>
         static void HandleMessageReceived(object sender, MessageEventArgs e)
         {
-            bool isOp = Ops.Any(x => x.Equals(e.user));
+            bool isOp = Ops.Any(x => x.Equals(e.user, System.StringComparison.InvariantCultureIgnoreCase));
             string command = string.Empty;
             if (e.message.StartsWith(CommandChar))
             {

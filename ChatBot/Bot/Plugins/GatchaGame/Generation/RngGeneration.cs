@@ -11,7 +11,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
     {
         public readonly static Random Rng = new Random();
 
-        public const int BaseGatchaItemMaxClip = 20;
+        public const int BaseGatchaItemMaxClip = 42;
 
         public const double XPMULT = .00556;
 
@@ -19,7 +19,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
         {
             List<EnemyCard> toReturn = new List<EnemyCard>();
 
-            int numEnemies = Rng.Next(2, maxEnemies);
+            int numEnemies = Rng.Next(2, 1 + maxEnemies);
 
             for (int i = 0; i < numEnemies; i++)
             {
@@ -67,7 +67,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
 
         public static void GenerateEnemyLoot(FloorCard fc, Cards.PlayerCard pc, EnemyCard ec)
         {
-            ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(1, 6) * (1 + (.2 * fc.floor))), false, false, false);
+            ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(1, 5) * (1 + (.2 * fc.floor))), false, false, false);
 
             if (Rng.Next(4) == 0)
                 ec.AddStat(StatTypes.Sds, 1, false, false, false);
@@ -107,7 +107,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             BaseStats baseStats = new BaseStats();
 
             // random
-            baseStats.AddStat(StatTypes.Vit, Rng.Next(75, 87));
+            baseStats.AddStat(StatTypes.Vit, Rng.Next(125, 157));
 
             baseStats.AddStat(StatTypes.Atk, Rng.Next(3, 7));
             baseStats.AddStat(StatTypes.Dmg, Rng.Next(8, 11));
@@ -160,24 +160,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
         public static void GenerateEnemyStats(Cards.EnemyCard ec, int baseLevel, CardTypes type)
         {
             BaseStats baseStats = new BaseStats();
-            double valMult = .3;
             // random
-            baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor(Rng.Next(3, 6) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor(Rng.Next(1, 4) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor(Rng.Next(2, 7) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor(Rng.Next(1, 5) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(7, 20) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(12, 25) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Vit, Convert.ToInt32(Math.Floor(Rng.Next(32, 45) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Int, Convert.ToInt32(Math.Floor(Rng.Next(2, 5) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor(Rng.Next(2, 5) * (1 + (valMult * baseLevel)))));
+            baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor((double)Rng.Next(3, 6) * baseLevel)));
+            baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
+            baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
+            baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
+            baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
+            baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
+            baseStats.AddStat(StatTypes.Vit, Convert.ToInt32(Math.Floor(Rng.Next(50, 65) + (double)Rng.Next(6, 10) * baseLevel)));
+            baseStats.AddStat(StatTypes.Int, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 6) * baseLevel)));
+            baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
             baseStats.AddStat(StatTypes.Cs1, 0);
             baseStats.AddStat(StatTypes.Sps, 0);
-            baseStats.AddStat(StatTypes.Exp, Rng.Next(1, 5) * (int)(1.4 * baseLevel));
+            baseStats.AddStat(StatTypes.Exp, Rng.Next(1, 3) * baseLevel);
 
             // static
-            baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor(Rng.Next(0, 3) * (1 + (valMult * baseLevel)))));
-            baseStats.AddStat(StatTypes.Dmg, Convert.ToInt32(Math.Floor(Rng.Next(10, 20) * (1 + (valMult * baseLevel)))));
+            baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
+            baseStats.AddStat(StatTypes.Dmg, Convert.ToInt32(Math.Floor(Rng.Next(2, 6) + ((double)Rng.Next(3, 6) * baseLevel))));
 
             baseStats.AddStat(StatTypes.Lvl, baseLevel);
 
@@ -223,15 +222,17 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             PassiveSocket toReturn = new PassiveSocket();
             int roll = Rng.Next(1, BaseGatchaItemMaxClip);
             valRolled = roll;
-            int rarity = (int)Math.Pow(Math.Log10(0.3f * roll), 10) + 1;
+
+            int rarity = 1;
+            if (valRolled > 30)
+            {
+                rarity = 1 + (int)Math.Floor(.1 * Math.Pow((-30 + valRolled), 1.5));
+            }
 
             if (rarityOverride > 0) rarity = rarityOverride;
 
-            toReturn.SocketRarity = (RarityTypes)rarity;
+            toReturn.SocketRarity = 0;
             toReturn.SocketDescription = "";
-
-            int lowVal = (rarity * 5) + 20;
-            int highVal = (rarity * 5) + lowVal + 10;
 
             List<StatTypes> AvailableStats = new List<StatTypes>
             {
@@ -250,8 +251,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             };
             for (int x = 0; x < 2; x++)
             {
-                int lv = 10 + (int)(0.5f * rarity) * 2;
-                int hv = 10 + (int)(1.5f * rarity + 5) * 2;
+                int lv = 15 + (x * 10);
+                int hv = 20 + (x * 12);
 
                 var theStat = AvailableStats[Rng.Next(AvailableStats.Count)];
                 AvailableStats.Remove(theStat);
@@ -264,6 +265,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                 {
                     toReturn.StatModifiers.Add(theStat, value);
                 }
+            }
+
+            for (int x = 0; x < rarity; x++)
+            {
+                toReturn.LevelUp();
             }
 
             return toReturn;
@@ -279,11 +285,15 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             EquipmentSocket toReturn = ((typetouse == EquipmentTypes.Weapon) ? (EquipmentSocket)new WeaponSocket() : new ArmorSocket());
             int roll = Rng.Next(1, BaseGatchaItemMaxClip);
             valRolled = roll;
-            int rarity = (int)Math.Pow(Math.Log10(0.3f * roll), 10) + 1;
+            int rarity = 1;
+            if (valRolled > 30)
+            {
+                rarity = 1 + (int)Math.Floor(.1 * Math.Pow((-30 + valRolled), 1.5));
+            }
 
             if (rarityOverride > 0) rarity = rarityOverride;
 
-            toReturn.SocketRarity = (RarityTypes)rarity;
+            toReturn.SocketRarity = 0;
             toReturn.SocketDescription = "";
             toReturn.Prefix = EquipmentPrefixes.None;
             toReturn.Suffix = EquipmentSuffixes.None;
@@ -313,7 +323,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                             ws.DamageType = (DamageTypes)Rng.Next(1, Enum.GetNames(typeof(DamageTypes)).Length - 1);
                         }
 
-                        if (roll > BaseGatchaItemMaxClip - 5)
+                        if (valRolled > BaseGatchaItemMaxClip - 5)
                         {
                             if (ws.WeaponType == WeaponTypes.MagicBook || ws.WeaponType == WeaponTypes.Staff)
                             {
@@ -326,9 +336,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                         ws.WeaponType = (WeaponTypes)Rng.Next(0, Enum.GetNames(typeof(WeaponTypes)).Length);
                         ws.SecondaryDamageType = DamageTypes.None;
 
-                        int tRarity = rarity;
-                        int lowVal = (tRarity * 5)               + 20;
-                        int highVal = (tRarity * 5) + lowVal     + 10;
+                        int lowVal = 30;
+                        int highVal = 40;
 
                         ws.StatModifiers.Add(StatTypes.Dmg, Rng.Next(lowVal, highVal));
                         ws.SocketType = SocketTypes.Weapon;
@@ -348,9 +357,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                         ars.GearType = (ArmorTypes)Rng.Next(0, Enum.GetNames(typeof(ArmorTypes)).Length);
                         ars.SocketType = SocketTypes.Armor;
 
-                        int tRarity = rarity;
-                        int lowVal = (tRarity * 4) + 15;
-                        int highVal = (tRarity * 5) + lowVal + 10;
+                        int lowVal = 45;
+                        int highVal = 60;
 
 
                         if (Rng.Next(2) == 0) ars.StatModifiers.Add(StatTypes.Pdf, Rng.Next(lowVal, highVal));
@@ -373,32 +381,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                     break;
             }
 
-            int numBonuses = 1 + Convert.ToInt32(Math.Round((valRolled * .1), 0));
-            do
+            for (int x = 0; x < rarity; x++)
             {
-                if (toReturn is WeaponSocket && Rng.Next(100) < 20)
-                {
-                    (toReturn as WeaponSocket).SecondaryDamageType = (DamageTypes)Rng.Next(0, Enum.GetNames(typeof(DamageTypes)).Length - 1);
-                }
-                else
-                {
-                    int lv = 1 + (int)(0.5f * rarity);
-                    int hv = 1 + (int)(1.5f * rarity + 5);
-
-                    var theStat = AvailableStats[Rng.Next(AvailableStats.Count)];
-                    int value = Rng.Next(lv, hv);
-                    if (toReturn.StatModifiers.ContainsKey(theStat))
-                    {
-                        toReturn.StatModifiers[theStat] = toReturn.StatModifiers[theStat] + value;
-                    }
-                    else
-                    {
-                        toReturn.StatModifiers.Add(theStat, value);
-                    }
-                }
-
-                toReturn.Bonuses++;
-            } while (toReturn.Bonuses < numBonuses);
+                toReturn.LevelUp();
+            }
 
             return toReturn;
         }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
 {
     [Serializable]
-    public abstract class Socket
+    public class Socket
     {
         public RarityTypes SocketRarity;
         public SocketTypes SocketType;
@@ -29,9 +29,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
             return $"[color=cyan][{(int)SocketRarity}][/color][b][color={SocketRarityColor}]{SocketRaritySymbol}[/color][/b]";
         }
 
-        public abstract string GetShortDescription();
+        public virtual string GetShortDescription() { return string.Empty; }
 
-        public abstract string GetName();
+        public virtual string GetName() { return string.Empty; }
 
         public Socket()
         {
@@ -46,6 +46,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
             MaxRarity = RarityTypes.Thirty;
         }
 
-        public abstract string LevelUp();
+        public virtual string LevelUp() { return string.Empty; }
     }
 }

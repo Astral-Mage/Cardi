@@ -23,6 +23,7 @@ namespace ChatBot.Bot.Plugins
         public const string Gift = "gift";
         public const string Prog = "prog";
         public const string Card = "card";
+        public const string SmallCard = "c";
         public const string Upgrade = "upgrade";
         public const string Set = "set";
         public const string Leaderboard = "lb";

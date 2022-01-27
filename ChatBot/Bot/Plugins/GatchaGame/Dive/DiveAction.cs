@@ -10,7 +10,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 {
     public partial class GatchaGame : PluginBase
     {
-        int REQUIRED_DIVE_STAMINA = 90;
+        int REQUIRED_DIVE_STAMINA = 1;
         //int BaseStaminaToDive = Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds);
 
         public void DiveAction(string channel, string user, string message)
@@ -25,10 +25,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             //double pants = 90.0 / pc.GetStat(StatTypes.StM);
             double whatever = XPMULT * pc.GetStat(StatTypes.Sta);
 
-            int curSta = (pc.GetStat(Enums.StatTypes.Sta));
+            int curSta = (pc.GetStat(StatTypes.Sta));
             if ( curSta < Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds))
             {
-                Respond(channel, $"You need {Math.Round(whatever, 0)}/{Math.Floor(XPMULT * pc.GetStat(StatTypes.StM))} stamina to dive.", user);
+                Respond(channel, $"You need {Math.Round(whatever, 0)}/{Convert.ToInt32(XPMULT * new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds)} stamina to dive.", user);
                 return;
             }
 
@@ -39,9 +39,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             // reduce the player's stamina
             pc.SetStat(Enums.StatTypes.Sta, newStam);
 
-            var floorData = Data.DataDb.GetAllFloors();
-            int floorChoice = pc.GetStat(Enums.StatTypes.Dff);
-            int maxFloors = RngGeneration.Rng.Next(3, 8);
+            var floorData = DataDb.GetAllFloors();
+            int floorChoice = pc.GetStat(StatTypes.Dff);
+            int maxFloors = RngGeneration.Rng.Next(3, 14);
             int numFloors = 0;
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -62,7 +62,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             DateTime now = DateTime.Now;
 
             // start at full hp
-            pc.CurrentVitality = pc.GetStat(Enums.StatTypes.Vit);
+            pc.CurrentVitality = pc.GetStat(StatTypes.Vit);
+
+            if (44 < floorChoice) floorChoice = floorChoice = 44;
+
             diveResults.FloorCard = floorData.First(x => x.floor.Equals(floorChoice));
             string allResponseData = string.Empty;
             string levelBlurb = string.Empty;
@@ -73,8 +76,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 diveResults.CombinedRoomResults.Add(room.Execute(pc, diveResults.FloorCard, out string responseData));
                 numFloors++;
 
-                if (room.Enemies.Count(x => x.Status == Enums.CharacterStatusTypes.Alive) <= 0 &&
-                    room.Enemies.Count(x => x.Status == Enums.CharacterStatusTypes.Smug) <= 0)
+                if (room.Enemies.Count(x => x.Status == CharacterStatusTypes.Alive) <= 0 &&
+                    room.Enemies.Count(x => x.Status == CharacterStatusTypes.Smug) <= 0)
                 {
                     diveResults.ClearedFloors++;
                 }
@@ -89,8 +92,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 do
                 {
                     // -150 + 300x^1.8
-                    val1 = pc.GetStat(Enums.StatTypes.Exp);
-                    curlvl = pc.GetStat(Enums.StatTypes.Lvl);
+                    val1 = pc.GetStat(StatTypes.Exp);
+                    curlvl = pc.GetStat(StatTypes.Lvl);
                     val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
                     if (val1 > val2)
                     {
@@ -150,10 +153,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     if (quest.RewardERR == true)
                         continue;
 
-                    if (quest.Rewards.Gold != 0) totalGoldGained += quest.Rewards.Gold;
-                    if (quest.Rewards.Experience != 0) totalExpGained += quest.Rewards.Experience;
-                    if (quest.Rewards.MonsterKills != 0) totalKills += quest.Rewards.MonsterKills;
-                    if (quest.Rewards.BossKills != 0) totalBossKills += quest.Rewards.BossKills;
+                    if (quest.Rewards.Stats.GetStat(StatTypes.Gld) != 0) totalGoldGained += quest.Rewards.Stats.GetStat(StatTypes.Gld);
+                    if (quest.Rewards.Stats.GetStat(StatTypes.Exp) != 0) totalExpGained += quest.Rewards.Stats.GetStat(StatTypes.Exp);
+                    if (quest.Rewards.Stats.GetStat(StatTypes.Sds) != 0) totalStardustGained += quest.Rewards.Stats.GetStat(StatTypes.Sds);
+                    if (quest.Rewards.Stats.GetStat(StatTypes.Kil) != 0) totalKills += quest.Rewards.Stats.GetStat(StatTypes.Kil);
+                    if (quest.Rewards.Stats.GetStat(StatTypes.KiB) != 0) totalBossKills += quest.Rewards.Stats.GetStat(StatTypes.KiB);
                 }
             }
 
@@ -198,11 +202,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 {
                     if (quest.RewardERR == true)
                         continue;
+                    string QUEST_TEXT_COLOR = "yellow";
+                    replyString += $" [color={QUEST_TEXT_COLOR}]{quest.QuestText}[/color]".Replace("{boontype}", $"{((quest is BoonQuest) ? (quest as BoonQuest).BoonType.ToString() : "")}");
 
-                    replyString += " " + quest.QuestText
-                        .Replace("{gold}", $"{quest.Rewards.Gold}")
-                        .Replace("{boontype}", $"{((quest is BoonQuest) ? (quest as BoonQuest).BoonType.ToString() : "")}")
-                        .Replace("{gold}", $"{quest.Rewards.Gold}");
+                    foreach (var v in quest.Rewards.Stats.Stats)
+                    {
+                        replyString = replyString.Replace("{" + $"{v.Key.ToString().ToLowerInvariant()}" + "}", v.Value.ToString());
+                    }
                 }
             }
 

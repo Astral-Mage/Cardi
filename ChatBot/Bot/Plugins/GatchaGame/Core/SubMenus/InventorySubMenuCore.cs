@@ -26,7 +26,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 if (string.IsNullOrWhiteSpace(message))
                 {
-                    ShowInventoryAction(user, channel);
+                    ShowInventoryAction(user);
                     return;
                 }
 
@@ -54,7 +54,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             InventorySubMenu(GetInventorySubCommandList().First(x => x.command.Equals(cmd)), message, user, channel);
         }
 
-        public void ShowInventoryAction(string user, string channel)
+        public void ShowInventoryAction(string user)
         {
             RngGeneration.TryGetCard(user, out Cards.PlayerCard pc);
 
@@ -70,7 +70,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 replyString += $"        {i+1} ";
                 if (pc.Inventory.Count > i)
                 {
-                    string tName = string.Empty;
+                    string tName;
                     tName = pc.Inventory[i].GetName();
                     
 

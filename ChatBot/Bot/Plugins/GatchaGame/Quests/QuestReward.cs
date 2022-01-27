@@ -1,25 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using ChatBot.Bot.Plugins.GatchaGame.Cards.Stats;
+using System;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Quests
 {
+    [Serializable]
     public enum UniqueRewards
     {
         None,
         Boon,
     }
 
+    [Serializable]
     public class QuestReward
     {
-        public int Gold;
-        public int Experience;
-        public int Stamina;
-        public int Progress;
-        public int MonsterKills;
-        public int BossKills;
+        public BaseStats Stats { get; set; }
         public UniqueRewards OtherReward;
     }
 }
