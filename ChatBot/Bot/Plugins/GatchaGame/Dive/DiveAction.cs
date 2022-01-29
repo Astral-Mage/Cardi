@@ -153,11 +153,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     if (quest.RewardERR == true)
                         continue;
 
-                    if (quest.Rewards.Stats.GetStat(StatTypes.Gld) != 0) totalGoldGained += quest.Rewards.Stats.GetStat(StatTypes.Gld);
-                    if (quest.Rewards.Stats.GetStat(StatTypes.Exp) != 0) totalExpGained += quest.Rewards.Stats.GetStat(StatTypes.Exp);
-                    if (quest.Rewards.Stats.GetStat(StatTypes.Sds) != 0) totalStardustGained += quest.Rewards.Stats.GetStat(StatTypes.Sds);
-                    if (quest.Rewards.Stats.GetStat(StatTypes.Kil) != 0) totalKills += quest.Rewards.Stats.GetStat(StatTypes.Kil);
-                    if (quest.Rewards.Stats.GetStat(StatTypes.KiB) != 0) totalBossKills += quest.Rewards.Stats.GetStat(StatTypes.KiB);
+                    foreach (var v in quest.Rewards.Stats.Stats)
+                        if (quest.Rewards.Stats.GetStat(v.Key) != 0) totalGoldGained += quest.Rewards.Stats.GetStat(v.Key);
                 }
             }
 
@@ -203,7 +200,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     if (quest.RewardERR == true)
                         continue;
                     string QUEST_TEXT_COLOR = "yellow";
-                    replyString += $" [color={QUEST_TEXT_COLOR}]{quest.QuestText}[/color]".Replace("{boontype}", $"{((quest is BoonQuest) ? (quest as BoonQuest).BoonType.ToString() : "")}");
+                    replyString += $" [color={QUEST_TEXT_COLOR}]{quest.QuestText}[/color]".Replace("{boontype}", $"{((quest.Rewards.OtherReward == UniqueRewards.Boon) ? (quest as BoonQuest).BoonType.ToString() : "")}");
 
                     foreach (var v in quest.Rewards.Stats.Stats)
                     {
@@ -227,7 +224,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (includeFullClearBonus)
             {
-                int bonus = RngGeneration.Rng.Next(2, 7);
+                int bonus = RngGeneration.Rng.Next(6, 14);
                 int toAdd = 1;
                 int lvlDiff = (pc.GetStat(Enums.StatTypes.Lvl) - totalLevelUps) - results.FloorCard.floor;
                 if (lvlDiff > 5)

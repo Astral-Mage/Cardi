@@ -24,28 +24,28 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
         /// </summary>
         static QuestManager()
         {
+            MasterQuestBook = Data.DataDb.LoadQuests();
             //MasterQuestBook.Add(new Quest()
             //{
-            //    QuestName = "Ravaged by the Dungeon",
-            //    QuestId = 7000,
+            //    QuestName = "Discarded Coin Pouch",
+            //    QuestId = 1034,
             //    TriggerFloors = new int[] { },
             //    LevelRequirement = 0,
             //    PrerequisiteQuest = null,
             //    DepthRequirement = 0,
             //    Repeatable = true,
-            //    QuestText = "On your way back out of The Dungeon, you're ambushed by a group of monsters, who quickly overpower you. You're violated and molested in every way imaginable, your body betraying you with back-to-back orgasms. They leave as suddenly as they appeared, giving you nothing to show for your trauma. When you finally recover, you feel a little tougher for having survived, though. You gain {vit} vitality as your body adapts to the pleasure.",
-            //    TriggerChance = 10.5,
+            //    QuestText = "You found a discarded pouch containing [color=yellow][b]{gold}[/b][/color] gold!",
+            //    TriggerChance = 10.0,
             //    BlockedBy = null,
             //    Rewards = new QuestReward()
             //    { Stats = new Cards.Stats.BaseStats() { Stats = new Dictionary<Enums.StatTypes, double>() {
-            //        { Enums.StatTypes.Gld, 0 },
-            //        { Enums.StatTypes.Exp, 0 },
+            //        { Enums.StatTypes.Gld, 12 },
+            //        { Enums.StatTypes.Exp, 3 },
             //        { Enums.StatTypes.Sds, 0 },
             //        { Enums.StatTypes.KiB, 0 },
             //        { Enums.StatTypes.Kil, 0 },
-            //        { Enums.StatTypes.Prg, 0 },
+            //        { Enums.StatTypes.Prg, 7 },
             //        { Enums.StatTypes.Sta, 0 },
-            //        { Enums.StatTypes.Vit, 0 },
             //    } },
             //        OtherReward = UniqueRewards.None
             //    },
@@ -241,8 +241,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Quests
             //{
             //    Data.DataDb.AddNewQuest(v);
             //}
-
-            MasterQuestBook = Data.DataDb.LoadQuests();
         }
 
         /// <summary>

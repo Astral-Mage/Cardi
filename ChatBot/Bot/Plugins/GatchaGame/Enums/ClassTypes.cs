@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Enums
 {
+    [Serializable]
     public enum ClassTypes
     {
         Adventurer,

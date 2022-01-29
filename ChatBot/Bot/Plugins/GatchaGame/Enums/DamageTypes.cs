@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Enums
 {
+    [Serializable]
     public enum DamageTypes
     {
         [Description("gray")]

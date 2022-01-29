@@ -670,7 +670,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                             command.CommandText = query;
                             command.CommandType = System.Data.CommandType.Text;
                             command.Parameters.Add(new SQLiteParameter("@id", quest.QuestId));
-                            command.Parameters.Add(new SQLiteParameter("@data", JsonConvert.SerializeObject(quest)));
+                            JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+                            string str = JsonConvert.SerializeObject(quest, settings);
+                            command.Parameters.Add(new SQLiteParameter("@data", str));
                             toReturn = command.ExecuteNonQuery();
                             command.Dispose();
                         }
@@ -679,7 +681,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
 
                     return toReturn == 1;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return toReturn == 1;
                 }
@@ -706,7 +708,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                             {
                                 while (reader.Read())
                                 {
-                                    Quest quest = JsonConvert.DeserializeObject<Quest>(Convert.ToString(reader["data"]));
+                                    JsonSerializerSettings settings = new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.All };
+                                    Quest quest = JsonConvert.DeserializeObject<Quest>(Convert.ToString(reader["data"]), settings);
                                     toReturn.Add(quest);
                                 }
                                 reader.Close();

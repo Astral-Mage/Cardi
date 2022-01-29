@@ -7,6 +7,7 @@ using System.Linq;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Cards
 {
+    [Serializable]
     public class PlayerCard : BaseCard
     {
         public DateTime LastStaUpdate;
@@ -137,7 +138,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             levelOutputs.Add(LevelUpStat(focStat, focusMult, true, RngGeneration.Rng.Next(3, 6)));
 
             // vit boost
-            levelOutputs.Add(new KeyValuePair<StatTypes, double>(StatTypes.Vit, RngGeneration.Rng.Next(10, 16)));
+            levelOutputs.Add(LevelUpStat(StatTypes.Vit, 0, true, RngGeneration.Rng.Next(10, 16)));
 
             // random bonus stat
             focStat = RngGeneration.GetRandomFocusableStat();

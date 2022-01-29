@@ -70,7 +70,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
             else if (SecondaryDamageType == DamageTypes.None && RngGeneration.Rng.Next(100) < 4)
             {
                 SecondaryDamageType = (DamageTypes)RngGeneration.Rng.Next(0, Enum.GetNames(typeof(DamageTypes)).Length-1);
-                toReturn += $"[[color={SecondaryDamageType.GetDescription()}]{SecondaryDamageType.ToString()}[/color]]";
+                toReturn += $"[b][color={SecondaryDamageType.GetDescription()}]{SecondaryDamageType.ToString()}[/color][/b] attribute, ";
             }
 
             ranVal = RngGeneration.Rng.Next(5, 10);

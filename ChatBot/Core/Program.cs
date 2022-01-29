@@ -9,6 +9,7 @@ using ChatBot.Bot.Plugins;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Data;
+using ChatBot.Bot.Plugins.GatchaGame.Quests;
 
 
 #if DEBUG
@@ -73,6 +74,32 @@ namespace ChatBot
             // import data from other game
             //TransferUserData();
             //TransferFloorData();
+
+            //foreach (var v in q)
+            //{
+                DataDb.AddNewQuest(new Quest()
+                {
+                    QuestName = "The Shameful Hunt",
+                    QuestId = 7001,
+                    TriggerFloors = new int[] { },
+                    LevelRequirement = 0,
+                    PrerequisiteQuest = null,
+                    DepthRequirement = 0,
+                    Repeatable = true,
+                    QuestText = "You find a hidden passage, leveraging your keen senses. It almost went unnoticed, but you manage to trudge through the small passage for some time. After that you encounter a dangerous looking room with a chest on the other end. It gleamed, expensive and pristine in the distance. Hours of careful treading and many close calls later, you read the end only to discover it... empty! You've been fooled, but gain [color=green]{int} Intelligence[/color] as your shame washes over you.",
+                    TriggerChance = 1.5,
+                    BlockedBy = null,
+                    Rewards = new QuestReward()
+                    {
+                        Stats = new Bot.Plugins.GatchaGame.Cards.Stats.BaseStats()
+                        {
+                            Stats = new Dictionary<Bot.Plugins.GatchaGame.Enums.StatTypes, double>() {
+                    { ChatBot.Bot.Plugins.GatchaGame.Enums.StatTypes.Int, 1 },
+                }
+                        },
+                        OtherReward = UniqueRewards.None
+                    },
+                });
 
             // cli arg parsing and validation
             if (args.Length == 0)

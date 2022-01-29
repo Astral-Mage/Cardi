@@ -67,7 +67,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
 
         public static void GenerateEnemyLoot(FloorCard fc, Cards.PlayerCard pc, EnemyCard ec)
         {
-            ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(1, 5) * (1 + (.2 * fc.floor))), false, false, false);
+            ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(2, 4) * (.9 + (.2 * fc.floor))), false, false, false);
+            ec.AddStat(StatTypes.Exp, Rng.Next(1, 3) * .9 * fc.floor);
 
             if (Rng.Next(4) == 0)
                 ec.AddStat(StatTypes.Sds, 1, false, false, false);
@@ -172,7 +173,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
             baseStats.AddStat(StatTypes.Cs1, 0);
             baseStats.AddStat(StatTypes.Sps, 0);
-            baseStats.AddStat(StatTypes.Exp, Rng.Next(1, 3) * baseLevel);
 
             // static
             baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));

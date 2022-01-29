@@ -83,6 +83,62 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             Respond(null, replyString, user);
         }
 
+        public void UpgradeStuff(string user, string message, string channel)
+        {
+            // get user
+            if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
+            {
+                return;
+            }
+
+            if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
+            {
+                UpgradeHelpAction(user);
+                return;
+            }
+
+            // determine which item is to be upgraded
+            if (!Int32.TryParse(message, out int res))
+            {
+                return;
+            }
+
+            if (res < 1) return;
+            if (res > 3) return;
+
+            SocketTypes st = SocketTypes.Active;
+            if (res == 1) st = SocketTypes.Weapon;
+            if (res == 2) st = SocketTypes.Armor;
+            if (res == 3) st = SocketTypes.Passive;
+            if (!card.ActiveSockets.Any(x => x.SocketType == st))
+            {
+                return;
+            }
+
+            Socket sock = card.ActiveSockets.First(x => x.SocketType == st);
+
+            if (sock.SocketRarity >= sock.MaxRarity)
+            {
+                Respond(channel, $"Already Max Rarity.", card.Name);
+                return;
+            }
+
+            // check if user has enough gold
+            var costToLevel = Convert.ToInt32(sock.BaseLevelUpCost * (1.0 + (.2 * (int)sock.SocketRarity)));
+            if (card.GetStat(StatTypes.Gld) >= costToLevel && sock.SocketRarity < sock.MaxRarity)
+            {
+                // if user has enough gold, call item's upgrade
+                string extraInfo = sock.LevelUp();
+                card.SetStat(StatTypes.Gld, card.GetStat(StatTypes.Gld) - costToLevel);
+                Data.DataDb.UpdateCard(card);
+                Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "" : "Gained " + extraInfo)}", card.Name);
+            }
+            else
+            {
+                Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade your {sock.NameOverride}. ([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})", card.Name);
+            }
+        }
+
         public void InventoryHelpAction(string sendingUser)
         {
             string toSend = string.Empty;
@@ -148,49 +204,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Upgrade:
                     {
-                        // get user
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
-                        {
-                            return;
-                        }
-
-                        // determine which item is to be upgraded
-                        if (!Int32.TryParse(message, out int res))
-                        {
-                            return;
-                        }
-
-                        if (res < 1) return;
-                        if (res > card.MaxInventory) return;
-
-                        if (card.Inventory[res-1] == null)
-                        {
-                            return;
-                        }
-
-                        Socket sock = card.Inventory[res - 1];
-
-                        if (sock.SocketRarity >= sock.MaxRarity)
-                        {
-                            Respond(channel, $"Already Max Rarity.", card.Name);
-                            break;
-                        }
-
-                        // check if user has enough gold
-                        var costToLevel = Convert.ToInt32(sock.BaseLevelUpCost * (1.0 + (.2 * card.GetStat(StatTypes.Lvl))));
-                        if (card.GetStat(StatTypes.Gld) >= costToLevel && sock.SocketRarity < sock.MaxRarity)
-                        {
-                            // if user has enough gold, call item's upgrade
-                            string extraInfo = sock.LevelUp();
-                            card.Inventory[res - 1] = sock;
-                            card.SetStat(StatTypes.Gld, card.GetStat(StatTypes.Gld) - costToLevel);
-                            Data.DataDb.UpdateCard(card);
-                            Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "": "Gained " + extraInfo)}", card.Name);
-                        }
-                        else
-                        {
-                            Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade this item. [sub]([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})[/sub]", card.Name);
-                        }
+                        UpgradeStuff(user, message, channel);
                     }
                     break;
                 case CommandStrings.Trash:

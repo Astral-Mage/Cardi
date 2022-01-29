@@ -45,11 +45,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         public override void HandleRecievedMessage(string command, string channel, string message, string sendingUser, bool isOp)
         {
             // handle non-command conversation
-            if (string.IsNullOrWhiteSpace(command))
-            {
-                HandleNonCommand(channel, sendingUser, message);
-                return;
-            }
+            //if (string.IsNullOrWhiteSpace(command))
+            //{
+            //    HandleNonCommand(channel, sendingUser, message);
+            //    return;
+            //}
 
             // check if the command is an actual command
             if (!GetCommandList().Any(x => x.command.Equals(command)))
@@ -507,7 +507,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Card:
                     {
-                        CardAction(null, message, user, true);
+                        CardAction(channel, message, user, true);
                     }
                     break;
                 case CommandStrings.Equip:
@@ -751,6 +751,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                             (enemyCard as Cards.PlayerCard).LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
                             Data.DataDb.UpdateCard((enemyCard as Cards.PlayerCard));
                             Data.DataDb.UpdateCard(ucard);
+                            Respond(channel, $"{ucard.DisplayName}, you had a pending bully attack, but it seems to of expired.", string.Empty);
+
                             break;
                         }
                         else if (enc.EncounterStatus == EncounterStatus.Resolved)
@@ -868,58 +870,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Upgrade:
                     {
-                        // get user
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
-                        {
-                            return false;
-                        }
-
-                        if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            UpgradeHelpAction(user);
-                            return true;
-                        }
-
-                        // determine which item is to be upgraded
-                        if (!Int32.TryParse(message, out int res))
-                        {
-                            return false;
-                        }
-
-                        if (res < 1) return false;
-                        if (res > 3) return false;
-
-                        SocketTypes st = SocketTypes.Active;
-                        if (res == 1) st = SocketTypes.Weapon;
-                        if (res == 2) st = SocketTypes.Armor;
-                        if (res == 3) st = SocketTypes.Passive;
-                        if (!card.ActiveSockets.Any(x => x.SocketType == st))
-                        {
-                            return false;
-                        }
-
-                        Socket sock = card.ActiveSockets.First(x => x.SocketType == st);
-
-                        if (sock.SocketRarity >= sock.MaxRarity)
-                        {
-                            Respond(channel, $"Already Max Rarity.", card.Name);
-                            break;
-                        }
-
-                        // check if user has enough gold
-                        var costToLevel = Convert.ToInt32(sock.BaseLevelUpCost * (1.0 + (.2 * (int)sock.SocketRarity)));
-                        if (card.GetStat(StatTypes.Gld) >= costToLevel && sock.SocketRarity < sock.MaxRarity)
-                        {
-                            // if user has enough gold, call item's upgrade
-                            string extraInfo = sock.LevelUp();
-                            card.SetStat(StatTypes.Gld, card.GetStat(StatTypes.Gld) - costToLevel);
-                            Data.DataDb.UpdateCard(card);
-                            Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "" : "Gained " + extraInfo)}", card.Name);
-                        }
-                        else
-                        {
-                            Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade your {sock.NameOverride}. ([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})", card.Name);
-                        }
+                        UpgradeStuff(user, message, channel);
                     }
                     break;
             }
@@ -1384,6 +1335,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         /// <param name="api">f-list api interface</param>
         public GatchaGame(ApiConnection api, string commandChar) : base(api, commandChar)
         {
+            // start timers
 
         }
     }
