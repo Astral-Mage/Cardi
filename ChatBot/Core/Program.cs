@@ -73,36 +73,6 @@ namespace ChatBot
         /// </summary>
         static void Main(string[] args)
         {
-            // import data from other game
-            //TransferUserData();
-            //TransferFloorData();
-
-            //foreach (var v in q)
-            //{
-                DataDb.AddNewQuest(new Quest()
-                {
-                    QuestName = "The Shameful Hunt",
-                    QuestId = 7001,
-                    TriggerFloors = new int[] { },
-                    LevelRequirement = 0,
-                    PrerequisiteQuest = null,
-                    DepthRequirement = 0,
-                    Repeatable = true,
-                    QuestText = "You find a hidden passage, leveraging your keen senses. It almost went unnoticed, but you manage to trudge through the small passage for some time. After that you encounter a dangerous looking room with a chest on the other end. It gleamed, expensive and pristine in the distance. Hours of careful treading and many close calls later, you read the end only to discover it... empty! You've been fooled, but gain [color=green]{int} Intelligence[/color] as your shame washes over you.",
-                    TriggerChance = 1.5,
-                    BlockedBy = null,
-                    Rewards = new QuestReward()
-                    {
-                        Stats = new Bot.Plugins.GatchaGame.Cards.Stats.BaseStats()
-                        {
-                            Stats = new Dictionary<Bot.Plugins.GatchaGame.Enums.StatTypes, double>() {
-                    { ChatBot.Bot.Plugins.GatchaGame.Enums.StatTypes.Int, 1 },
-                }
-                        },
-                        OtherReward = UniqueRewards.None
-                    },
-                });
-
             // cli arg parsing and validation
             if (args.Length == 0)
             {
@@ -314,101 +284,6 @@ namespace ChatBot
         {
             Thread.Sleep(10000);
 
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        static void TransferFloorData()
-        {
-            var ofloors = FloorDb.GetAllFloors();
-            foreach (var floor in ofloors)
-            {
-                DataDb.AddNewFloor(floor);
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        static void TransferUserData()
-        {
-
-            var ocards = GameDb.GetAllCards();
-            foreach (var card in ocards)
-            {
-                Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
-                RngGeneration.GenerateNewCharacterStats(pc);
-                pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 10), false, false, false);
-                pc.AddStat(StatTypes.Gld, card.level * 5, false, false, false);
-
-                pc.Name = card.name;
-                pc.DisplayName = card.nickname;
-                if (string.IsNullOrWhiteSpace(pc.DisplayName)) pc.DisplayName = pc.Name;
-                pc.Signature = card.signature;
-                pc.SpeciesDisplayName = card.species;
-                pc.ClassDisplayName = card.mainClass;
-                pc.AvailableSockets.Add(SocketTypes.Weapon);
-                pc.AvailableSockets.Add(SocketTypes.Armor);
-                pc.AvailableSockets.Add(SocketTypes.Passive);
-
-                pc.AddStat(StatTypes.Sds, card.level * 2, false, false, false);
-                pc.AddStat(StatTypes.Kil, card.killed, false, false, false);
-
-                var tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Weapon, 1);
-                tws.NameOverride = (string.IsNullOrWhiteSpace(card.weapon)) ? tws.NameOverride : card.weapon;
-                pc.ActiveSockets.Add(tws);
-
-                tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Armor, 1);
-                tws.NameOverride = (string.IsNullOrWhiteSpace(card.gear)) ? tws.NameOverride : card.gear;
-                pc.ActiveSockets.Add(tws);
-
-                tws = RngGeneration.GenerateRandomPassive(out _, 1);
-                tws.NameOverride = (string.IsNullOrWhiteSpace(card.special)) ? tws.NameOverride : card.special;
-                pc.ActiveSockets.Add(tws);
-
-                if (card.weaponperklvl == 1)
-                {
-                    pc.BoonsEarned.Add(BoonTypes.Sharpness);
-                    pc.CompletedQuests.Add(2010);
-                }
-                if (card.gearperklvl == 1)
-                {
-                    pc.BoonsEarned.Add(BoonTypes.Resiliance);
-                    pc.CompletedQuests.Add(2011);
-                }
-                if (card.specialperklvl == 1)
-                {
-                    pc.BoonsEarned.Add(BoonTypes.Empowerment);
-                    pc.CompletedQuests.Add(3302);
-                }
-
-
-                var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>
-                {
-                    pc
-                };
-
-                // check for level up here
-                int val1;
-                int curlvl;
-                int val2;
-                do
-                {
-                    // -150 + 300x^1.8
-                    val1 = pc.GetStat(StatTypes.Exp);
-                    curlvl = pc.GetStat(StatTypes.Lvl);
-                    val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
-                    if (val1 > val2)
-                    {
-                        // leveled up
-                        pc.LevelUp();
-                
-                    }
-                } while (val1 > val2);
-
-                DataDb.AddNewUser(pc);
-            }
         }
     }
 }
