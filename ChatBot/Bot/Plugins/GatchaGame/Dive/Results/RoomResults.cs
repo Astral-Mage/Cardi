@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Cards;
+using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
 using Newtonsoft.Json.Linq;
@@ -20,6 +21,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Core.Rooms
         public List<JObject> MiscRewards;
         public int TotalRounds;
 
+        public Dictionary<string, List<Reward>> AllRewards;
+        public EncounterResults EncounterResults;
         public RoomResults()
         {
             EnemiesDefeated = new List<EnemyCard>();
@@ -28,6 +31,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Core.Rooms
             StatRewards = new Dictionary<StatTypes, int>();
             MiscRewards = new List<JObject>();
             TotalRounds = 0;
+
+            AllRewards = new Dictionary<string, List<Reward>>();
+            EncounterResults = null;
         }
     }
 }

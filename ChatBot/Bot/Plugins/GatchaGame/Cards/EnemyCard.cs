@@ -1,5 +1,7 @@
-﻿using ChatBot.Bot.Plugins.GatchaGame.Enums;
+﻿using ChatBot.Bot.Plugins.GatchaGame.Encounters;
+using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Cards
@@ -11,6 +13,29 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
         public EnemyCard() : base(CardTypes.EnemyCard)
         {
             LevelScaleValue = 1.2;
+        }
+
+        public override List<Reward> GetRewards(EncounterTypes encounterType)
+        {
+            List<Reward> rewards = new List<Reward>();
+
+            switch (encounterType)
+            {
+                case EncounterTypes.Room:
+                    {
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Exp, this.GetStat(StatTypes.Exp)));
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Sds, this.GetStat(StatTypes.Sds)));
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Gld, this.GetStat(StatTypes.Gld)));
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Kil, 1));
+                    }
+                    break;
+                default:
+                    {
+                        throw new Exception("Bad Reward Grant");
+                    }
+            }
+
+            return rewards;
         }
 
         public override int GetStat(StatTypes type, bool includeModifiers = true, bool includeEquipment = true, bool includePassives = true, bool includeLevels = false)

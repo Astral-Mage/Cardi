@@ -26,7 +26,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
         public RoomResults Execute(Cards.PlayerCard pc, FloorCard fc, out string responseExtra)
         {
-            RoomResults rs = new RoomResults();
+            RoomResults _roomResults = new RoomResults();
             List<EnemyCard> Enemies = new List<EnemyCard>();
             Enemies = RngGeneration.GenerateEnemyCluster(fc, pc);
             responseExtra = string.Empty;
@@ -39,7 +39,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 [pc.GetStat(Enums.StatTypes.Spd)] = new List<BaseCard>()
             };
             Combatants[pc.GetStat(Enums.StatTypes.Spd)].Add(pc);
-            Encounter encounter = new Encounter();
+            Encounter encounter = new Encounter(new TimeSpan(), pc.Name);
             encounter.AddParticipant(1, pc);
 
             foreach (var enemy in Enemies)
@@ -75,70 +75,19 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 RoomProgress = RngGeneration.Rng.Next(25, 57);
             }
 
-            encounter.StartEncounter();
+            encounter.StartEncounter(Enums.EncounterTypes.Room);
+            _roomResults.EncounterResults = encounter.RunEncounter();
 
-            // combat
-            do
+            if (encounter.Participants.First(x => x.Participant.Name.Equals(pc.Name, StringComparison.InvariantCultureIgnoreCase)).Team == _roomResults.EncounterResults.WinningTeam)
             {
-                encounter.TakeTurn(out EncounterResults results);
-                responseExtra += results.ResponseStr;
-                TurnCounter++;
-
-                foreach (var currentEnemy in results.DefeatedParticipants)
-                {
-                    if (currentEnemy.CardType == Enums.CardTypes.EnemyCard)
-                    {
-                        // enemy has died
-                        (currentEnemy as EnemyCard).Status = Enums.CharacterStatusTypes.Dead;
-                        rs.EnemiesDefeated.Add((currentEnemy as EnemyCard));
-
-                        if (!rs.StatRewards.ContainsKey(Enums.StatTypes.Exp))
-                            rs.StatRewards.Add(Enums.StatTypes.Exp, currentEnemy.GetStat(Enums.StatTypes.Exp));
-                        else
-                            rs.StatRewards[Enums.StatTypes.Exp] += currentEnemy.GetStat(Enums.StatTypes.Exp);
-
-                        if (!rs.StatRewards.ContainsKey(Enums.StatTypes.Sds))
-                            rs.StatRewards.Add(Enums.StatTypes.Sds, currentEnemy.GetStat(Enums.StatTypes.Sds));
-                        else
-                            rs.StatRewards[Enums.StatTypes.Sds] += currentEnemy.GetStat(Enums.StatTypes.Sds);
-
-                        if (!rs.StatRewards.ContainsKey(Enums.StatTypes.Gld))
-                            rs.StatRewards.Add(Enums.StatTypes.Gld, RngGeneration.Rng.Next(currentEnemy.GetStat(Enums.StatTypes.Gld) + 1));
-                        else
-                            rs.StatRewards[Enums.StatTypes.Gld] += RngGeneration.Rng.Next(currentEnemy.GetStat(Enums.StatTypes.Gld) + 1);
-
-                        if (!rs.StatRewards.ContainsKey(Enums.StatTypes.Kil))
-                            rs.StatRewards.Add(Enums.StatTypes.Kil, 1);
-                        else
-                            rs.StatRewards[Enums.StatTypes.Kil] += 1;
-
-                        if (currentEnemy.CardType == Enums.CardTypes.BossEnemyCard || currentEnemy.CardType == Enums.CardTypes.LegendaryEnemyCard)
-                        {
-                            if (!rs.StatRewards.ContainsKey(Enums.StatTypes.KiB))
-                                rs.StatRewards.Add(Enums.StatTypes.KiB, 1);
-                            else
-                                rs.StatRewards[Enums.StatTypes.KiB] += 1;
-                        }
-                    }
-                }
-
-            } while (encounter.EncounterStatus == EncounterStatus.Active);
-            rs.TotalRounds = TurnCounter;
-            // && DateTime.Now - now < TimeSpan.FromMilliseconds(500)
-            // apply rewards to player card
-            foreach (var v in rs.StatRewards)
-            {
-                pc.AddStat(v.Key, v.Value, false, false, false);
+                _roomResults.RoomCleared = this;
+                if (_roomResults.AllRewards.ContainsKey(pc.Name))
+                    _roomResults.AllRewards[pc.Name].Add(new Reward(Enums.RewardTypes.Stat, Enums.StatTypes.Prg, RoomProgress));
+                else
+                    _roomResults.AllRewards.Add(pc.Name, new List<Reward>() { new Reward(Enums.RewardTypes.Stat, Enums.StatTypes.Prg, RoomProgress) });
             }
 
-            // if we cleared the room fully
-            if (Enemies.Count(x => x.Status != Enums.CharacterStatusTypes.Dead && x.Status != Enums.CharacterStatusTypes.Undefined && x.Status != Enums.CharacterStatusTypes.Vengeful) <= 0)
-            {
-                rs.RoomCleared = this;
-                pc.AddStat(Enums.StatTypes.Prg, RoomProgress, false, false, false);
-            }
-
-            return rs;
+            return _roomResults;
         }
     }
 }

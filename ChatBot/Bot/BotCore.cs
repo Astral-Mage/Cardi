@@ -84,5 +84,13 @@ namespace ChatBot
                 plugin.HandleRecievedMessage(command, channel, message, sendingUser, isOp);
             }
         }
+
+        public void HandleJoinedChannel(string channel)
+        {
+            foreach (PluginBase plugin in plugins)
+            {
+                plugin.HandleJoinedChannel(channel);
+            }
+        }
     }
 }

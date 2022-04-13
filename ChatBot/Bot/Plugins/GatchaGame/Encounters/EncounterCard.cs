@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
 {
-    class EncounterCard
+    [Serializable]
+    public class EncounterCard
     {
         /// <summary>
         /// 

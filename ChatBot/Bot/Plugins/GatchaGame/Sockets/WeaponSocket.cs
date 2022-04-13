@@ -89,6 +89,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
         {
             ItemType = EquipmentTypes.Weapon;
             SocketType = SocketTypes.Weapon;
+            SecondaryDamageType = DamageTypes.None;
             SocketRaritySymbol = "🗡️";
         }
 

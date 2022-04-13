@@ -18,17 +18,30 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
         /// <summary>
         /// 
         /// </summary>
-        public List<BaseCard> DefeatedParticipants;
+        public int WinningTeam;
 
         /// <summary>
         /// 
         /// </summary>
-        public Cards.BaseCard Winner;
+        public List<EncounterCard> Participants;
 
         /// <summary>
         /// 
         /// </summary>
-        public Cards.BaseCard Loser;
+        public int TotalRounds;
+
+        public Dictionary<string, List<Reward>> AllRewards;
+
+        public List<Turn> _Turns;
+
+        public string GetResultsOutput()
+        {
+            string toReturn = string.Empty;
+
+
+
+            return toReturn;
+        }
 
         /// <summary>
         /// 
@@ -36,10 +49,16 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Encounters
         public EncounterResults()
         {
             ResponseStr = string.Empty;
-            DefeatedParticipants = new List<BaseCard>();
+            WinningTeam = -1;
+            Participants = new List<EncounterCard>();
+            TotalRounds = 0;
+            _Turns = new List<Turn>();
+            AllRewards = new Dictionary<string, List<Reward>>();
+        }
 
-            Winner = null;
-            Loser = null;
+        public int GetWinningTeam()
+        {
+            return WinningTeam;
         }
     }
 }

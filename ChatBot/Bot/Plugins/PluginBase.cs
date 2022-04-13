@@ -38,6 +38,8 @@ namespace ChatBot.Bot.Plugins
         /// <param name="isOp">if the user is an op</param>
         public virtual void HandleRecievedMessage(string command, string channel, string message, string sendingUser, bool isOp) { }
 
+        public virtual void HandleJoinedChannel(string channel) { }
+
         /// <summary>
         /// shuts down any volatile variables
         /// </summary>

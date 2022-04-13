@@ -7,6 +7,7 @@ using ChatBot.Bot.Plugins.GatchaGame.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Timers;
 
 namespace ChatBot.Bot.Plugins.GatchaGame
 {
@@ -50,6 +51,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             //    HandleNonCommand(channel, sendingUser, message);
             //    return;
             //}
+
+            // check for dynamically added trigger commands
+            if (HandleTriggeredCommands(message, sendingUser, channel, command))
+            {
+                return;
+            }
 
             // check if the command is an actual command
             if (!GetCommandList().Any(x => x.command.Equals(command)))
@@ -334,7 +341,21 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             RngGeneration.GenerateNewCharacterStats(pc);
             Data.DataDb.AddNewUser(pc);
-            Respond(channel, $"              Welcome to Cardinal's Cathedral, {user}!! " +
+            Respond(channel, $"              [b][color=orange]Welcome to Cardinal's Cathedral, {user}!![/color][/b] " +
+                $"\\n" +
+                $"\\nMagic manifests itself in many different ways." +
+                $"\\n" +
+                $"\\nRunes, Magic Circles, Stands, Incantations, Chants, Ki, Will, Diving Blessing, Unholy Curse, etc..." +
+                $"\\n" +
+                $"\\nAll a different manifestation from a single source; a font of power, of significance. And here, a" +
+                $"\\nsmall sphere where everything blends together. An ancient Cathedral, left by builders unknown," +
+                $"\\nhas weakened and exposed a rip between the corporeal and the incorporeal. Adventurer, you" +
+                $"\\nare but one of the few powerful enough to withstand the corruption even for a short time. It is" +
+                $"\\nup to you to dive inside and fend off the evil denizens that scrape their way up from the void." +
+                $"\\n" +
+                $"\\nPlease, {pc.DisplayName}..." +
+                $"\\n" +
+                $"\\nWon't you help us? Help... everyone?" +
                 $"\\n" +
                 $"\\nType [color=orange]{CommandChar}{CommandStrings.Help}[/color] to learn what kind of things you can do here.", user);
         }
@@ -618,145 +639,65 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Bully:
                     {
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard ucard))
-                        {
-                            break;
-                        }
-
-                        if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            BullyHelpAction(user);
-                            return true;
-                        }
-
-                        if (string.IsNullOrWhiteSpace(channel))
-                        {
-                            break;
-                        }
-
-                        if (!Data.DataDb.UserExists(message))
-                        {
-                            Respond(null, $"Unable to resolve card for user: {message}", user);
-                            break;
-                        }
-
-                        if (!RngGeneration.TryGetCard(message, out Cards.PlayerCard targetCard))
-                        {
-                            Console.WriteLine($"Unknown error attempting to get card: {message}");
-                            break;
-                        }
-
-                        if ((targetCard.LastTriggeredCds[LastUsedCooldownType.LastBullied] + targetCard.BaseCooldowns[PlayerActionTimeoutTypes.HasBeenBulliedCooldown]) > DateTime.Now)
-                        {
-                            Respond(channel, $"{targetCard.DisplayName} has been bullied too recently, {ucard.DisplayName}.", user);
-                            break;
-                        }
-
-                        if (targetCard.Name == ucard.Name)
-                        {
-                            Respond(channel, $"If you want to bully yourself, {targetCard.DisplayName}, go find a sad anime to watch.", user);
-                            break;
-                        }
-
-                        //if ((ucard.LastTriggeredCds[LastUsedCooldownType.LastBully] + ucard.BaseCooldowns[PlayerActionTimeoutTypes.BulliedSomeoneCooldown]) > DateTime.Now)
-                        //{
-                        //    Respond(null, $"You can only successfully bully once every {ucard.BaseCooldowns[PlayerActionTimeoutTypes.BulliedSomeoneCooldown].TotalMinutes} minutes, {ucard.DisplayName}.", user);
-                        //    break;
-                        //}
-
-                        // find encounter
+                        // setup our vars 
                         Encounter enc = null;
-                        Cards.BaseCard enemyCard = null;
-                        foreach (var v in encounterTracker.PendingEncounters)
+
+                        // do our basic bully checks
+                        if (!BasicBullyChecks(channel, user, message, out Cards.PlayerCard card, out Cards.PlayerCard targetCard))
+                            break;
+
+                        // start a new encounter
+                        enc = new Encounter(targetCard.BaseCooldowns[PlayerActionTimeoutTypes.BullyAttemptCooldown], card.Name)
                         {
-                            if (v.Value.Bullied.Equals(ucard))
-                            {
-                                enc = v.Value;
-                                enemyCard = v.Value.Bully;
-
-                                // timeout stuff
-                                DateTime timeoutTime = enc.CreationDate + enc.PrepTimeout;
-                                DateTime rightNow = DateTime.Now;
-
-                                if (timeoutTime < DateTime.Now)
-                                {
-                                    // kill the encounter
-                                    encounterTracker.KillEncounter(enc);
-                                    ucard.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
-                                    (enemyCard as Cards.PlayerCard).LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
-                                    Data.DataDb.UpdateCard((enemyCard as Cards.PlayerCard));
-                                    Data.DataDb.UpdateCard(ucard);
-                                    break;
-                                }
-                                else if (enc.EncounterStatus == EncounterStatus.Resolved)
-                                {
-                                    encounterTracker.KillEncounter(enc);
-                                    break;
-                                }
-                            }
-                        }
-
-                        enc = new Encounter(targetCard.BaseCooldowns[PlayerActionTimeoutTypes.BullyAttemptCooldown]);
+                            Creator = card.Name
+                        };
 
                         // add bully
-                        enc.AddParticipant(1, ucard);
-                        enc.Bully = ucard;
-                        ucard.LastTriggeredCds[LastUsedCooldownType.LastBully] = enc.CreationDate;
+                        enc.AddParticipant(1, card);
+                        card.LastTriggeredCds[LastUsedCooldownType.LastBully] = enc.CreationDate;
 
                         // add the bullied target
                         enc.AddParticipant(2, targetCard);
-                        enc.Bullied = targetCard;
                         targetCard.LastTriggeredCds[LastUsedCooldownType.LastBullied] = enc.CreationDate;
 
                         // add the encounter
                         encounterTracker.AddEncounter(enc);
-                        Data.DataDb.UpdateCard(ucard);
+                        Data.DataDb.UpdateCard(card);
                         Data.DataDb.UpdateCard(targetCard);
-                        Respond(channel, $"{ucard.DisplayName} is attempting to bully you, {targetCard.DisplayName}! [sub][color=pink]You can submit by replying with: {CommandChar}{CommandStrings.Submit}[/color] | [color=red]You can fight back by replying with: {CommandChar}{CommandStrings.Fight}[/color][/sub]", string.Empty);
+                        Respond(channel, $"{card.DisplayName} is attempting to bully you, {targetCard.DisplayName}! [sub][color=pink]You can submit by replying with: {CommandChar}{CommandStrings.Submit}[/color] | [color=red]You can fight back by replying with: {CommandChar}{CommandStrings.Fight}[/color][/sub]", string.Empty);
                     }
                     break;
                 case CommandStrings.Submit:
                     {
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard ucard)) break;
-
-                        if (string.IsNullOrWhiteSpace(channel)) break;
+                        // do some basic submit checks here
+                        if (!BasicSubmitChecks(channel, user, message, out Cards.PlayerCard card))
+                            break;
 
                         // find encounter
                         Encounter enc = null;
-                        Cards.BaseCard enemyCard = null;
                         foreach (var v in encounterTracker.PendingEncounters)
                         {
-                            if (v.Value.Bullied.Name.Equals(ucard.Name))
+                            if (v.Value.EncounterType == EncounterTypes.Bully && v.Value.Participants.Any(x => x.Participant.Name.Equals(card.Name, StringComparison.InvariantCultureIgnoreCase)))
                             {
                                 enc = v.Value;
-                                enemyCard = v.Value.Bully;
                                 break;
                             }
                         }
 
+                        // break out if we couldn't find it for some reason
                         if (enc == null)
-                        {
                             break;
-                        }
 
-                        // timeout stuff
-                        DateTime timeoutTime = enc.CreationDate + enc.PrepTimeout;
-                        DateTime rightNow = DateTime.Now;
-
-                        if (timeoutTime < DateTime.Now)
-                        {
-                            // kill the encounter
-                            encounterTracker.KillEncounter(enc);
-                            ucard.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
-                            (enemyCard as Cards.PlayerCard).LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
-                            Data.DataDb.UpdateCard((enemyCard as Cards.PlayerCard));
-                            Data.DataDb.UpdateCard(ucard);
-                            Respond(channel, $"{ucard.DisplayName}, you had a pending bully attack, but it seems to of expired.", string.Empty);
-
+                        // bail out if we can't find our bully
+                        RngGeneration.TryGetCard(enc.Creator, out Cards.PlayerCard targetCard);
+                        if (null == targetCard)
                             break;
-                        }
-                        else if (enc.EncounterStatus == EncounterStatus.Resolved)
+
+                        // bail out if we've timed out
+                        if (enc.HasTimedOut())
                         {
+                            card.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
+                            targetCard.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
                             encounterTracker.KillEncounter(enc);
                             break;
                         }
@@ -766,45 +707,43 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         TimeSpan submitVal = new TimeSpan(0, 20, 0);
 
                         int staLost;
-                        if (ucard.GetStat(StatTypes.Sta) > submitVal.TotalSeconds)
+                        if (card.GetStat(StatTypes.Sta) > submitVal.TotalSeconds)
                         {
-                            ucard.AddStat(StatTypes.Sta, -(submitVal.TotalSeconds));
+                            card.AddStat(StatTypes.Sta, -(submitVal.TotalSeconds));
                             staLost = Convert.ToInt32(submitVal.TotalSeconds);
                         }
                         else
                         {
-                            staLost = ucard.GetStat(StatTypes.Sta);
-                            ucard.SetStat(StatTypes.Sta, 0);
+                            staLost = card.GetStat(StatTypes.Sta);
+                            card.SetStat(StatTypes.Sta, 0);
                         }
 
                         //double pants = 90.0 / ucard.GetStat(StatTypes.StM);
                         double whatever = XPMULT * staLost;
 
-                        submitStr += $"{ucard.DisplayName}, you submit to {enemyCard.DisplayName}'s aggressive bullying, losing {whatever} stamina. ";
+                        submitStr += $"{card.DisplayName}, you submit to {targetCard.DisplayName}'s aggressive bullying, losing {whatever} stamina. ";
 
                         // bully calc
                         int staWon;
-                        if (enemyCard.GetStat(StatTypes.Sta) + staLost >= enemyCard.GetStat(StatTypes.StM))
+                        if (targetCard.GetStat(StatTypes.Sta) + staLost >= targetCard.GetStat(StatTypes.StM))
                         {
-                            staWon = Convert.ToInt32(enemyCard.GetStat(StatTypes.StM) - enemyCard.GetStat(StatTypes.Sta));
-                            enemyCard.SetStat(StatTypes.Sta, enemyCard.GetStat(StatTypes.StM));
+                            staWon = Convert.ToInt32(targetCard.GetStat(StatTypes.StM) - targetCard.GetStat(StatTypes.Sta));
+                            targetCard.SetStat(StatTypes.Sta, targetCard.GetStat(StatTypes.StM));
                         }
                         else
                         {
                             staWon = staLost;
-                            enemyCard.AddStat(StatTypes.Sta, staLost);
+                            targetCard.AddStat(StatTypes.Sta, staLost);
                         }
 
-                        //pants = 90.0 / ucard.GetStat(StatTypes.StM);
                         whatever = XPMULT * staWon;
-
-                        submitStr += $"{enemyCard.DisplayName}, you gain {whatever} stamina for your successful bullying.";
+                        submitStr += $"{targetCard.DisplayName}, you gain {whatever} stamina for your successful bullying.";
 
                         // finalize
-                        enemyCard.AddStat(StatTypes.Bly, 1, false, false, false);
-                        ucard.AddStat(StatTypes.Sbm, 1, false, false, false);
-                        Data.DataDb.UpdateCard((enemyCard as Cards.PlayerCard));
-                        Data.DataDb.UpdateCard(ucard);
+                        targetCard.AddStat(StatTypes.Bly, 1, false, false, false);
+                        card.AddStat(StatTypes.Sbm, 1, false, false, false);
+                        Data.DataDb.UpdateCard((targetCard as Cards.PlayerCard));
+                        Data.DataDb.UpdateCard(card);
 
                         // end the encounter
                         encounterTracker.KillEncounter(enc);
@@ -815,57 +754,52 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Fight:
                     {
-                        if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard ucard)) break;
-
-                        if (string.IsNullOrWhiteSpace(channel)) break;
+                        // do some basic submit checks here
+                        if (!BasicSubmitChecks(channel, user, message, out Cards.PlayerCard card))
+                            break;
 
                         // find encounter
                         Encounter enc = null;
-                        Cards.BaseCard enemyCard = null;
                         foreach (var v in encounterTracker.PendingEncounters)
                         {
-                            if (v.Value.Bullied.Name.Equals(ucard.Name))
+                            if (v.Value.EncounterType == EncounterTypes.Bully && v.Value.Participants.Any(x => x.Participant.Name.Equals(card.Name, StringComparison.InvariantCultureIgnoreCase)))
                             {
                                 enc = v.Value;
-                                enemyCard = v.Value.Bully;
                                 break;
                             }
                         }
 
+                        // break out if we couldn't find it for some reason
                         if (enc == null)
-                        {
                             break;
-                        }
 
-                        // refresh encounter cards
-                        var tec = (enemyCard as Cards.PlayerCard);
-                        RngGeneration.TryGetCard(enemyCard.Name, out tec);
-                        enc.Bully = tec;
-                        enc.Bullied = ucard;
-
-                        // timeout stuff
-                        DateTime timeoutTime = enc.CreationDate + enc.PrepTimeout;
-                        DateTime rightNow = DateTime.Now;
-
-                        if (timeoutTime < DateTime.Now)
-                        {
-                            // kill the encounter
-                            encounterTracker.KillEncounter(enc);
-                            ucard.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
-                            tec.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
-                            Data.DataDb.UpdateCard(tec);
-                            Data.DataDb.UpdateCard(ucard);
+                        // bail out if we can't find our bully
+                        RngGeneration.TryGetCard(enc.Creator, out Cards.PlayerCard targetCard);
+                        if (null == targetCard)
                             break;
-                        }
-                        else if (enc.EncounterStatus == EncounterStatus.Resolved)
+
+                        // bail out if we've timed out
+                        if (enc.HasTimedOut())
                         {
+                            card.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
+                            targetCard.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
                             encounterTracker.KillEncounter(enc);
                             break;
                         }
+
+                        // refresh cards being used
+                        enc.Participants = new List<EncounterCard>();
+                        enc.AddParticipant(0, card);
+                        enc.AddParticipant(1, targetCard);
 
                         // start fight here
-                        Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(ucard.DisplayName) ? ucard.Name : ucard.DisplayName)} and {tec.DisplayName}! Check it out here ⇒", string.Empty);
-                        enc.StartASyncEncounter(Api, Api.GetChannelByNameOrCode(channel));
+                        Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(card.DisplayName) ? card.Name : card.DisplayName)} and {targetCard.DisplayName}!", string.Empty);
+                        enc.StartEncounter(EncounterTypes.Bully);
+                        var encResults = enc.RunEncounter();
+
+                        Respond(channel, $"There was a winner but I haven't parsed the results yet.", string.Empty);
+                        Data.DataDb.UpdateCard(card);
+                        Data.DataDb.UpdateCard(targetCard);
                     }
                     break;
                 case CommandStrings.Upgrade:
@@ -876,6 +810,137 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
 
             return false;
+        }
+
+        public bool BasicSubmitChecks(string channel, string user, string message, out Cards.PlayerCard card)
+        {
+            // if you don't exist, get outta here
+            if (!RngGeneration.TryGetCard(user, out card))
+            {
+                return false;
+            }
+
+            // if you ask for help, print it and get outta here
+            if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
+            {
+                BullyHelpAction(user);
+                return false;
+            }
+
+            // if you're trying to dm a bully, get outta here
+            if (string.IsNullOrWhiteSpace(channel))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool BasicBullyChecks(string channel, string user, string message, out Cards.PlayerCard card, out Cards.PlayerCard targetCard)
+        {
+            targetCard = null;
+
+            // if you don't exist, get outta here
+            if (!RngGeneration.TryGetCard(user, out card))
+            {
+                return false;
+            }
+
+            // if you ask for help, print it and get outta here
+            if (message.Equals(CommandStrings.Help, StringComparison.InvariantCultureIgnoreCase))
+            {
+                BullyHelpAction(user);
+                return false;
+            }
+
+            // if you're trying to dm a bully, get outta here
+            if (string.IsNullOrWhiteSpace(channel))
+            {
+                return false;
+            }
+
+            // if the target of the bully attempt can't be found, get outta here
+            if (!RngGeneration.TryGetCard(message, out targetCard))
+            {
+                Console.WriteLine($"Unknown error attempting to get card: {message}");
+                return false;
+            }
+
+            // if the target has been bullied too recently, get outta here
+            if (DateTime.Now - targetCard.LastTriggeredCds[LastUsedCooldownType.LastBullied] < targetCard.BaseCooldowns[PlayerActionTimeoutTypes.HasBeenBulliedCooldown])
+            {
+                Respond(channel, $"{targetCard.DisplayName} has been bullied too recently, {card.DisplayName}.", user);
+                return false;
+            }
+
+            // if you try to bully yourself, get outta here
+            if (targetCard.Name == card.Name)
+            {
+                Respond(channel, $"If you want to bully yourself, {targetCard.DisplayName}, go find a sad anime to watch.", user);
+                return false;
+            }
+
+            // if there's already an encounter in progress with you in it, get outta here
+            if (encounterTracker.PendingEncounters.ContainsKey(card.Name))
+            {
+                Respond(channel, $"You're already attempting to bully a target, {targetCard.DisplayName}.", user);
+                return false;
+            }
+
+            // if there's already an encounter in progress with your target in it, get outta here
+            //if (encounterTracker.PendingEncounters
+            //    .Where(x => x.Value.EncounterType == EncounterTypes.Bully)
+            //    .Any(y => y.Value.Participants
+            //    .Any(z => z.Value
+            //    .Any(a => a.Name.Equals(targetCard.Name)))))
+            //{
+            //    Respond(channel, $"Your bully target is already in a pending bully encounter, {targetCard.DisplayName}.", user);
+            //    return false;
+            //}
+
+            // check if any encounters have timed out and kill the encounter before starting a new one
+            int etoc = encounterTracker.PendingEncounters.Count;
+            var etocL = encounterTracker.PendingEncounters.Keys.ToList();
+            List<Encounter> toKill = new List<Encounter>();
+            for (int x = 0; x < etoc; x++)
+            {
+                var curEnc = encounterTracker.PendingEncounters[etocL[x]];
+                if (curEnc.HasTimedOut())
+                {
+                    // reset any info that might matter
+                    foreach (var v in curEnc.Participants)
+                    { 
+                        //foreach (var pc in v)
+                        {
+                            if (!RngGeneration.TryGetCard(v.Participant.Name, out Cards.PlayerCard upc))
+                                continue;
+
+                            if (upc.Name.Equals(curEnc.Creator, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                upc.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
+                            }
+                            else
+                            {
+                                upc.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
+                            }
+
+                            Data.DataDb.UpdateCard(upc);
+                        }
+                    }
+
+                    toKill.Add(encounterTracker.PendingEncounters[etocL[x]]);
+                }
+                else if (curEnc.EncounterStatus == EncounterStatus.Resolved)
+                {
+                    toKill.Add(curEnc);
+                }
+            }
+
+            // kill the encounters that need killed
+            foreach (var v in toKill)
+                encounterTracker.KillEncounter(v);
+
+            return true;
         }
 
         public void MoreHelpAction(string sendingUser)
@@ -1335,8 +1400,189 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         /// <param name="api">f-list api interface</param>
         public GatchaGame(ApiConnection api, string commandChar) : base(api, commandChar)
         {
-            // start timers
+            StartBossTimedTriggerEvent();
+        }
+        
+        // TESTING CRAP OUT BELOW THIS LINE
 
+        public bool HandleTriggeredCommands(string message, string user, string channel, string command)
+        {
+            bool toReturn = false;
+            lock(BossTimerLocker)
+            {
+                ActiveTriggeredEvents.ForEach(y =>
+                {
+                    var tdfe = y;
+                    if (DateTime.Now - tdfe.CreatedDate > tdfe.Timeout && !tdfe.TimedOut)
+                    {
+                        foreach (var v in tdfe.GetCommandStrings())
+                        {
+                            if (ActiveTriggeredCommandStrings.Any(x => x.Equals(v, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                var lala = ActiveTriggeredCommandStrings.First(x => x.Equals(v, StringComparison.InvariantCultureIgnoreCase));
+                                ActiveTriggeredCommandStrings.Remove(lala);
+                                tdfe.TimedOut = true;
+                            }
+                        }
+
+                        foreach (var v in ActiveChannels)
+                        {
+                            Respond(v, tdfe.TimeoutMessage, null);
+                        }
+                        toReturn = true;
+                        return;
+                    }
+                    else if (DateTime.Now - tdfe.CreatedDate > tdfe.Cooldown)
+                    {
+                        ActiveTriggeredEvents.Remove(tdfe);
+                        foreach (var v in ActiveChannels)
+                            Respond(v, tdfe.CooldownMessage, null);
+                        toReturn = true;
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                });
+
+                if (toReturn)
+                    return false;
+
+                foreach (string cs in ActiveTriggeredCommandStrings)
+                {
+                    if (!command.TrimStart(' ').StartsWith(cs, StringComparison.InvariantCultureIgnoreCase))
+                        continue;
+
+                    if (cs == CommandStrings.TB)
+                    {
+                        TB(channel, message, user, command);
+                        return true;
+                    }
+                    
+                }
+            }
+            return false;
+        }
+
+        public void TB(string channel, string message, string user, string command)
+        {
+            if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
+            {
+                return;
+            }
+
+            var bossEvent = ActiveTriggeredEvents.First(x => x.EventId == bossId);
+
+            if (bossEvent.PendingPlayers.Any(x => x.Name.Equals(card.Name, StringComparison.InvariantCultureIgnoreCase)))
+                return;
+
+            bossEvent.PendingPlayers.Add(card);
+            Respond(channel, $"Added {card.DisplayName} to the next wave. ({bossEvent.PendingPlayers.Count} participating Adventurers)", card.Name);
+        }
+
+        public object BossTimerLocker = new object();
+        readonly List<string> ActiveTriggeredCommandStrings = new List<string>();
+        readonly Dictionary<int, Timer> ActiveTriggeredTimers = new Dictionary<int, Timer>();
+        readonly List<string> ActiveChannels = new List<string>();
+        readonly int bossId = 3733;
+
+        readonly List<TriggeredEvent> ActiveTriggeredEvents = new List<TriggeredEvent>();
+
+        public override void HandleJoinedChannel(string channel)
+        {
+            ActiveChannels.Add(channel);
+        }
+
+        private void StartBossTimedTriggerEvent()
+        {
+            lock(BossTimerLocker)
+            {
+                // some preliminary checks
+                if (ActiveTriggeredTimers.ContainsKey(bossId))
+                {
+                    return;
+                }
+                else if (ActiveTriggeredEvents.Any(x => x.EventId == bossId))
+                {
+                    var te = ActiveTriggeredEvents.First(x => x.EventId == bossId);
+                    ActiveTriggeredEvents.Remove(te);
+                }
+
+                // start timers RngGeneration.Rng.Next(-30, 31)
+                Timer bossTriggerTimer = new Timer(new TimeSpan(0, 0, 1, 0).TotalMilliseconds);
+                bossTriggerTimer.Elapsed += BossTimedTriggerEvent_Elapsed;
+                bossTriggerTimer.Enabled = true;
+                bossTriggerTimer.Start();
+
+                ActiveTriggeredTimers[bossId] = bossTriggerTimer;
+            }
+        }
+
+        private void BossTimedTriggerEvent_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            lock(BossTimerLocker)
+            {
+                // check for already running event, before starting new one
+                if (ActiveTriggeredEvents.Any(x => x.EventId == bossId))
+                {
+                    var tdfe = ActiveTriggeredEvents.First(x => x.EventId == bossId);
+                    if (DateTime.Now - tdfe.CreatedDate > tdfe.Timeout && !tdfe.TimedOut)
+                    {
+                        tdfe.TriggerWave();
+                        tdfe.TimedOut = true;
+
+                        foreach (var v in tdfe.GetCommandStrings())
+                        {
+                            if (ActiveTriggeredCommandStrings.Any(x => x.Equals(v, StringComparison.InvariantCultureIgnoreCase)))
+                            {
+                                var lala = ActiveTriggeredCommandStrings.First(x => x.Equals(v, StringComparison.InvariantCultureIgnoreCase));
+                                ActiveTriggeredCommandStrings.Remove(lala);
+                            }
+                        }
+
+                        foreach (var v in ActiveChannels)
+                        {
+                            Respond(v, tdfe.TimeoutMessage, null);
+                        }
+
+                        return;
+                    }
+                    else if (DateTime.Now - tdfe.CreatedDate > tdfe.Cooldown)
+                    {
+                        ActiveTriggeredEvents.Remove(tdfe);
+                        foreach (var v in ActiveChannels)
+                            Respond(v, tdfe.CooldownMessage, null);
+                        return;
+                    }
+                    else if (tdfe._EventState == TriggeredEventState.Resolved)
+                    {
+                        ActiveTriggeredEvents.Remove(tdfe);
+                        foreach (var v in ActiveChannels)
+                            Respond(v, "This event has been resolved. For now...", null);
+                    }
+                    else
+                        return;
+                }
+
+                TriggeredEvent te = new TriggeredEvent(bossId, Api)
+                {
+                    ActiveRooms = ActiveChannels
+                };
+
+                // create new event and add to pool
+                ActiveTriggeredEvents.Add(te);
+                ActiveTriggeredCommandStrings.AddRange(te.GetCommandStrings());
+                
+                te.StartEvent();
+
+                te.StartMessage = te.StartMessage.Replace("{cmdc}", CommandChar);
+
+                foreach(var v in ActiveChannels)
+                {
+                    Respond(v, te.StartMessage, null);
+                }
+            }
         }
     }
 }

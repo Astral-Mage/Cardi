@@ -1,4 +1,5 @@
 ﻿using Accord;
+using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using System;
@@ -50,6 +51,67 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
                 { PlayerActionTimeoutTypes.DiveCooldown,                new TimeSpan(1, 30, 0) },
                 { PlayerActionTimeoutTypes.BullyAttemptCooldown,        new TimeSpan(0, 05, 0) },
             };
+        }
+
+        public double XpNeededToLevel()
+        {
+            return Convert.ToInt32((-150 + (300 * Math.Pow(GetStat(StatTypes.Lvl), 1.8)))) - GetStat(StatTypes.Exp);
+        }
+
+        public override bool GrantReward(Reward reward)
+        {
+            switch (reward.RewardType)
+            {
+                case RewardTypes.Stat:
+                    {
+                        foreach (var rew in reward.StatRewards)
+                        {
+                            AddStat(rew.Key, rew.Value);
+                        }
+                    }
+                    break;
+                default:
+                    throw new Exception("Unhandled Reward type");
+            }
+
+            return false;
+        }
+
+        public override List<Reward> GetRewards(EncounterTypes encounterType)
+        {
+            List<Reward> rewards = new List<Reward>();
+
+            switch (encounterType)
+            {
+                case EncounterTypes.Bully:
+                    {
+                        int stamax = 15;
+                        double sta = Math.Round(RngGeneration.XPMULT * GetStat(StatTypes.Sta), 1);
+                        if (sta > stamax)
+                            sta = stamax;
+
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Sta, sta / RngGeneration.XPMULT));
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Bly, 1));
+                    }
+                    break;
+                case EncounterTypes.Submit:
+                    {
+                        int stamax = 8;
+                        double sta = Math.Round(RngGeneration.XPMULT * GetStat(StatTypes.Sta), 1);
+                        if (sta > stamax)
+                            sta = stamax;
+
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Sta, sta / RngGeneration.XPMULT));
+                        rewards.Add(new Reward(RewardTypes.Stat, StatTypes.Bly, 1));
+                    }
+                    break;
+                default:
+                    {
+                    }
+                    break;
+            }
+
+            return rewards;
         }
 
         public string GetStatsString()
@@ -106,7 +168,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             double focusMult = 0;
             List<KeyValuePair<StatTypes, double>> levelOutputs = new List<KeyValuePair<StatTypes, double>>();
 
-            AddStat(StatTypes.Lvl, 1, false, false, false);
+            //AddStat(StatTypes.Lvl, 1, false, false, false);
 
 
             levelOutputs.Add(LevelUpStat(StatTypes.Vit, levelMult, true, RngGeneration.Rng.Next(1, 5)));

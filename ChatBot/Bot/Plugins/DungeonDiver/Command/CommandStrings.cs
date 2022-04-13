@@ -85,5 +85,7 @@ namespace ChatBot.Bot.Plugins
         public const string Verbose = "verbose";
         public const string StardustCooldown = "bcs";
         public const string Reset = "reset";
+
+        public const string TB = "tb";
     }
 }

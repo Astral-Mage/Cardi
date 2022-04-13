@@ -300,6 +300,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
         {
             lock (threadLock)
             {
+                pc.CurrentVitality = pc.GetStat(StatTypes.Vit);
+                pc.Status = CharacterStatusTypes.Alive;
+
                 CheckAndStartTimer();
 
                 try

@@ -41,6 +41,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Dlo, // duels lost
         Pvr, // pvp rank
         Foc, // focus stat
+        Bcc, // base crit chance
     }
 
     [Serializable]
@@ -108,6 +109,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Dlo, // duels lost
         Pvr, // pvp rank
         Foc, // focus stat
+        Bcc, // base crit chance
     }
 
     [Serializable]
@@ -160,5 +162,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Dlo, // duels lost
         Pvr, // pvp rank
         Foc, // focus stat
+        Bcc, // base crit chance
     }
 }

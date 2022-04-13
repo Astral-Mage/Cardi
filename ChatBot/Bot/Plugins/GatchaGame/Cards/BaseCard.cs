@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Cards.Stats;
+using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
@@ -35,6 +36,16 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
         public void SetStats(BaseStats stats)
         {
             Stats = stats;
+        }
+
+        public virtual bool GrantReward(Reward reward)
+        {
+            return false;
+        }
+
+        public virtual List<Reward> GetRewards(EncounterTypes encounterType)
+        {
+            return null;
         }
 
         public void AddStat(StatTypes type, int value, bool includeModifiers = false, bool includeEquipment = false, bool includePassives = false)

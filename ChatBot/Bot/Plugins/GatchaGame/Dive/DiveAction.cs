@@ -1,4 +1,6 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Data;
+using ChatBot.Bot.Plugins.GatchaGame.Dive.Results;
+using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Quests;
@@ -68,7 +70,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             diveResults.FloorCard = floorData.First(x => x.floor.Equals(floorChoice));
             string allResponseData = string.Empty;
-            string levelBlurb = string.Empty;
             int roomCount = 0;
             do
             {
@@ -76,35 +77,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 diveResults.CombinedRoomResults.Add(room.Execute(pc, diveResults.FloorCard, out string responseData));
                 numFloors++;
 
-                if (room.Enemies.Count(x => x.Status == CharacterStatusTypes.Alive) <= 0 &&
-                    room.Enemies.Count(x => x.Status == CharacterStatusTypes.Smug) <= 0)
-                {
+                if (room.Enemies.Count(x => x.Status == CharacterStatusTypes.Alive) <= 0)
                     diveResults.ClearedFloors++;
-                }
-
                 
                 allResponseData += "\\n" + $"Room {roomCount++}:\\n" + responseData ?? string.Empty;
 
-                // check for level up here
-                int val1;
-                int curlvl;
-                int val2;
-                do
-                {
-                    // -150 + 300x^1.8
-                    val1 = pc.GetStat(StatTypes.Exp);
-                    curlvl = pc.GetStat(StatTypes.Lvl);
-                    val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
-                    if (val1 > val2)
-                    {
-                        // leveled up
-                        diveResults.LevelUps++;
-                        levelBlurb = pc.LevelUp();
-
-                    }
-                } while (val1 > val2);
-
-            } while (pc.CurrentVitality > 0 && DateTime.Now - now < TimeSpan.FromSeconds(1) && numFloors <= maxFloors);
+            } while (pc.CurrentVitality > 0 && /*DateTime.Now - now < TimeSpan.FromSeconds(1) &&*/ numFloors <= maxFloors);
             bool includeFullClearBonus = false;
             if (numFloors > maxFloors)
             {
@@ -118,29 +96,48 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
 
             // post results
-            ParseResultsAndReply(diveResults, channel, pc, hitQuests, includeFullClearBonus, allResponseData, levelBlurb);
+            ParseResultsAndReply(diveResults, channel, pc, hitQuests, includeFullClearBonus, allResponseData);
         }
 
-        public void ParseResultsAndReply(Core.Rooms.DiveResults results, string channel, Cards.PlayerCard pc, List<Quest> hitQuests, bool includeFullClearBonus = false, string extraResponseData = "", string levelBlurb = "")
+        public void ParseResultsAndReply(Core.Rooms.DiveResults results, string channel, Cards.PlayerCard pc, List<Quest> hitQuests, bool includeFullClearBonus = false, string extraResponseData = "")
         {
             var unpackedResults = results.CombinedRoomResults;
 
-            int totalKills = 0;
-            int totalBossKills = 0;
-            int totalGoldGained = 0;
-            int totalStardustGained = 0;
-            int totalExpGained = 0;
-            int totalProgressMade = 0;
+            Dictionary<StatTypes, double> AllStatRewards = new Dictionary<StatTypes, double>();
             int totalRounds = 0;
-            int totalLevelUps = results.LevelUps;
+
+            foreach (var v in unpackedResults)
+            {
+                totalRounds += v.EncounterResults.TotalRounds;
+                foreach (var y in v.EncounterResults.AllRewards)
+                {
+                    foreach (var z in y.Value)
+                    {
+                        if (z.RewardType != RewardTypes.Stat)
+                            continue;
+
+                        if (AllStatRewards.ContainsKey(z.StatRewards.First().Key))
+                            AllStatRewards[z.StatRewards.First().Key] += z.StatRewards.First().Value;
+                        else
+                            AllStatRewards[z.StatRewards.First().Key] = z.StatRewards.First().Value;
+                    }
+                }
+            }
+
+            int totalKills = AllStatRewards.ContainsKey(StatTypes.Kil) ? Convert.ToInt32(AllStatRewards[StatTypes.Kil]) : 0;
+            int totalGoldGained = AllStatRewards.ContainsKey(StatTypes.Gld) ? Convert.ToInt32(AllStatRewards[StatTypes.Gld]) : 0;
+            int totalStardustGained = AllStatRewards.ContainsKey(StatTypes.Sds) ? Convert.ToInt32(AllStatRewards[StatTypes.Sds]) : 0;
+            int totalExpGained = AllStatRewards.ContainsKey(StatTypes.Exp) ? Convert.ToInt32(AllStatRewards[StatTypes.Exp]) : 0;
+            int totalProgressMade = AllStatRewards.ContainsKey(StatTypes.Prg) ? Convert.ToInt32(AllStatRewards[StatTypes.Prg]) : 0;
+            int totalLevelUps = AllStatRewards.ContainsKey(StatTypes.Lvl) ? Convert.ToInt32(AllStatRewards[StatTypes.Lvl]) : 0;
             int totalRoomsCleared = results.ClearedFloors;
 
             foreach(var v in unpackedResults)
             {
                 totalKills += v.EnemiesDefeated.Count;
-                if (v.StatRewards.ContainsKey(Enums.StatTypes.Gld)) totalGoldGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Gld).Value;
-                if (v.StatRewards.ContainsKey(Enums.StatTypes.Sds)) totalStardustGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Sds).Value;
-                if (v.StatRewards.ContainsKey(Enums.StatTypes.Exp)) totalExpGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Exp).Value;
+                if (v.StatRewards.ContainsKey(StatTypes.Gld)) totalGoldGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Gld).Value;
+                if (v.StatRewards.ContainsKey(StatTypes.Sds)) totalStardustGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Sds).Value;
+                if (v.StatRewards.ContainsKey(StatTypes.Exp)) totalExpGained += v.StatRewards.First(x => x.Key == Enums.StatTypes.Exp).Value;
 
                 totalRounds += v.TotalRounds;
                 totalProgressMade += v.RoomCleared.RoomProgress;
@@ -213,13 +210,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             replyString += " You gained " +
               $"[color=yellow][b]{totalGoldGained}[/b][/color] gold, gained [color=purple][b]{totalStardustGained}[/b][/color] stardust, gained [color=green][b]{totalExpGained}[/b][/color] experience, contributed [color=blue][b]{totalProgressMade}[/b][/color] progress,";
 
-            if (totalLevelUps < 1)
+
+            replyString += $" and lasted [b][color=red]{totalRounds}[/color][/b] total rounds of combat.";
+
+            for(int x = 0; x < totalLevelUps; x++)
             {
-                replyString += $" and lasted [b][color=red]{totalRounds}[/color][/b] total rounds of combat.";
-            }
-            else
-            {
-                replyString += $" lasted {totalRounds} total rounds of combat, and leveled up {totalLevelUps} time(s)!{(string.IsNullOrWhiteSpace(levelBlurb) ? "" : " " + levelBlurb)}";
+                replyString += " Level up!: " + pc.LevelUp();
+                if (x < totalLevelUps - 1)
+                    replyString += " | ";
             }
 
             if (includeFullClearBonus)
@@ -259,6 +257,71 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 if (string.IsNullOrWhiteSpace(channel))
                 {
+                    extraResponseData = string.Empty;
+
+                    for (int eachRoom = 0; eachRoom < unpackedResults.Count; eachRoom++)
+                    {
+                        extraResponseData += $"\\nRoom {eachRoom + 1} : ";
+                        for (int eachTurn = 0; eachTurn < unpackedResults[eachRoom].EncounterResults._Turns.Count; eachTurn++)
+                        {
+                            Turn ct = unpackedResults[eachRoom].EncounterResults._Turns[eachTurn];
+                            TurnResult ctr = ct._TurnResult;
+                            extraResponseData += $"Turn {eachTurn + 1} | {ct._TurnResult._LivingParticipants} Living Participants\\n";
+
+                            for (int eachRotation = 0; eachRotation < ctr._Rotations.Count; eachRotation++)
+                            {
+                                Rotation cr = ctr._Rotations[eachRotation];
+
+                                EncounterCard atk = ct.Participants.First(x => x.Participant.Name.Equals(cr._Attacker, StringComparison.InvariantCultureIgnoreCase));
+                                EncounterCard dfd = ct.Participants.First(x => x.Participant.Name.Equals(cr._Defender, StringComparison.InvariantCultureIgnoreCase));
+
+                                extraResponseData += $"({cr._AtkStartingVit}) {atk.Participant.DisplayName}";
+                                extraResponseData += $" vs ({cr._DefStartingVit}) {dfd.Participant.DisplayName}";
+
+                                extraResponseData += $" | Hit: {cr._HitChance}";
+                                extraResponseData += $" | CritChc: {cr._CritChance}";
+
+                                if (cr._HitConnected)
+                                {
+                                    if (cr._CritConnected)
+                                    {
+                                        extraResponseData += $" | Crit!";
+                                        extraResponseData += $" | CritMult: {Math.Round(cr._CritMult, 2)}";
+                                        extraResponseData += $" | AddCritDmg: {Math.Round(cr._CritDamage, 2)}";
+                                    }
+                                    else
+                                    {
+                                        extraResponseData += $" | Hit!";
+                                    }
+
+                                    extraResponseData += $" | BaseDmg: {cr._BaseDamage}";
+                                    extraResponseData += $" | AddDmg: {cr._AddedDmg}";
+
+                                    extraResponseData += $" | ByType(";
+                                    foreach (var byType in cr._DamageByType.Keys)
+                                    {
+                                        extraResponseData += $" [color={(byType == RawDamageType.Magical ? "pink" : "brown")}]{byType.ToString()} ⨠ ";
+                                        extraResponseData += $" Dmg: {cr._DamageByType[byType]}";
+                                        extraResponseData += $" | Mult: {Math.Round(cr._DmgMultByType[byType], 2)}";
+                                        extraResponseData += $" | Ttl: {Math.Round(cr._TotalDamageByType[byType], 2)}";
+                                        extraResponseData += $" | FlatDR: {Math.Round(cr._FlatDamageReductionByType[byType], 2)}";
+                                        extraResponseData += $" | DRMult: {Math.Round(cr._DamageReductionMultByType[byType], 2)}[/color]";
+                                    }
+                                    extraResponseData += $" )";
+
+                                    extraResponseData += $" | BaseTtlDmg: {Math.Round(cr._TotalCombinedDamage, 2)}";
+                                    extraResponseData += $" | TotalOverallDamageDealt: {Math.Round(cr._TotalOverallDamageDealt, 2)}";
+                                }
+                                else
+                                {
+                                    extraResponseData += $" | Evade!";
+                                }
+                                extraResponseData += "\\n";
+                            }
+                            extraResponseData += "\\n";
+                        }
+                    }
+
                     replyString += " [sub]" + extraResponseData + "[/sub]";
                 }
             }

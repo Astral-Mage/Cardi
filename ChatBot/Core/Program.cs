@@ -41,6 +41,8 @@ namespace ChatBot
         /// </summary>
         static ApiConnection Chat;
 
+        public static List<string> ActiveChannels = new List<string>();
+
         /// <summary>
         /// Our bot interface
         /// </summary>

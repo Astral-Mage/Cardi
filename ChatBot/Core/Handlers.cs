@@ -43,8 +43,10 @@ namespace ChatBot
         static void HandleJoinedChannel(object sender, ChannelEventArgs e)
         {
             if (e.userJoining.Equals(CharacterName))
+            {
                 Chat.SetStatus(ChatStatus.DND, $"[session={e.name}]{(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code)}[/session] [color=pink]DM me with {CommandChar}{"help"} to get started![/color]", CharacterName);
-
+                Bot.HandleJoinedChannel(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code);
+            }
         }
 
         static void HandleCreatedChannel(object sender, ChannelEventArgs e)

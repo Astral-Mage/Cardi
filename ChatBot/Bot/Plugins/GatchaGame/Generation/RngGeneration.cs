@@ -29,6 +29,36 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             return toReturn;
         }
 
+        public static EnemyCard GenerateBossEnemy(int baselvl)
+        {
+            EnemyCard ec = new EnemyCard();
+            GenerateEnemyStats(ec, baselvl, CardTypes.BossEnemyCard);
+            ec.CurrentVitality = ec.GetStat(StatTypes.Vit);
+            ec.Status = CharacterStatusTypes.Alive;
+            ec.CardType = CardTypes.BossEnemyCard;
+
+            GenerateEnemyLoot(baselvl, ec);
+            GenerateEnemyEquipment(baselvl, ec);
+
+            List<string> EnemyNames = new List<string>()
+            {
+                "Skeleton",
+                "Abberation",
+                "Shade",
+                "Gloop",
+                "Slu Kathras",
+                "Demon",
+                "Sinful",
+                "Mercco",
+
+            };
+
+            ec.DisplayName = "King " + EnemyNames[Rng.Next(0, EnemyNames.Count)];
+            ec.Name = ec.DisplayName;
+
+            return ec;
+        }
+
         public static EnemyCard GenerateEnemy(FloorCard fc, Cards.PlayerCard pc)
         {
             EnemyCard ec = new EnemyCard();
@@ -36,10 +66,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             ec.CurrentVitality = ec.GetStat(StatTypes.Vit);
             ec.Status = CharacterStatusTypes.Alive;
 
-            // NYI
-            GenerateEnemyLoot(fc, pc, ec);
-            GenerateEnemyEquipment(fc, pc, ec);
-            //
+            GenerateEnemyLoot(fc.floor, ec);
+            GenerateEnemyEquipment(fc.floor, ec);
 
             List<string> EnemyNames = new List<string>()
             {
@@ -60,20 +88,36 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
             return ec;
         }
 
-        public static void GenerateEnemyEquipment(FloorCard fc, Cards.PlayerCard pc, EnemyCard ec)
+        public static void GenerateEnemyEquipment(int baselvl, EnemyCard ec)
         {
 
         }
 
-        public static void GenerateEnemyLoot(FloorCard fc, Cards.PlayerCard pc, EnemyCard ec)
+        public static void GenerateEnemyLoot(int enemylvl, EnemyCard ec)
         {
-            ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(2, 4) * (.9 + (.2 * fc.floor))), false, false, false);
-            ec.AddStat(StatTypes.Exp, Rng.Next(1, 3) * .9 * fc.floor);
+            switch(ec.CardType)
+            {
+                case CardTypes.BossEnemyCard:
+                    {
+                        ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(400, 550) * (.9 + (.2 * enemylvl))), false, false, false);
+                        ec.AddStat(StatTypes.Exp, Rng.Next(2000, 2200) + (Rng.Next(2, 4) * (.5 * enemylvl)));
 
-            if (Rng.Next(4) == 0)
-                ec.AddStat(StatTypes.Sds, 1, false, false, false);
-            else
-                ec.AddStat(StatTypes.Sds, 0, false, false, false);
+                            ec.AddStat(StatTypes.Sds, Rng.Next(70, 130), false, false, false);
+                    }
+                    break;
+                case CardTypes.EnemyCard:
+                    {
+                        ec.AddStat(StatTypes.Gld, Convert.ToInt32(Rng.Next(2, 4) * (.9 + (.2 * enemylvl))), false, false, false);
+                        ec.AddStat(StatTypes.Exp, Rng.Next(5, 10) + (Rng.Next(2, 4) * (.5 * enemylvl)));
+
+                        if (Rng.Next(4) == 0)
+                            ec.AddStat(StatTypes.Sds, 1, false, false, false);
+                        else
+                            ec.AddStat(StatTypes.Sds, 0, false, false, false);
+                    }
+                    break;
+            }
+
         }
 
         public static List<StatTypes> GetAllFocusableStats()
@@ -161,24 +205,54 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
         public static void GenerateEnemyStats(Cards.EnemyCard ec, int baseLevel, CardTypes type)
         {
             BaseStats baseStats = new BaseStats();
-            // random
-            baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor((double)Rng.Next(3, 6) * baseLevel)));
-            baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
-            baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
-            baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
-            baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
-            baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
-            baseStats.AddStat(StatTypes.Vit, Convert.ToInt32(Math.Floor(Rng.Next(50, 65) + (double)Rng.Next(6, 10) * baseLevel)));
-            baseStats.AddStat(StatTypes.Int, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 6) * baseLevel)));
-            baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
-            baseStats.AddStat(StatTypes.Cs1, 0);
-            baseStats.AddStat(StatTypes.Sps, 0);
 
-            // static
-            baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
-            baseStats.AddStat(StatTypes.Dmg, Convert.ToInt32(Math.Floor(Rng.Next(2, 6) + ((double)Rng.Next(3, 6) * baseLevel))));
+            switch(type)
+            {
+                case CardTypes.EnemyCard:
+                    {
+                        // random
+                        baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor((double)Rng.Next(3, 6) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(10, 15) + (double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Vit, Convert.ToInt32(Math.Floor(Rng.Next(40, 55) + (double)Rng.Next(6, 10) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Int, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 6) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Cs1, 0);
+                        baseStats.AddStat(StatTypes.Sps, 0);
 
-            baseStats.AddStat(StatTypes.Lvl, baseLevel);
+                        // static
+                        baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor((double)Rng.Next(1, 4) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Dmg, Convert.ToInt32(Math.Floor(Rng.Next(1, 4) + ((double)Rng.Next(2, 5) * baseLevel))));
+
+                        baseStats.AddStat(StatTypes.Lvl, baseLevel);
+                    }
+                    break;
+                case CardTypes.BossEnemyCard:
+                    {
+                        // random
+                        baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor((double)Rng.Next(43, 76) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor((double)Rng.Next(15, 19) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 15) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor((double)Rng.Next(11, 15) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(40, 55) + (double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(40, 55) + (double)Rng.Next(1, 5) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Vit, Convert.ToInt32(Math.Floor(Rng.Next(77540, 89655) + (double)Rng.Next(6, 10) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Int, Convert.ToInt32(Math.Floor((double)Rng.Next(12, 16) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Dex, Convert.ToInt32(Math.Floor((double)Rng.Next(11, 15) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Cs1, 0);
+                        baseStats.AddStat(StatTypes.Sps, 0);
+
+                        // static
+                        baseStats.AddStat(StatTypes.Eva, Convert.ToInt32(Math.Floor((double)Rng.Next(21, 34) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Dmg, Convert.ToInt32(Math.Floor(Rng.Next(51, 64) + ((double)Rng.Next(12, 15) * baseLevel))));
+
+                        baseStats.AddStat(StatTypes.Lvl, baseLevel);
+                    }
+                    break;
+            }
 
             // set
             ec.SetStats(baseStats);
