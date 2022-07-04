@@ -1,5 +1,6 @@
 ﻿using ChatApi;
 using ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame;
+using ChatBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,9 +9,6 @@ namespace ChatBot.Bot.Plugins
 {
     public partial class GameCore : PluginBase
     {
-        bool isMuted                            = false;
-        DateTime leaderboardLastChecked         = new DateTime();
-        readonly TimeSpan leaderboardCooldown   = new TimeSpan(1, 0, 0);
         readonly Random rng                              = new Random();
         public int BaseDiveCooldown             = 90;
         public double CdReductionPerChar        = 0.5;
@@ -19,7 +17,6 @@ namespace ChatBot.Bot.Plugins
         readonly string lvlcolor                         = "cyan";
         readonly string goldcolor                        = "yellow";
         readonly string enemycolor                       = "red";
-        readonly string globalcolor                      = "green";
         readonly BotCore Bot                             = null;
 
         /// <summary>
@@ -50,28 +47,6 @@ namespace ChatBot.Bot.Plugins
                 new Command(CommandStrings.JoinChannel, BotCommandRestriction.Whisper, CommandSecurity.Ops, "joins a channel"),
                 new Command(CommandStrings.Roll, BotCommandRestriction.Whisper, CommandSecurity.Ops, "spends gold to roll in the gatcha"),
             };
-        }
-
-        /// <summary>
-        /// Handlse responding
-        /// </summary>
-        /// <param name="channel">target channel, if any</param>
-        /// <param name="message">base message, if any</param>
-        /// <param name="recipient">who to send the reply to, if a dm</param>
-        public override void Respond(string channel, string message, string recipient)
-        {
-            message = $"[color={globalcolor}]{message}[/color]";
-
-            if (isMuted && recipient != null)
-            {
-                channel = null;
-            }
-            if (!string.IsNullOrWhiteSpace(channel))
-            {
-                recipient = string.Empty;
-            }
-
-            Api.SendMessage(channel, message, recipient);
         }
 
         /// <summary>
@@ -115,43 +90,43 @@ namespace ChatBot.Bot.Plugins
             {
                 case CommandStrings.JoinChannel:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         JoinChannelAction(pc, message);
                     }
                     return true;
                 case CommandStrings.LeaveChannel:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         LeaveChannelAction(pc, message);
                     }
                     return true;
                 case CommandStrings.AddFloor:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         AddFloorAction(pc, message);
                     }
                     return true;
                 case CommandStrings.Mute:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         MuteAction(channel, message, pc);
                     }
                     return true;
                 case CommandStrings.Execute:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         ExecuteAction(channel, message, pc);
                     }
                     return true;
                 case CommandStrings.BaseCooldown:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         BaseCooldownAction(channel, message, pc);
                     }
                     return true;
                 case CommandStrings.Smite:
                     {
-                        if (!isOp) { Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
+                        if (!isOp) { SystemController.Instance.Respond(channel, $"You need to be an Operator to use this command, {pc.name}. The authorities have been notified of your attempt, however.", pc.name); return true; }
                         SmiteAction(channel, message, pc);
                     }
                     return true;
@@ -203,7 +178,7 @@ namespace ChatBot.Bot.Plugins
                         }
                         catch
                         {
-                            Respond(channel, $"Error in cardgame plugin. Sorry! Might be recoverable by stopping current game, might not.", pc.name);
+                            SystemController.Instance.Respond(channel, $"Error in cardgame plugin. Sorry! Might be recoverable by stopping current game, might not.", pc.name);
                         }
                     }
                     break;
@@ -219,7 +194,7 @@ namespace ChatBot.Bot.Plugins
                     return true;
                 case CommandStrings.Set:
                     {
-                        SetAction(channel, message, pc);
+                        SetAction(message, pc);
                     }
                     return true;
                 case CommandStrings.Prog:
@@ -234,7 +209,7 @@ namespace ChatBot.Bot.Plugins
                     return true;
                 case CommandStrings.Cooldown:
                     {
-                        CooldownAction(channel, pc);
+                        CooldownAction(pc);
                     }
                     return true;
                 case CommandStrings.Dive:
@@ -266,7 +241,7 @@ namespace ChatBot.Bot.Plugins
             // check if the command is an actual command
             if (!GetCommandList().Any(x => x.command.Equals(command)))
             {
-                Respond(channel, $"Sorry, {sendingUser}, but I didn't understand your command.", sendingUser);
+                SystemController.Instance.Respond(channel, $"Sorry, {sendingUser}, but I didn't understand your command.", sendingUser);
                 return;
             }
 
@@ -280,7 +255,7 @@ namespace ChatBot.Bot.Plugins
             PlayerCard pc = GetActiveUser(sendingUser);
             if (pc == null)
             {
-                Respond(channel, $"You need to create a character with -create before using this command, {sendingUser}.", sendingUser);
+                SystemController.Instance.Respond(channel, $"You need to create a character with -create before using this command, {sendingUser}.", sendingUser);
                 return;
             }
 
@@ -366,7 +341,7 @@ namespace ChatBot.Bot.Plugins
 
             if (ts.TotalMinutes > 10)
             {
-                Respond(channel, respond, pc.name);
+                SystemController.Instance.Respond(channel, respond, pc.name);
             }
         }
 

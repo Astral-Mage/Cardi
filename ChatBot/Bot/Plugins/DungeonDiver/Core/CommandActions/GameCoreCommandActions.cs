@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatBot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -26,7 +27,7 @@ namespace ChatBot.Bot.Plugins
                         "[color=green]-cd[/color] to view your current cooldown.\\n" +
                         "[color=red]-lb[/color] to view the leaderboard.\\n";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         /// <summary>
@@ -56,12 +57,12 @@ namespace ChatBot.Bot.Plugins
                 if (!string.IsNullOrWhiteSpace(gc.signature)) toSend += $"\\n{gc.signature}[/color]";
                 else toSend += $"[/color]";
 
-                Respond(channel, toSend, pc.name);
+                SystemController.Instance.Respond(channel, toSend, pc.name);
             }
             else
             {
                 string nickname = (string.IsNullOrWhiteSpace(pc.nickname)) ? $"[color=white]{pc.name}[/color]" : $"[color=white]{pc.nickname}[/color]";
-                Respond(channel, $"Sorry, {nickname}. No card with a user of name: {usertouse} could be found.", pc.name);
+                SystemController.Instance.Respond(channel, $"Sorry, {nickname}. No card with a user of name: {usertouse} could be found.", pc.name);
             }
         }
 
@@ -72,17 +73,6 @@ namespace ChatBot.Bot.Plugins
         /// <param name="pc">requesting user's card</param>
         public void LeaderboardAction(string channel, PlayerCard pc)
         {
-            var dtc = DateTime.Now - leaderboardLastChecked;
-            if (dtc.Ticks > leaderboardCooldown.Ticks && !string.IsNullOrWhiteSpace(channel))
-            {
-                leaderboardLastChecked = DateTime.Now;
-            }
-            else if (!string.IsNullOrWhiteSpace(channel))
-            {
-                var diff = leaderboardCooldown - dtc;
-                Respond(channel, $"Public leaderboard cooldown remaining: {diff.Minutes} minutes, {diff.Seconds} seconds.", pc.name);
-                channel = null;
-            }
             List<PlayerCard> lb = GameDb.GetAllCards();
             lb = lb.OrderByDescending(x => x.killed).ToList();
 
@@ -101,7 +91,7 @@ namespace ChatBot.Bot.Plugins
                 string nickname = (string.IsNullOrWhiteSpace(lb[counter - 1].nickname)) ? $"[color=white]{lb[counter - 1].name}[/color]" : $"[color=white]{lb[counter - 1].nickname}[/color] ({lb[counter - 1].name})";
                 leaderboard += $"[color=green][b]{counter}[/b][/color] - [color=red][b]{lb[counter - 1].killed}:[/b][/color] {nickname}\\n";
             }
-            Respond(channel, leaderboard, pc.name);
+            SystemController.Instance.Respond(channel, leaderboard, pc.name);
         }
 
         /// <summary>
@@ -110,7 +100,7 @@ namespace ChatBot.Bot.Plugins
         /// <param name="channel">originating channel</param>
         /// <param name="message">our base message</param>
         /// <param name="pc">the user sending the request</param>
-        public void SetAction(string channel, string message, PlayerCard pc)
+        public void SetAction(string message, PlayerCard pc)
         {
             Command cmder;
             string cmd = message.Split(' ').First();
@@ -120,7 +110,7 @@ namespace ChatBot.Bot.Plugins
                 cmder = GetSetSubCommandList().First(x => x.command.Equals(cmd));
                 if (cmder == null)
                 {
-                    Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -set help to see all available commands!", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -set help to see all available commands!", pc.name);
                 }
 
                 if (message.Split(' ').Length > 1)
@@ -134,7 +124,7 @@ namespace ChatBot.Bot.Plugins
             }
             catch
             {
-                Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -set help to see all available commands!", pc.name);
+                SystemController.Instance.Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -set help to see all available commands!", pc.name);
                 return;
             }
 
@@ -148,20 +138,20 @@ namespace ChatBot.Bot.Plugins
         /// <param name="message">combined floor command</param>
         public void JoinChannelAction(PlayerCard pc, string message)
         {
-            int minutesToJoinFor = -1;
+            int minutesToJoinFor;
             try
             {
                 minutesToJoinFor = Convert.ToInt32(message.Split(' ').Last());
             }
             catch
             {
-                Respond(null, $"Invalid format. Expected: -joinchannel Cardinal's Cathedral 120", pc.name);
+                SystemController.Instance.Respond(null, $"Invalid format. Expected: -joinchannel Cardinal's Cathedral 120", pc.name);
                 return;
             }
 
             message = message.Substring(0, message.Length - (minutesToJoinFor.ToString().Length + 1));
             Api.JoinChannel(message);
-            Respond(null, $"Attempted to join {message}", pc.name);
+            SystemController.Instance.Respond(null, $"Attempted to join {message}", pc.name);
         }
 
         /// <summary>
@@ -173,12 +163,12 @@ namespace ChatBot.Bot.Plugins
         {
             if (string.IsNullOrWhiteSpace(message))
             {
-                Respond(null, $"Invalid format. Expected: -leavechannel Cardinal's Cathedral", pc.name);
+                SystemController.Instance.Respond(null, $"Invalid format. Expected: -leavechannel Cardinal's Cathedral", pc.name);
                 return;
             }
 
             Api.LeaveChannel(message);
-            Respond(null, $"Attempted to leave {message}", pc.name);
+            SystemController.Instance.Respond(null, $"Attempted to leave {message}", pc.name);
         }
 
         /// <summary>
@@ -197,7 +187,7 @@ namespace ChatBot.Bot.Plugins
                 cmder = GetUpgradeSubCommandList().First(x => x.command.Equals(cmd));
                 if (cmder == null)
                 {
-                    Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -upgrade help to see all available commands!", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -upgrade help to see all available commands!", pc.name);
                 }
 
                 if (message.Split(' ').Length > 1)
@@ -211,7 +201,7 @@ namespace ChatBot.Bot.Plugins
             }
             catch
             {
-                Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -upgrade help to see all available commands!", pc.name);
+                SystemController.Instance.Respond(null, $"Sorry, {pc.name}, but I didn't understand your command. Use -upgrade help to see all available commands!", pc.name);
                 return;
             }
 
@@ -227,7 +217,7 @@ namespace ChatBot.Bot.Plugins
         {
             FloorCard fc = FloorDb.GetFloor();
             string append = (string.IsNullOrWhiteSpace(fc.notes)) ? "" : $"- {fc.notes} ";
-            Respond(channel, $"{fc.name} {append}[color=green]([b]Floor {fc.floor}: {fc.currentxp}[/b]/[b]{fc.neededxp}[/b])[/color]", pc.name);
+            SystemController.Instance.Respond(channel, $"{fc.name} {append}[color=green]([b]Floor {fc.floor}: {fc.currentxp}[/b]/[b]{fc.neededxp}[/b])[/color]", pc.name);
         }
 
         /// <summary>
@@ -235,12 +225,12 @@ namespace ChatBot.Bot.Plugins
         /// </summary>
         /// <param name="channel">originating channel</param>
         /// <param name="pc">the user sending the request</param>
-        public void CooldownAction(string channel, PlayerCard pc)
+        public void CooldownAction(PlayerCard pc)
         {
             var cooldown = (new TimeSpan(0, BaseDiveCooldown, 0) - new TimeSpan(DateTime.Now.Ticks - pc.lastDive.Ticks));
             string cooldownstring = (cooldown.Ticks > 0) ? $"[b]{cooldown.Hours}[/b] hours, [b]{cooldown.Minutes}[/b] minutes, [b]{cooldown.Seconds}[/b] seconds of cooldown remaining." : "[color=green]Cooldown Ready![/color]";
             string nickname = (string.IsNullOrWhiteSpace(pc.nickname)) ? $"[color=white]{pc.name}[/color]" : $"[color=white]{pc.nickname}[/color]";
-            Respond(null, $"[b]{nickname}[/b], your current dive cooldown is: {cooldownstring}", pc.name);
+            SystemController.Instance.Respond(null, $"[b]{nickname}[/b], your current dive cooldown is: {cooldownstring}", pc.name);
         }
 
         /// <summary>
@@ -257,7 +247,7 @@ namespace ChatBot.Bot.Plugins
             // public only
             if (channel == null)
             {
-                Respond(null, $"Sorry, {nickname}, but you can only gift in public channels!", pc.name);
+                SystemController.Instance.Respond(null, $"Sorry, {nickname}, but you can only gift in public channels!", pc.name);
                 return;
             }
 
@@ -268,22 +258,22 @@ namespace ChatBot.Bot.Plugins
                 gc = GameDb.GetCard(targetName);
                 if (gc == null)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.name);
                     return;
                 }
                 else if (goldAmount <= 0)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can only give positive amounts of gold to other people!", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can only give positive amounts of gold to other people!", pc.name);
                     return;
                 }
                 else if (goldAmount > pc.gold)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can only give as much gold as you have ({pc.gold}) to someone!", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can only give as much gold as you have ({pc.gold}) to someone!", pc.name);
                     return;
                 }
                 else if (pc.name.Equals(gc.name))
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can't gift yourself!", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can't gift yourself!", pc.name);
                     return;
                 }
             }
@@ -294,7 +284,7 @@ namespace ChatBot.Bot.Plugins
 
             if (string.IsNullOrWhiteSpace(gc.name))
             {
-                Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: -gift Rng 34    -gift Cardinal System 14", pc.name);
+                SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: -gift Rng 34    -gift Cardinal System 14", pc.name);
             }
             else
             {
@@ -304,7 +294,7 @@ namespace ChatBot.Bot.Plugins
 
                 GameDb.UpdateCard(pc);
                 string nicknameTwo = (string.IsNullOrWhiteSpace(gc.nickname)) ? $"[color=white]{gc.name}[/color]" : $"[color=white]{gc.nickname}[/color]";
-                Respond(channel, $"[b]{nickname}[/b] has gifted [b]{nicknameTwo}[/b] [color=yellow][b]{goldAmount}[/b][/color] gold!", pc.name);
+                SystemController.Instance.Respond(channel, $"[b]{nickname}[/b] has gifted [b]{nicknameTwo}[/b] [color=yellow][b]{goldAmount}[/b][/color] gold!", pc.name);
             }
         }
 
@@ -316,7 +306,7 @@ namespace ChatBot.Bot.Plugins
         public void GoldAction(string channel, PlayerCard pc)
         {
             string nickname = (string.IsNullOrWhiteSpace(pc.nickname)) ? $"[color=white]{pc.name}[/color]" : $"[color=white]{pc.nickname}[/color]";
-            Respond(channel, $"[b]{nickname}[/b]: You check your coinpurse and count out [color=yellow][b]{pc.gold}[/b][/color] gold.", pc.name);
+            SystemController.Instance.Respond(channel, $"[b]{nickname}[/b]: You check your coinpurse and count out [color=yellow][b]{pc.gold}[/b][/color] gold.", pc.name);
         }
 
         /// <summary>
@@ -334,12 +324,12 @@ namespace ChatBot.Bot.Plugins
                 };
                 if (GameDb.AddNewUser(newPlayer))
                 {
-                    Respond(channel, $"Welcome, {sendingUser}. Thanks for playing! Use -card to see your player card. Use -dive to make your first dungeon run!\\nJust so you know, talking in the channel reduces your cooldown. Roleplaying reduces it even faster! Use -help to learn more commands.", sendingUser);
+                    SystemController.Instance.Respond(channel, $"Welcome, {sendingUser}. Thanks for playing! Use -card to see your player card. Use -dive to make your first dungeon run!\\nJust so you know, talking in the channel reduces your cooldown. Roleplaying reduces it even faster! Use -help to learn more commands.", sendingUser);
                 }
             }
             else
             {
-                Respond(channel, $"You already have an account, {sendingUser}.", sendingUser);
+                SystemController.Instance.Respond(channel, $"You already have an account, {sendingUser}.", sendingUser);
             }
         }
 
@@ -379,7 +369,7 @@ namespace ChatBot.Bot.Plugins
             }
             catch (Exception)
             {
-                Respond(null, $"Incorrect format, please try: -addfloor Floor Name>Floor Description", pc.name);
+                SystemController.Instance.Respond(null, $"Incorrect format, please try: -addfloor Floor Name>Floor Description", pc.name);
                 return;
             }
 
@@ -397,7 +387,7 @@ namespace ChatBot.Bot.Plugins
             };
             FloorDb.AddNewFloor(fc);
 
-            Respond(null, $"You've successfully created floor [b]{fc.floor}:[/b] {fc.name} - {fc.notes}", pc.name);
+            SystemController.Instance.Respond(null, $"You've successfully created floor [b]{fc.floor}:[/b] {fc.name} - {fc.notes}", pc.name);
         }
 
         /// <summary>
@@ -415,13 +405,11 @@ namespace ChatBot.Bot.Plugins
             {
                 if (firstWord.ToLowerInvariant().Equals("on"))
                 {
-                    isMuted = true;
-                    Respond(null, "Muted.", pc.name);
+                    SystemController.Instance.Respond(null, "Muted.", pc.name);
                 }
                 else if (firstWord.ToLowerInvariant().Equals("off"))
                 {
-                    isMuted = false;
-                    Respond(channel, "Unmuted.", pc.name);
+                    SystemController.Instance.Respond(channel, "Unmuted.", pc.name);
                 }
             }
         }
@@ -438,11 +426,11 @@ namespace ChatBot.Bot.Plugins
             {
                 int cd = Convert.ToInt32(message);
                 BaseDiveCooldown = cd;
-                Respond(channel, $"[b]Base cooldown now set to: [color=green]{BaseDiveCooldown}[/color] minutes. Happy hunting![/b]", pc.name);
+                SystemController.Instance.Respond(channel, $"[b]Base cooldown now set to: [color=green]{BaseDiveCooldown}[/color] minutes. Happy hunting![/b]", pc.name);
             }
             catch
             {
-                Respond(channel, $"Invalid format. Try again! ex: -bcd 2 (for 2 hours)", pc.name);
+                SystemController.Instance.Respond(channel, $"Invalid format. Try again! ex: -bcd 2 (for 2 hours)", pc.name);
             }
         }
 
@@ -464,7 +452,7 @@ namespace ChatBot.Bot.Plugins
                 gc = GetActiveUser(targetName);
                 if (gc == null)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.name);
                     return;
                 }
             }
@@ -475,7 +463,7 @@ namespace ChatBot.Bot.Plugins
 
             if (string.IsNullOrWhiteSpace(gc.name))
             {
-                Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: -smite Cardinal System 34", pc.name);
+                SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: -smite Cardinal System 34", pc.name);
             }
             else
             {
@@ -484,11 +472,11 @@ namespace ChatBot.Bot.Plugins
                 string nicknameTwo = (string.IsNullOrWhiteSpace(gc.nickname)) ? $"[color=white]{gc.name}[/color]" : $"[color=white]{gc.nickname}[/color]";
                 if (goldAmount < 0)
                 {
-                    Respond(channel, $"[b]{nickname}[/b] has smited [b]{nicknameTwo}[/b] for [color=yellow][b]{-goldAmount}[/b][/color] gold gained! Wait... gained!?", pc.name);
+                    SystemController.Instance.Respond(channel, $"[b]{nickname}[/b] has smited [b]{nicknameTwo}[/b] for [color=yellow][b]{-goldAmount}[/b][/color] gold gained! Wait... gained!?", pc.name);
                 }
                 else
                 {
-                    Respond(channel, $"[b]{nickname}[/b] has smited [b]{nicknameTwo}[/b] for [color=yellow][b]{goldAmount}[/b][/color] gold loss!", pc.name);
+                    SystemController.Instance.Respond(channel, $"[b]{nickname}[/b] has smited [b]{nicknameTwo}[/b] for [color=yellow][b]{goldAmount}[/b][/color] gold loss!", pc.name);
                 }
             }
         }
@@ -506,17 +494,17 @@ namespace ChatBot.Bot.Plugins
                 PlayerCard tc = GameDb.GetCard(message);
                 if (tc == null)
                 {
-                    Respond(channel, $"Sorry, can't find {message} to execute. Check spelling or casing and try again.", pc.name);
+                    SystemController.Instance.Respond(channel, $"Sorry, can't find {message} to execute. Check spelling or casing and try again.", pc.name);
                 }
                 else
                 {
                     if (GameDb.DeleteCard(tc.name))
                     {
-                        Respond(channel, $"Executed {tc.name}. All traces they were once here have been deleted.", pc.name);
+                        SystemController.Instance.Respond(channel, $"Executed {tc.name}. All traces they were once here have been deleted.", pc.name);
                     }
                     else
                     {
-                        Respond(channel, $"Sorry, can't find {message} to execute even though we could. Something went wrong! :c", pc.name);
+                        SystemController.Instance.Respond(channel, $"Sorry, can't find {message} to execute even though we could. Something went wrong! :c", pc.name);
                     }
                 }
             }

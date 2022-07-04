@@ -4,6 +4,7 @@ using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,7 +54,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             //}
 
             // check for dynamically added trigger commands
-            if (HandleTriggeredCommands(message, sendingUser, channel, command))
+            if (HandleTriggeredCommands(sendingUser, channel, command))
             {
                 return;
             }
@@ -110,7 +111,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (pc == null)
             {
-                Respond(channel, "Invalid character name.", user);
+                SystemController.Instance.Respond(channel, "Invalid character name.", user);
                 return;
             }
 
@@ -147,7 +148,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 cardStr += $"\\n                      {pc.Signature}";
             }
 
-            Respond(channel, cardStr, user);
+            SystemController.Instance.Respond(channel, cardStr, user);
         }
 
         /// <summary>
@@ -229,7 +230,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
 
                         Data.DataDb.DeleteCard(card.Name);
-                        Respond(channel, $"{card.DisplayName} has been smote.", user);
+                        SystemController.Instance.Respond(channel, $"{card.DisplayName} has been smote.", user);
                     }
                     break;
                 case CommandStrings.StardustCooldown:
@@ -262,7 +263,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if (!Data.DataDb.UserExists(tu))
                         {
-                            Respond(null, $"Unable to resolve card for user: {tu}. Format: {CommandChar}{CommandStrings.Reset} *Target* *CooldownType*", user);
+                            SystemController.Instance.Respond(null, $"Unable to resolve card for user: {tu}. Format: {CommandChar}{CommandStrings.Reset} *Target* *CooldownType*", user);
                             break;
                         }
 
@@ -286,12 +287,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if (successful)
                         {
-                            Respond(null, $"Succesfully reset {targetCard.Name}'s {cdTarget}!", user);
+                            SystemController.Instance.Respond(null, $"Succesfully reset {targetCard.Name}'s {cdTarget}!", user);
 
                         }
                         else
                         {
-                            Respond(null, $"Unknown error attempting to reset cooldown for {targetCard.Name}.", user);
+                            SystemController.Instance.Respond(null, $"Unknown error attempting to reset cooldown for {targetCard.Name}.", user);
                         }
                     }
                     break;
@@ -310,12 +311,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
                         catch (Exception)
                         {
-                            Respond(channel, $"Unable to parse status. Please try again.", user);
+                            SystemController.Instance.Respond(channel, $"Unable to parse status. Please try again.", user);
                             return true;
                         }
 
                         Api.SetStatus(sta.ToString(), message.Split(" ".ToCharArray(), 2).Last(), user);
-                        Respond(channel, $"Setting your status to: [{sta.ToString()}] [{message.Split(" ".ToCharArray(), 2).Last()}]", user);
+                        SystemController.Instance.Respond(channel, $"Setting your status to: [{sta}] [{message.Split(" ".ToCharArray(), 2).Last()}]", user);
                     }
                     break;
             }
@@ -341,7 +342,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             RngGeneration.GenerateNewCharacterStats(pc);
             Data.DataDb.AddNewUser(pc);
-            Respond(channel, $"              [b][color=orange]Welcome to Cardinal's Cathedral, {user}!![/color][/b] " +
+            SystemController.Instance.Respond(channel, $"              [b][color=orange]Welcome to Cardinal's Cathedral, {user}!![/color][/b] " +
                 $"\\n" +
                 $"\\nMagic manifests itself in many different ways." +
                 $"\\n" +
@@ -369,7 +370,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             // public only
             if (channel == null)
             {
-                Respond(null, $"Sorry, {nickname}, but you can only gift in public channels!", pc.Name);
+                SystemController.Instance.Respond(null, $"Sorry, {nickname}, but you can only gift in public channels!", pc.Name);
                 return;
             }
 
@@ -380,22 +381,22 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 RngGeneration.TryGetCard(targetName, out gc);
                 if (gc == null)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.Name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but {targetName} isn't a valid user! Check your spelling or casing.", pc.Name);
                     return;
                 }
                 else if (goldAmount <= 0)
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can only give positive amounts of gold to other people!", pc.Name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can only give positive amounts of gold to other people!", pc.Name);
                     return;
                 }
                 else if (goldAmount > pc.GetStat(StatTypes.Gld))
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can only give as much gold as you have ({pc.GetStat(StatTypes.Gld)}) to someone!", pc.Name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can only give as much gold as you have ({pc.GetStat(StatTypes.Gld)}) to someone!", pc.Name);
                     return;
                 }
                 else if (pc.Name.Equals(gc.Name))
                 {
-                    Respond(channel, $"Sorry, {nickname}, but you can't gift yourself!", pc.Name);
+                    SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but you can't gift yourself!", pc.Name);
                     return;
                 }
             }
@@ -406,7 +407,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (string.IsNullOrWhiteSpace(gc.Name))
             {
-                Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: {CommandChar}{CommandStrings.Gift} Rng 34    {CommandChar}{CommandStrings.Gift} Cardinal System 14", pc.Name);
+                SystemController.Instance.Respond(channel, $"Sorry, {nickname}, but unable to find user: {message}. Expected format: {CommandChar}{CommandStrings.Gift} Rng 34    {CommandChar}{CommandStrings.Gift} Cardinal System 14", pc.Name);
             }
             else
             {
@@ -415,7 +416,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 Data.DataDb.UpdateCard(gc);
                 Data.DataDb.UpdateCard(pc);
                 string nicknameTwo = (string.IsNullOrWhiteSpace(gc.DisplayName)) ? $"[color=white]{gc.Name}[/color]" : $"[color=white]{gc.DisplayName}[/color]";
-                Respond(channel, $"[b]{nickname}[/b] has gifted [b]{nicknameTwo}[/b] [color=yellow][b]{goldAmount}[/b][/color] gold!", pc.Name);
+                SystemController.Instance.Respond(channel, $"[b]{nickname}[/b] has gifted [b]{nicknameTwo}[/b] [color=yellow][b]{goldAmount}[/b][/color] gold!", pc.Name);
             }
         }
 
@@ -425,11 +426,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 int cd = Convert.ToInt32(message);
                 REQUIRED_DIVE_STAMINA = cd;
-                Respond(channel, $"[b]Base stamina required to dive has been set to: [color=green]{REQUIRED_DIVE_STAMINA}[/color]. Happy hunting![/b]", pc.Name);
+                SystemController.Instance.Respond(channel, $"[b]Base stamina required to dive has been set to: [color=green]{REQUIRED_DIVE_STAMINA}[/color]. Happy hunting![/b]", pc.Name);
             }
             catch
             {
-                Respond(channel, $"Invalid format. Try again! ex: {CommandChar}{CommandStrings.BaseCooldown} 20 (for 20 stamina)", pc.Name);
+                SystemController.Instance.Respond(channel, $"Invalid format. Try again! ex: {CommandChar}{CommandStrings.BaseCooldown} 20 (for 20 stamina)", pc.Name);
             }
         }
 
@@ -439,11 +440,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 int cd = Convert.ToInt32(message);
                 COST_TO_ROLL = cd;
-                Respond(channel, $"[b]Base Stardust required to roll in the Gatcha has been set to: [color=green]{REQUIRED_DIVE_STAMINA}[/color]. Good luck![/b]", pc.Name);
+                SystemController.Instance.Respond(channel, $"[b]Base Stardust required to roll in the Gatcha has been set to: [color=green]{REQUIRED_DIVE_STAMINA}[/color]. Good luck![/b]", pc.Name);
             }
             catch
             {
-                Respond(channel, $"Invalid format. Try again! ex: {CommandChar}{CommandStrings.StardustCooldown} 20 (for 20 stamina)", pc.Name);
+                SystemController.Instance.Respond(channel, $"Invalid format. Try again! ex: {CommandChar}{CommandStrings.StardustCooldown} 20 (for 20 stamina)", pc.Name);
             }
         }
 
@@ -492,7 +493,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         ucard.Verbose = !ucard.Verbose;
                         Data.DataDb.UpdateCard(ucard);
-                        Respond(null, $"Combat verbosity changed to {(ucard.Verbose == true ? "[color=green]Enabled[/color]" : "[color=orange]Disabled[/color]")}. This only takes effect in whispers.", ucard.Name);
+                        SystemController.Instance.Respond(null, $"Combat verbosity changed to {(ucard.Verbose == true ? "[color=green]Enabled[/color]" : "[color=orange]Disabled[/color]")}. This only takes effect in whispers.", ucard.Name);
                     }
                     break;
                 case CommandStrings.Help:
@@ -557,7 +558,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if (!Data.DataDb.UserExists(message))
                         {
-                            Respond(null, $"Unable to resolve card for user: {message}", user);
+                            SystemController.Instance.Respond(null, $"Unable to resolve card for user: {message}", user);
                             break;
                         }
 
@@ -567,7 +568,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                             break;
                         }
 
-                        Respond(null, $"{ucard.DisplayName} has challenged you to a duel. [sub][color=green]Accept by responding to me with: {CommandChar}{CommandStrings.AcceptDuelLong}[/color] | [color=red]Decline by responding to me with: {CommandChar}{CommandStrings.DenyDuelLong}[/color][/sub]", card.Name);
+                        SystemController.Instance.Respond(null, $"{ucard.DisplayName} has challenged you to a duel. [sub][color=green]Accept by responding to me with: {CommandChar}{CommandStrings.AcceptDuelLong}[/color] | [color=red]Decline by responding to me with: {CommandChar}{CommandStrings.DenyDuelLong}[/color][/sub]", card.Name);
                     }
                     break;
                 case CommandStrings.CancelDuelLong:
@@ -619,7 +620,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if (!Enum.GetNames(typeof(StatTypes)).Any(x => x.Equals(message, StringComparison.InvariantCultureIgnoreCase)))
                         {
-                            Respond(null, $"Unable to resolve valid focusable stat for value: {message}", user);
+                            SystemController.Instance.Respond(null, $"Unable to resolve valid focusable stat for value: {message}", user);
                             break;
                         }
 
@@ -627,14 +628,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         if (!RngGeneration.GetAllFocusableStats().Contains(toFocus))
                         {
-                            Respond(null, $"Unable to resolve valid focusable stat for value: {message}", user);
+                            SystemController.Instance.Respond(null, $"Unable to resolve valid focusable stat for value: {message}", user);
                             break;
                         }
                         ucard.GetStat(StatTypes.Foc);
                         ucard.SetStat(StatTypes.Foc, (int)toFocus);
                         Data.DataDb.UpdateCard(ucard);
 
-                        Respond(null, $"Successfully set stat focus to: {message}", user);
+                        SystemController.Instance.Respond(null, $"Successfully set stat focus to: {message}", user);
                     }
                     break;
                 case CommandStrings.Bully:
@@ -664,7 +665,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         encounterTracker.AddEncounter(enc);
                         Data.DataDb.UpdateCard(card);
                         Data.DataDb.UpdateCard(targetCard);
-                        Respond(channel, $"{card.DisplayName} is attempting to bully you, {targetCard.DisplayName}! [sub][color=pink]You can submit by replying with: {CommandChar}{CommandStrings.Submit}[/color] | [color=red]You can fight back by replying with: {CommandChar}{CommandStrings.Fight}[/color][/sub]", string.Empty);
+                        SystemController.Instance.Respond(channel, $"{card.DisplayName} is attempting to bully you, {targetCard.DisplayName}! [sub][color=pink]You can submit by replying with: {CommandChar}{CommandStrings.Submit}[/color] | [color=red]You can fight back by replying with: {CommandChar}{CommandStrings.Fight}[/color][/sub]", string.Empty);
                     }
                     break;
                 case CommandStrings.Submit:
@@ -749,7 +750,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         encounterTracker.KillEncounter(enc);
 
                         // respond
-                        Respond(channel, submitStr, string.Empty);
+                        SystemController.Instance.Respond(channel, submitStr, string.Empty);
                     }
                     break;
                 case CommandStrings.Fight:
@@ -793,11 +794,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         enc.AddParticipant(1, targetCard);
 
                         // start fight here
-                        Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(card.DisplayName) ? card.Name : card.DisplayName)} and {targetCard.DisplayName}!", string.Empty);
+                        SystemController.Instance.Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(card.DisplayName) ? card.Name : card.DisplayName)} and {targetCard.DisplayName}!", string.Empty);
                         enc.StartEncounter(EncounterTypes.Bully);
                         var encResults = enc.RunEncounter();
 
-                        Respond(channel, $"There was a winner but I haven't parsed the results yet.", string.Empty);
+                        SystemController.Instance.Respond(channel, $"There was a winner but I haven't parsed the results yet.", string.Empty);
                         Data.DataDb.UpdateCard(card);
                         Data.DataDb.UpdateCard(targetCard);
                     }
@@ -869,21 +870,21 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             // if the target has been bullied too recently, get outta here
             if (DateTime.Now - targetCard.LastTriggeredCds[LastUsedCooldownType.LastBullied] < targetCard.BaseCooldowns[PlayerActionTimeoutTypes.HasBeenBulliedCooldown])
             {
-                Respond(channel, $"{targetCard.DisplayName} has been bullied too recently, {card.DisplayName}.", user);
+                SystemController.Instance.Respond(channel, $"{targetCard.DisplayName} has been bullied too recently, {card.DisplayName}.", user);
                 return false;
             }
 
             // if you try to bully yourself, get outta here
             if (targetCard.Name == card.Name)
             {
-                Respond(channel, $"If you want to bully yourself, {targetCard.DisplayName}, go find a sad anime to watch.", user);
+                SystemController.Instance.Respond(channel, $"If you want to bully yourself, {targetCard.DisplayName}, go find a sad anime to watch.", user);
                 return false;
             }
 
             // if there's already an encounter in progress with you in it, get outta here
             if (encounterTracker.PendingEncounters.ContainsKey(card.Name))
             {
-                Respond(channel, $"You're already attempting to bully a target, {targetCard.DisplayName}.", user);
+                SystemController.Instance.Respond(channel, $"You're already attempting to bully a target, {targetCard.DisplayName}.", user);
                 return false;
             }
 
@@ -955,19 +956,19 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             foreach (var v in RngGeneration.GetAllFocusableStats())
             {
-                if (v == StatTypes.Vit) toSend += $"\\n{v.ToString()} ⇒ Sustainability. 'Death' when this reaches 0.";
-                if (v == StatTypes.Atk) toSend += $"\\n{v.ToString()} ⇒ Chance to hit with attacks.";
-                if (v == StatTypes.Dmg) toSend += $"\\n{v.ToString()} ⇒ Base damage.";
-                if (v == StatTypes.Dex) toSend += $"\\n{v.ToString()} ⇒ Physical damage multiplier.";
-                if (v == StatTypes.Int) toSend += $"\\n{v.ToString()} ⇒ Magical damage multiplier.";
-                if (v == StatTypes.Con) toSend += $"\\n{v.ToString()} ⇒ Temporary health. Reduced before [vit] damage.";
-                if (v == StatTypes.Crc) toSend += $"\\n{v.ToString()} ⇒ Critical strike chance modifier.";
-                if (v == StatTypes.Crt) toSend += $"\\n{v.ToString()} ⇒ Critical strike damage additional multiplier.";
-                if (v == StatTypes.Ats) toSend += $"\\n{v.ToString()} ⇒ Reduces the high/low spread of various combat actions.";
-                if (v == StatTypes.Spd) toSend += $"\\n{v.ToString()} ⇒ Determines order of attack during combat.";
-                if (v == StatTypes.Pdf) toSend += $"\\n{v.ToString()} ⇒ Physical damage reduction modifier.";
-                if (v == StatTypes.Mdf) toSend += $"\\n{v.ToString()} ⇒ Magical damage reduction modifier.";
-                if (v == StatTypes.Eva) toSend += $"\\n{v.ToString()} ⇒ Chance to evade incoming attacks.";
+                if (v == StatTypes.Vit) toSend += $"\\n{v} ⇒ Sustainability. 'Death' when this reaches 0.";
+                if (v == StatTypes.Atk) toSend += $"\\n{v} ⇒ Chance to hit with attacks.";
+                if (v == StatTypes.Dmg) toSend += $"\\n{v} ⇒ Base damage.";
+                if (v == StatTypes.Dex) toSend += $"\\n{v} ⇒ Physical damage multiplier.";
+                if (v == StatTypes.Int) toSend += $"\\n{v} ⇒ Magical damage multiplier.";
+                if (v == StatTypes.Con) toSend += $"\\n{v} ⇒ Temporary health. Reduced before [vit] damage.";
+                if (v == StatTypes.Crc) toSend += $"\\n{v} ⇒ Critical strike chance modifier.";
+                if (v == StatTypes.Crt) toSend += $"\\n{v} ⇒ Critical strike damage additional multiplier.";
+                if (v == StatTypes.Ats) toSend += $"\\n{v} ⇒ Reduces the high/low spread of various combat actions.";
+                if (v == StatTypes.Spd) toSend += $"\\n{v} ⇒ Determines order of attack during combat.";
+                if (v == StatTypes.Pdf) toSend += $"\\n{v} ⇒ Physical damage reduction modifier.";
+                if (v == StatTypes.Mdf) toSend += $"\\n{v} ⇒ Magical damage reduction modifier.";
+                if (v == StatTypes.Eva) toSend += $"\\n{v} ⇒ Chance to evade incoming attacks.";
             }
 
             toSend += $"\\n" +
@@ -978,7 +979,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 if ((DamageTypes)v == DamageTypes.None)
                     continue;
 
-                toSend += $"[color={((DamageTypes)v).GetDescription()}]{((DamageTypes)v).ToString()}[/color] ";
+                toSend += $"[color={((DamageTypes)v).GetDescription()}]{((DamageTypes)v)}[/color] ";
             }
 
             toSend += $"\\n" +
@@ -1004,7 +1005,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             toSend += $"[/color]";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         public void BullyHelpAction(string sendingUser)
@@ -1035,7 +1036,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 $"\\nIf the Bully wins, they recieve any stamina the loser lost, up to your maximium." +
                 $"[/color]";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         public void UpgradeHelpAction(string sendingUser)
@@ -1060,7 +1061,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 $"\\nType [color={"pink"}]{CommandChar}{CommandStrings.Upgrade} 3[/color] to upgrade your passive slot." +
                 $"[/color]";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         public void SetDiveFloorAction(string channel, string message, string user)
@@ -1070,7 +1071,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (!int.TryParse(message, out int res) || FloorDb.GetAllFloors().Count < res || res <= 0)
             {
-                Respond(channel, $"{user}, you must specify a valid floor", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify a valid floor", user);
                 return;
             }
 
@@ -1079,7 +1080,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             pc.SetStat(StatTypes.Dff, res);
             Data.DataDb.UpdateCard(pc);
-            Respond(channel, $"{pc.DisplayName}, you'll now dive to floor {res} by default.", user);
+            SystemController.Instance.Respond(channel, $"{pc.DisplayName}, you'll now dive to floor {res} by default.", user);
         }
 
         public void EquipAction(string channel, string message, string user)
@@ -1089,7 +1090,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (!int.TryParse(message, out int res))
             {
-                Respond(channel, $"{user}, you must specify a valid box slot you're attempting to equip. Ex: {CommandStrings.Equip} 1", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify a valid box slot you're attempting to equip. Ex: {CommandStrings.Equip} 1", user);
                 return;
             }
 
@@ -1098,14 +1099,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (card.Inventory.Count < res || res < 1)
             {
-                Respond(channel, $"{user}, you must specify a valid box slot you're attempting to equip. Ex: {CommandStrings.Equip} 1", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify a valid box slot you're attempting to equip. Ex: {CommandStrings.Equip} 1", user);
                 return;
             }
 
             Socket toAdd = card.Inventory[res - 1];
             if (!card.AvailableSockets.Contains(toAdd.SocketType))
             {
-                Respond(channel, $"{user}, you must specify an equipment type you're allowed to equip. Ex: {CommandStrings.Equip} 1", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify an equipment type you're allowed to equip. Ex: {CommandStrings.Equip} 1", user);
                 return;
             }
 
@@ -1132,7 +1133,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             if (toRemove != null) replyMessage += $" You had to unequip your {toRemove.GetName()} to do so.";
 
             Data.DataDb.UpdateCard(card);
-            Respond(channel, replyMessage, user);
+            SystemController.Instance.Respond(channel, replyMessage, user);
         }
 
         public void UnequipAction(string channel, string message, string user)
@@ -1142,7 +1143,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (!int.TryParse(message, out int res))
             {
-                Respond(channel, $"{user}, you must specify a valid equipment slot you're attempting to un-equip. Ex: {CommandStrings.Unequip} 1", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify a valid equipment slot you're attempting to un-equip. Ex: {CommandStrings.Unequip} 1", user);
                 return;
             }
 
@@ -1151,13 +1152,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (res < 1)
             {
-                Respond(channel, $"{user}, you must specify a valid equipment slot you're attempting to un-equip. Ex: {CommandStrings.Unequip} 1", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must specify a valid equipment slot you're attempting to un-equip. Ex: {CommandStrings.Unequip} 1", user);
                 return;
             }
 
             if (card.Inventory.Count >= card.MaxInventory)
             {
-                Respond(channel, $"{user}, you must have free inventory space to {CommandStrings.Unequip} gear.", user);
+                SystemController.Instance.Respond(channel, $"{user}, you must have free inventory space to {CommandStrings.Unequip} gear.", user);
                 return;
             }
 
@@ -1184,7 +1185,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             card.ActiveSockets.Remove(toUnequip);
             card.Inventory.Add(toUnequip);
             Data.DataDb.UpdateCard(card, true);
-            Respond(channel, $"{card.DisplayName}, you've unequipped your {toUnequip.GetRarityString()} {toUnequip.GetName()}", user);
+            SystemController.Instance.Respond(channel, $"{card.DisplayName}, you've unequipped your {toUnequip.GetRarityString()} {toUnequip.GetName()}", user);
         }
 
         public void CardAction(string channel, string message, string user, bool showsig = false)
@@ -1213,7 +1214,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (pc == null)
             {
-                Respond(channel, "Invalid character name.", user);
+                SystemController.Instance.Respond(channel, "Invalid character name.", user);
                 return;
             }
 
@@ -1286,7 +1287,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 cardStr += "Bashful Gaze";
             }
 
-            Respond(channel, cardStr, user);
+            SystemController.Instance.Respond(channel, cardStr, user);
         }
 
         /// <summary>
@@ -1339,35 +1340,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 $"\\ntyping [color={"red"}]{CommandChar}{CommandStrings.MoreHelpLong}[/color] as well!" +
                 $"[/color]";
 
-            Respond(null, toSend, sendingUser);
-        }
-
-        /// <summary>
-        /// handles parsing non-command interactions
-        /// </summary>
-        /// <param name="channel">source channel</param>
-        /// <param name="user">source user</param>
-        /// <param name="message">message the user sent</param>
-        //public void HandleNonCommand(string channel, string user, string message)
-        //{
-        //
-        //}
-
-        /// <summary>
-        /// replies via the f-list api
-        /// </summary>
-        /// <param name="channel">channel to reply to</param>
-        /// <param name="message">message to reply with</param>
-        /// <param name="recipient">person to reply to</param>
-        public override void Respond(string channel, string message, string recipient)
-        {
-            MessageType mt = MessageType.Basic;
-            if (string.IsNullOrWhiteSpace(channel))
-            {
-                mt = MessageType.Whisper;
-            }
-
-            Respond(channel, message, recipient, mt);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         /// <summary>
@@ -1405,7 +1378,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         
         // TESTING CRAP OUT BELOW THIS LINE
 
-        public bool HandleTriggeredCommands(string message, string user, string channel, string command)
+        public bool HandleTriggeredCommands(string user, string channel, string command)
         {
             bool toReturn = false;
             lock(BossTimerLocker)
@@ -1427,7 +1400,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         foreach (var v in ActiveChannels)
                         {
-                            Respond(v, tdfe.TimeoutMessage, null);
+                            SystemController.Instance.Respond(v, tdfe.TimeoutMessage, null);
                         }
                         toReturn = true;
                         return;
@@ -1436,7 +1409,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     {
                         ActiveTriggeredEvents.Remove(tdfe);
                         foreach (var v in ActiveChannels)
-                            Respond(v, tdfe.CooldownMessage, null);
+                            SystemController.Instance.Respond(v, tdfe.CooldownMessage, null);
                         toReturn = true;
                         return;
                     }
@@ -1456,7 +1429,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                     if (cs == CommandStrings.TB)
                     {
-                        TB(channel, message, user, command);
+                        TB(channel, user);
                         return true;
                     }
                     
@@ -1465,7 +1438,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             return false;
         }
 
-        public void TB(string channel, string message, string user, string command)
+        public void TB(string channel, string user)
         {
             if (!RngGeneration.TryGetCard(user, out Cards.PlayerCard card))
             {
@@ -1478,7 +1451,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 return;
 
             bossEvent.PendingPlayers.Add(card);
-            Respond(channel, $"Added {card.DisplayName} to the next wave. ({bossEvent.PendingPlayers.Count} participating Adventurers)", card.Name);
+            SystemController.Instance.Respond(channel, $"Added {card.DisplayName} to the next wave. ({bossEvent.PendingPlayers.Count} participating Adventurers)", card.Name);
         }
 
         public object BossTimerLocker = new object();
@@ -1543,7 +1516,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         foreach (var v in ActiveChannels)
                         {
-                            Respond(v, tdfe.TimeoutMessage, null);
+                            SystemController.Instance.Respond(v, tdfe.TimeoutMessage, null);
                         }
 
                         return;
@@ -1552,14 +1525,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     {
                         ActiveTriggeredEvents.Remove(tdfe);
                         foreach (var v in ActiveChannels)
-                            Respond(v, tdfe.CooldownMessage, null);
+                            SystemController.Instance.Respond(v, tdfe.CooldownMessage, null);
                         return;
                     }
                     else if (tdfe._EventState == TriggeredEventState.Resolved)
                     {
                         ActiveTriggeredEvents.Remove(tdfe);
                         foreach (var v in ActiveChannels)
-                            Respond(v, "This event has been resolved. For now...", null);
+                            SystemController.Instance.Respond(v, "This event has been resolved. For now...", null);
                     }
                     else
                         return;
@@ -1580,7 +1553,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                 foreach(var v in ActiveChannels)
                 {
-                    Respond(v, te.StartMessage, null);
+                    SystemController.Instance.Respond(v, te.StartMessage, null);
                 }
             }
         }

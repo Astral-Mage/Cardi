@@ -235,7 +235,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                         // random
                         baseStats.AddStat(StatTypes.Atk, Convert.ToInt32(Math.Floor((double)Rng.Next(43, 76) * baseLevel)));
                         baseStats.AddStat(StatTypes.Con, Convert.ToInt32(Math.Floor((double)Rng.Next(15, 19) * baseLevel)));
-                        baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 15) * baseLevel)));
+                        baseStats.AddStat(StatTypes.Spd, Convert.ToInt32(Math.Floor((double)Rng.Next(2, 7) * baseLevel)));
                         baseStats.AddStat(StatTypes.Crt, Convert.ToInt32(Math.Floor((double)Rng.Next(11, 15) * baseLevel)));
                         baseStats.AddStat(StatTypes.Mdf, Convert.ToInt32(Math.Floor(Rng.Next(40, 55) + (double)Rng.Next(1, 5) * baseLevel)));
                         baseStats.AddStat(StatTypes.Pdf, Convert.ToInt32(Math.Floor(Rng.Next(40, 55) + (double)Rng.Next(1, 5) * baseLevel)));
@@ -397,7 +397,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
                             ws.DamageType = (DamageTypes)Rng.Next(1, Enum.GetNames(typeof(DamageTypes)).Length - 1);
                         }
 
-                        if (valRolled > BaseGatchaItemMaxClip - 5)
+                        if (valRolled > BaseGatchaItemMaxClip - 15)
                         {
                             if (ws.WeaponType == WeaponTypes.MagicBook || ws.WeaponType == WeaponTypes.Staff)
                             {

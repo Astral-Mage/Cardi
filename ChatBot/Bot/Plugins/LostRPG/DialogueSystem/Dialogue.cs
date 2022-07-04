@@ -1,0 +1,157 @@
+﻿using ChatApi;
+using ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Enums;
+using ChatBot.Core;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+
+namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
+{
+
+    public class Dialogue
+    {
+        public int Id { get; private set; }
+
+        public string Owner { get; private set; }
+
+        protected int CurrentStep { get; set; }
+
+        public void GetTotalSteps() { }
+
+        public void GetCurrentStep() { }
+
+        public DialogueStatus Status { get; set; }
+
+        public int MaxSteps { get; protected set; }
+
+        public Type ChildType { get; protected set; }
+
+        public DialogueLocale Locale { get; set; }
+
+        public DialogueType TypeOfDialogue { get; set; }
+
+        protected bool BackingUp { get; set; }
+
+        protected Dictionary<int, string> StoredArgs { get; set; }
+
+        protected string CommandChar = string.Empty;
+
+
+
+        protected Dialogue(int id, string owner, string commandChar) 
+        {
+            CurrentStep = 0;
+            Id = id;
+            Owner = owner;
+            Status = DialogueStatus.Inactive;
+            MaxSteps = 0;
+            Locale = DialogueLocale.Private;
+            TypeOfDialogue = DialogueType.Command;
+            BackingUp = false;
+            StoredArgs = new Dictionary<int, string>();
+            CommandChar = commandChar;
+        }
+
+        public virtual bool Progress(string args = null)
+        {
+            if (Status == DialogueStatus.Complete)
+            {
+                return false;
+            }
+            else if (Status == DialogueStatus.Inactive)
+            {
+                Status = DialogueStatus.Active;
+                Respond(null, $"Starting Dialogue: {ChildType.Name}.", Owner);
+            }
+
+            if (!string.IsNullOrWhiteSpace(args) && args.StripPunctuation().ToLowerInvariant().Equals("cancel"))
+            {
+                Status = DialogueStatus.Complete;
+                Respond(null, $"Dialogue {ChildType.Name} cancelled.", Owner);
+                return true;
+            }
+            else if (!string.IsNullOrWhiteSpace(args) && args.StripPunctuation().ToLowerInvariant().Equals("repeat"))
+            {
+                if (CurrentStep <= 1)
+                {
+                    args = null;
+                    CurrentStep = 0;
+                }
+                else
+                {
+                    args = StoredArgs[CurrentStep];
+                    CurrentStep -= 1;
+                }
+            }
+
+            CurrentStep += 1;
+            if (StoredArgs.Count < CurrentStep) StoredArgs.Add(CurrentStep, args);
+            else StoredArgs[CurrentStep] = args;
+
+            MethodInfo method = ChildType.GetMethod(CurrentStep.AmountInWords());
+            method.Invoke(this, new object[] { args });
+
+            if (CurrentStep >= MaxSteps)
+            {
+                Status = DialogueStatus.Complete;
+                Respond(null, $"Dialogue {ChildType.Name} complete!", Owner);
+            }
+            else if (BackingUp)
+            {
+                CurrentStep -= 1;
+                if (CurrentStep < 0) CurrentStep = 0;
+
+                BackingUp = false;
+                return Progress(StoredArgs[CurrentStep + 1]);
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// replies via the f-list api
+        /// </summary>
+        /// <param name="channel">channel to reply to</param>
+        /// <param name="message">message to reply with</param>
+        /// <param name="recipient">person to reply to</param>
+        public void Respond(string channel, string message, string recipient)
+        {
+            MessageType mt = MessageType.Basic;
+            if (string.IsNullOrWhiteSpace(channel))
+            {
+                mt = MessageType.Whisper;
+            }
+
+            Respond(channel, message, recipient, mt);
+        }
+
+        /// <summary>
+        /// replies via the f-list api
+        /// </summary>
+        /// <param name="channel">channel to reply to</param>
+        /// <param name="message">message to reply with</param>
+        /// <param name="recipient">person to reply to</param>
+        public void Respond(string channel, string message, string recipient, MessageType messagetype)
+        {
+            if (!string.IsNullOrWhiteSpace(channel))
+            {
+                recipient = string.Empty;
+            }
+
+            if (string.IsNullOrWhiteSpace(channel) && string.IsNullOrWhiteSpace(recipient))
+            {
+                Console.WriteLine($"Error attempting to send message with no valid channel or recipient.");
+                return;
+            }
+
+            message = $"[color={BASE_COLOR}]{message}[/color]";
+
+            SystemController.Instance.Respond(channel, message, recipient, messagetype);
+        }
+
+        /// <summary>
+        /// base reply colorization
+        /// </summary>
+        public string BASE_COLOR;
+    }
+}

@@ -2,6 +2,7 @@
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 cmder = GetSetSubCommandList().First(x => x.command.Equals(cmd, StringComparison.OrdinalIgnoreCase));
                 if (cmder == null)
                 {
-                    Respond(null, $"I didn't understand your command. Use set help to see all available commands!", user);
+                    SystemController.Instance.Respond(null, $"I didn't understand your command. Use set help to see all available commands!", user);
                 }
 
                 if (message.Split(' ').Length > 1)
@@ -44,7 +45,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
             catch
             {
-                Respond(null, $"I didn't understand your command. Use set help to see all available commands!", user);
+                SystemController.Instance.Respond(null, $"I didn't understand your command. Use set help to see all available commands!", user);
                 return;
             }
 
@@ -85,14 +86,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 $"\\n[color={"blue"}]{CommandChar}{CommandStrings.Set} {CommandStrings.Nickname} Rebekk Aboo[/color] overrides your display name." +
                 $"[/color]";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         public void SetSubMenu(Command command, string message, string user, string channel)
         {
             if (message.Length > 300)
             {
-                Respond(null, $"Sorry, but you're over the character limit: [color=red]{message.Length}[/color]/300", user);
+                SystemController.Instance.Respond(null, $"Sorry, but you're over the character limit: [color=red]{message.Length}[/color]/300", user);
                 return;
             }
 
@@ -104,7 +105,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (message.Contains("\\n"))
             {
-                Respond(null, $"Sorry, but you can't insert newlines into any set commands!", user);
+                SystemController.Instance.Respond(null, $"Sorry, but you can't insert newlines into any set commands!", user);
                 return;
             }
 
@@ -121,7 +122,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         if (!(pc.ActiveSockets.Count(x => x.SocketType == Enums.SocketTypes.Weapon) == 1))
                             return;
                         WeaponSocket ws = (pc.ActiveSockets.First(x => x.SocketType == Enums.SocketTypes.Weapon) as WeaponSocket);
-                        Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
                         ws.NameOverride = message;
                         Data.DataDb.UpdateCard(pc);
                     }
@@ -132,7 +133,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         if (!(pc.ActiveSockets.Count(x => x.SocketType == Enums.SocketTypes.Armor) == 1))
                             return;
                         ArmorSocket ws = (pc.ActiveSockets.First(x => x.SocketType == Enums.SocketTypes.Armor) as ArmorSocket);
-                        Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
                         ws.NameOverride = message;
                         Data.DataDb.UpdateCard(pc);
                     }
@@ -143,7 +144,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         if (!(pc.ActiveSockets.Count(x => x.SocketType == Enums.SocketTypes.Passive) == 1))
                             return;
                         PassiveSocket ws = (pc.ActiveSockets.First(x => x.SocketType == Enums.SocketTypes.Passive) as PassiveSocket);
-                        Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, you've renamed your {ws.GetName()} to {(string.IsNullOrWhiteSpace(message) ? ws.GetName(false) : message)}", user);
                         ws.NameOverride = message;
                         Data.DataDb.UpdateCard(pc);
                     }
@@ -161,7 +162,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
                         pc.ClassDisplayName = message;
                         ClassTypes baseClassStr = (ClassTypes)pc.GetStat(StatTypes.Cs1);
-                        Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your class name back to {baseClassStr.GetDescription()}" : $"you've customized your class name to {message}.")}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your class name back to {baseClassStr.GetDescription()}" : $"you've customized your class name to {message}.")}", user);
                         Data.DataDb.UpdateCard(pc);
 
                     }
@@ -179,7 +180,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
                         pc.SpeciesDisplayName = message;
                         SpeciesTypes baseSpeciesStr = (SpeciesTypes)pc.GetStat(StatTypes.Sps);
-                        Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your species name back to {baseSpeciesStr.GetDescription()}" : $"you've customized your species name to {message}.")}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your species name back to {baseSpeciesStr.GetDescription()}" : $"you've customized your species name to {message}.")}", user);
                         Data.DataDb.UpdateCard(pc);
 
                     }
@@ -195,7 +196,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                             return;
                         }
                         pc.DisplayName = message;
-                        Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your name back to {pc.Name}" : $"you've customized your name to {message}.")}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've reverted your name back to {pc.Name}" : $"you've customized your name to {message}.")}", user);
                         Data.DataDb.UpdateCard(pc);
 
                     }
@@ -212,7 +213,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
 
                         pc.Signature = message;
-                        Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've deleted your signature." : $"you've customized your signature to {message}.")}", user);
+                        SystemController.Instance.Respond(channel, $"{pc.DisplayName}, {((string.IsNullOrWhiteSpace(message)) ? $"you've deleted your signature." : $"you've customized your signature to {message}.")}", user);
                         Data.DataDb.UpdateCard(pc);
                     }
                     break;

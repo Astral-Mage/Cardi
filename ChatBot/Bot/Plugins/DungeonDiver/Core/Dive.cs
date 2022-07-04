@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatBot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -97,7 +98,7 @@ namespace ChatBot.Bot.Plugins
             string nickname = (string.IsNullOrWhiteSpace(pc.nickname)) ? $"[color=white]{pc.name}[/color]" : $"[color=white]{pc.nickname}[/color]";
             if (cooldown.Ticks > 0)
             {
-                Respond(channel, $"[b]{nickname}[/b], the dungeon barrier is keeping you from re-entering. {cooldown.Hours} hours, {cooldown.Minutes} minutes, {cooldown.Seconds} seconds of cooldown remaining.", pc.name);
+                SystemController.Instance.Respond(channel, $"[b]{nickname}[/b], the dungeon barrier is keeping you from re-entering. {cooldown.Hours} hours, {cooldown.Minutes} minutes, {cooldown.Seconds} seconds of cooldown remaining.", pc.name);
                 return;
             }
 
@@ -140,11 +141,11 @@ namespace ChatBot.Bot.Plugins
             if (fc.currentxp > fc.neededxp)
             {
                 FloorCard fcnext = FloorDb.GetFloor();
-                Respond(channel, $"[b][color=green]FLOOR CLEAR!![/color][/b] Congratulations! Just beyond, however, looms... " + $"{fcnext.name} - {fcnext.notes} [color=green]([b]Floor {fcnext.floor}: {fcnext.currentxp}[/b]/[b]{fcnext.neededxp}[/b])[/color]", pc.name);
+                SystemController.Instance.Respond(channel, $"[b][color=green]FLOOR CLEAR!![/color][/b] Congratulations! Just beyond, however, looms... " + $"{fcnext.name} - {fcnext.notes} [color=green]([b]Floor {fcnext.floor}: {fcnext.currentxp}[/b]/[b]{fcnext.neededxp}[/b])[/color]", pc.name);
             }
 
             int killedCount             = dr.events.Count(x => x.type == EventType.Enemy);
-            string monsterBlurb         = MonsterDefeatedBlurbs[rng.Next(0, MonsterDefeatedBlurbs.Count)].Replace("{monsters}", $"[b][color={enemycolor}]{killedCount.ToString()}[/color][/b]").Replace("{weapon}", $"{pc.weapon}").Replace("{gear}", $"{pc.gear}").Replace("{special}", $"{pc.special}");
+            string monsterBlurb         = MonsterDefeatedBlurbs[rng.Next(0, MonsterDefeatedBlurbs.Count)].Replace("{monsters}", $"[b][color={enemycolor}]{killedCount}[/color][/b]").Replace("{weapon}", $"{pc.weapon}").Replace("{gear}", $"{pc.gear}").Replace("{special}", $"{pc.special}");
 
             // if we leveled
             string toSend               = $"{(didLevel ? "[b][color=green]Level up!![/color][/b] " : "")}[b]{nickname}:[/b] ";
@@ -167,7 +168,7 @@ namespace ChatBot.Bot.Plugins
             toSend += $"You earned [color={goldcolor}][b]{dr.gold}[/b][/color] total gold, [color={xpcolor}][b]{dr.xp}[/b][/color] total experience, and contributed [color={progcolor}][b]{dr.prog}[/b][/color] progress this dive.";
 
             // send!
-            Respond(channel, toSend, pc.name);
+            SystemController.Instance.Respond(channel, toSend, pc.name);
         }
     }
 }

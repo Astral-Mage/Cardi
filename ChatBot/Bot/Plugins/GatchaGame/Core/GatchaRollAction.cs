@@ -1,6 +1,7 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Core;
 using System;
 
 namespace ChatBot.Bot.Plugins.GatchaGame
@@ -13,7 +14,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         {
             if (!Data.DataDb.UserExists(user))
             {
-                Respond(channel, $"You need to create a character first to roll in the gatcha.", user);
+                SystemController.Instance.Respond(channel, $"You need to create a character first to roll in the gatcha.", user);
                 return;
             }
 
@@ -23,7 +24,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             int starDust = pc.GetStat(StatTypes.Sds);
             if (starDust < COST_TO_ROLL)
             {
-                Respond(channel, $"You need [color=red]{starDust}[/color][b][color=black][color=purple]/{COST_TO_ROLL}[/color][/color][/b] Stardust to roll in the gatcha. Collect more during events, from other players, or from diving.", user);
+                SystemController.Instance.Respond(channel, $"You need [color=red]{starDust}[/color][b][color=black][color=purple]/{COST_TO_ROLL}[/color][/color][/b] Stardust to roll in the gatcha. Collect more during events, from other players, or from diving.", user);
                 return;
             }
 
@@ -35,13 +36,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 if (pc.Inventory.Count >= pc.MaxInventory)
                 {
-                    Respond(channel, $"Your inventory is full. Please clean up space before rolling.", user);
+                    SystemController.Instance.Respond(channel, $"Your inventory is full. Please clean up space before rolling.", user);
                     return;
                 }
 
                 if (starDust < COST_TO_ROLL)
                 {
-                    Respond(channel, $"You need [color=red]{starDust}[/color][b][color=black][color=purple]/{COST_TO_ROLL}[/color][/color][/b] Stardust to roll in the gatcha. Collect more during events, from other players, or from diving.", user);
+                    SystemController.Instance.Respond(channel, $"You need [color=red]{starDust}[/color][b][color=black][color=purple]/{COST_TO_ROLL}[/color][/color][/b] Stardust to roll in the gatcha. Collect more during events, from other players, or from diving.", user);
                     break;
                 }
 
@@ -97,7 +98,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
             pc.SetStat(StatTypes.Sds, starDust);
             Data.DataDb.UpdateCard(pc);
-            Respond(channel, replyString, user);
+            SystemController.Instance.Respond(channel, replyString, user);
         }
     }
 }

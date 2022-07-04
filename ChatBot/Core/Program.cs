@@ -1,23 +1,22 @@
-﻿using System;
+﻿// general
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using ChatApi;
 
+// plugins
+using ChatBot.Bot.Plugins.LostRPG;
+using ChatBot.Core;
 
-using ChatBot.Bot.Plugins;
-using ChatBot.Bot.Plugins.GatchaGame.Generation;
-using ChatBot.Bot.Plugins.GatchaGame.Enums;
-using ChatBot.Bot.Plugins.GatchaGame.Data;
-using ChatBot.Bot.Plugins.GatchaGame.Quests;
-
-
+// debug/release specific
 #if DEBUG
-using ChatBot.Bot.Plugins.GatchaGame;
+
 #else
-using ChatBot.Bot.Plugins.GatchaGame;
+
 #endif
 
+// entry
 namespace ChatBot
 {
     public partial class Program
@@ -121,6 +120,10 @@ namespace ChatBot
         }
 
         #region Validation
+        /// <summary>
+        /// handles cli arg validation confirmation
+        /// </summary>
+        /// <returns>false if any of our arguments failed to validate</returns>
         static bool ConfirmCliArgumentValidation()
         {
             if (FailedCliArgs.Any())
@@ -135,6 +138,13 @@ namespace ChatBot
             return true;
         }
 
+        /// <summary>
+        /// attempts to validate an argument
+        /// </summary>
+        /// <param name="argVal">value of argument to validate</param>
+        /// <param name="argName">name of the argument we're attempting to validate</param>
+        /// <param name="rawArgs">the unfiltered arg cmd to check</param>
+        /// <param name="isOptional">if the arg is optional or not</param>
         static void ValidateArgument(out List<string> argVal, string argName, Dictionary<string, string> rawArgs, bool isOptional = false)
         {
             argVal = new List<string>();
@@ -157,6 +167,13 @@ namespace ChatBot
             Console.WriteLine($"{argName} --- {string.Join(",", argVal)}");
         }
 
+        /// <summary>
+        /// attempts to validate an argument
+        /// </summary>
+        /// <param name="argVal">value of argument to validate</param>
+        /// <param name="argName">name of the argument we're attempting to validate</param>
+        /// <param name="rawArgs">the unfiltered arg cmd to check</param>
+        /// <param name="isOptional">if the arg is optional or not</param>
         static void ValidateArgument(out string argVal, string argName, Dictionary<string, string> rawArgs, bool isOptional = false)
         {
             argVal = string.Empty;
@@ -179,6 +196,13 @@ namespace ChatBot
             Console.WriteLine($"{argName} --- {((argName.Equals(PassWordArg, StringComparison.InvariantCultureIgnoreCase)) ? "************" : $"{argVal}")}");
         }
 
+        /// <summary>
+        /// attempts to validate an argument
+        /// </summary>
+        /// <param name="argVal">value of argument to validate</param>
+        /// <param name="argName">name of the argument we're attempting to validate</param>
+        /// <param name="rawArgs">the unfiltered arg cmd to check</param>
+        /// <param name="isOptional">if the arg is optional or not</param>
         static void ValidateArgument(out int argVal, string argName, Dictionary<string, string> rawArgs, bool isOptional = false)
         {
             argVal = -1;
@@ -206,21 +230,28 @@ namespace ChatBot
             Console.WriteLine($"{argName} --- {argVal}");
         }
 
-        static void ValidateFlag(out bool flagVal, string flagName, Dictionary<string, string> rawArgs, bool isOptional = false)
-        {
-            flagVal = false;
-            flagName = flagName.ToLowerInvariant();
-
-            if (!rawArgs.ContainsKey(flagName))
-            {
-                if (!isOptional)
-                    FailedCliArgs.Add($"Failed Validation: {flagName}");
-                return;
-            }
-
-            flagVal = true;
-            Console.WriteLine($"{flagName} --- {flagVal}");
-        }
+        /// <summary>
+        /// attempts to validate a flag
+        /// </summary>
+        /// <param name="flagVal">value of the flag to validate</param>
+        /// <param name="flagName">naem of the flag we're attempting to validate</param>
+        /// <param name="rawArgs">the unfiltered flag cmd to check</param>
+        /// <param name="isOptional">if the arg is optional or not</param>
+        //static void ValidateFlag(out bool flagVal, string flagName, Dictionary<string, string> rawArgs, bool isOptional = false)
+        //{
+        //    flagVal = false;
+        //    flagName = flagName.ToLowerInvariant();
+        //
+        //    if (!rawArgs.ContainsKey(flagName))
+        //    {
+        //        if (!isOptional)
+        //            FailedCliArgs.Add($"Failed Validation: {flagName}");
+        //        return;
+        //    }
+        //
+        //    flagVal = true;
+        //    Console.WriteLine($"{flagName} --- {flagVal}");
+        //}
 #endregion
 
         /// <summary>
@@ -244,9 +275,10 @@ namespace ChatBot
 
                 // Add our plugins here ////////////////////////////////////////////////
 #if DEBUG
-                Bot.AddPlugin(new GatchaGame(Chat, commandChar));
+                //Bot.AddPlugin(new GatchaGame(Chat, commandChar));
+                Bot.AddPlugin(new LostRPG(Chat, commandChar));
 #else
-                Bot.AddPlugin(new GatchaGame(Chat, commandChar));
+                //Bot.AddPlugin(new GatchaGame(Chat, commandChar));
 #endif
                 // End Plugin Adding ///////////////////////////////////////////////////
 
@@ -262,6 +294,8 @@ namespace ChatBot
 
                 Chat.ConnectToChat(userName, passWord, characterName);
                 StartingChannel = startingChannel;
+
+                SystemController.Instance.SetApi(Chat);
 
                 // initiate the loop
                 while (Chat.IsConnected())
@@ -285,5 +319,101 @@ namespace ChatBot
             Thread.Sleep(10000);
 
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        //static void TransferFloorData()
+        //{
+        //    var ofloors = FloorDb.GetAllFloors();
+        //    foreach (var floor in ofloors)
+        //    {
+        //        DataDb.AddNewFloor(floor);
+        //    }
+        //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        //static void TransferUserData()
+        //{
+        //
+        //    var ocards = GameDb.GetAllCards();
+        //    foreach (var card in ocards)
+        //    {
+        //        Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
+        //        RngGeneration.GenerateNewCharacterStats(pc);
+        //        pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 10), false, false, false);
+        //        pc.AddStat(StatTypes.Gld, card.level * 5, false, false, false);
+        //
+        //        pc.Name = card.name;
+        //        pc.DisplayName = card.nickname;
+        //        if (string.IsNullOrWhiteSpace(pc.DisplayName)) pc.DisplayName = pc.Name;
+        //        pc.Signature = card.signature;
+        //        pc.SpeciesDisplayName = card.species;
+        //        pc.ClassDisplayName = card.mainClass;
+        //        pc.AvailableSockets.Add(SocketTypes.Weapon);
+        //        pc.AvailableSockets.Add(SocketTypes.Armor);
+        //        pc.AvailableSockets.Add(SocketTypes.Passive);
+        //
+        //        pc.AddStat(StatTypes.Sds, card.level * 2, false, false, false);
+        //        pc.AddStat(StatTypes.Kil, card.killed, false, false, false);
+        //
+        //        var tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Weapon, 1);
+        //        tws.NameOverride = (string.IsNullOrWhiteSpace(card.weapon)) ? tws.NameOverride : card.weapon;
+        //        pc.ActiveSockets.Add(tws);
+        //
+        //        tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Armor, 1);
+        //        tws.NameOverride = (string.IsNullOrWhiteSpace(card.gear)) ? tws.NameOverride : card.gear;
+        //        pc.ActiveSockets.Add(tws);
+        //
+        //        tws = RngGeneration.GenerateRandomPassive(out _, 1);
+        //        tws.NameOverride = (string.IsNullOrWhiteSpace(card.special)) ? tws.NameOverride : card.special;
+        //        pc.ActiveSockets.Add(tws);
+        //
+        //        if (card.weaponperklvl == 1)
+        //        {
+        //            pc.BoonsEarned.Add(BoonTypes.Sharpness);
+        //            pc.CompletedQuests.Add(2010);
+        //        }
+        //        if (card.gearperklvl == 1)
+        //        {
+        //            pc.BoonsEarned.Add(BoonTypes.Resiliance);
+        //            pc.CompletedQuests.Add(2011);
+        //        }
+        //        if (card.specialperklvl == 1)
+        //        {
+        //            pc.BoonsEarned.Add(BoonTypes.Empowerment);
+        //            pc.CompletedQuests.Add(3302);
+        //        }
+        //
+        //
+        //        var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>
+        //        {
+        //            pc
+        //        };
+        //
+        //        // check for level up here
+        //        int val1;
+        //        int curlvl;
+        //        int val2;
+        //        do
+        //        {
+        //            // -150 + 300x^1.8
+        //            val1 = pc.GetStat(StatTypes.Exp);
+        //            curlvl = pc.GetStat(StatTypes.Lvl);
+        //            val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
+        //            if (val1 > val2)
+        //            {
+        //                // leveled up
+        //                pc.LevelUp();
+        //                pc.AddStat(StatTypes.Lvl, 1);
+        //        
+        //            }
+        //        } while (val1 > val2);
+        //
+        //        DataDb.AddNewUser(pc);
+        //    }
+        //}
     }
 }

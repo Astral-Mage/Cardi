@@ -44,13 +44,5 @@ namespace ChatBot.Bot.Plugins
         /// shuts down any volatile variables
         /// </summary>
         public virtual void Shutdown() { }
-
-        /// <summary>
-        /// Handlse responding
-        /// </summary>
-        /// <param name="channel">target channel, if any</param>
-        /// <param name="message">base message, if any</param>
-        /// <param name="recipient">who to send the reply to, if a dm</param>
-        public virtual void Respond(string channel, string message, string sendingUser) { }
     }
 }

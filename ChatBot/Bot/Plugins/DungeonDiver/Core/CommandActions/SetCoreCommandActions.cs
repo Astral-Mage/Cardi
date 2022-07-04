@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatBot.Core;
+using System;
 
 namespace ChatBot.Bot.Plugins
 {
@@ -27,7 +28,7 @@ namespace ChatBot.Bot.Plugins
                 "[color=red]-set color red[/color] to set your card's theme color to red. Only valid bbcode colors are accepted!\\n" +
                 "[color=green]-set sig[/color] to set your card's signature. This can include icons and eicons, so go crazy (leave empty to set back to default!)\\n" +
                 "[color=blue]-set nick[/color] to set your card's nickname. This will display instead of your default name on your card (leave empty to set back to default!)\\n";
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         /// <summary>
@@ -42,11 +43,11 @@ namespace ChatBot.Bot.Plugins
                 pc.colortheme = color.ToLower();
                 GameDb.UpdateCard(pc);
 
-                Respond(null, $"Successfully set your card color theme to [color={color}]{color}[/color]!", pc.name);
+                SystemController.Instance.Respond(null, $"Successfully set your card color theme to [color={color}]{color}[/color]!", pc.name);
             }
             else
             {
-                Respond(null, $"Please enter a valid color: [color=white]white[/color], [color=black]black[/color], [color=red]red[/color], [color=blue]blue[/color], [color=yellow]yellow[/color], [color=green]green[/color], [color=pink]pink[/color], [color=gray]gray[/color], [color=orange]orange[/color], [color=purple]purple[/color], [color=brown]brown[/color], [color=cyan]cyan[/color]", pc.name);
+                SystemController.Instance.Respond(null, $"Please enter a valid color: [color=white]white[/color], [color=black]black[/color], [color=red]red[/color], [color=blue]blue[/color], [color=yellow]yellow[/color], [color=green]green[/color], [color=pink]pink[/color], [color=gray]gray[/color], [color=orange]orange[/color], [color=purple]purple[/color], [color=brown]brown[/color], [color=cyan]cyan[/color]", pc.name);
             }
         }
 
@@ -67,7 +68,7 @@ namespace ChatBot.Bot.Plugins
             {
                 if (message.Length > charlimit)
                 {
-                    Respond(null, $"Sorry, character limit for {Enum.GetName(typeof(CardType), cardType)} is: [color=red]{message.Length}[/color] [b]/ {charlimit}[/b]", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, character limit for {Enum.GetName(typeof(CardType), cardType)} is: [color=red]{message.Length}[/color] [b]/ {charlimit}[/b]", pc.name);
                     return;
                 }
 
@@ -75,13 +76,13 @@ namespace ChatBot.Bot.Plugins
                 {
                     if (message.Contains("\"") || message.Contains("[url") || message.Contains("[eicon") || message.Contains("[icon") || message.Contains("[user"))
                     {
-                        Respond(null, $"Sorry, but you can't use eicon, icon, quotes, user, or url bbcode.", pc.name);
+                        SystemController.Instance.Respond(null, $"Sorry, but you can't use eicon, icon, quotes, user, or url bbcode.", pc.name);
                         return;
                     }
                 }
                 else if (message.Contains("\"") || message.Contains("[url") || message.Contains("[user"))
                 {
-                    Respond(null, $"Sorry, but you can't use eicon, icon, quotes, user, or url bbcode.", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, but you can't use eicon, icon, quotes, user, or url bbcode.", pc.name);
                     return;
                 }
 
@@ -92,7 +93,7 @@ namespace ChatBot.Bot.Plugins
 
                 GameDb.UpdateCard(pc);
 
-                Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is set to: {message}!", pc.name);
+                SystemController.Instance.Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is set to: {message}!", pc.name);
             }
             else
             {
@@ -100,17 +101,17 @@ namespace ChatBot.Bot.Plugins
                 {
                     pc.nickname = string.Empty;
                     GameDb.UpdateCard(pc);
-                    Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is set to: {pc.name}!", pc.name);
+                    SystemController.Instance.Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is set to: {pc.name}!", pc.name);
                 }
                 else if (cardType == CardType.Signature)
                 {
                     pc.signature = string.Empty;
                     GameDb.UpdateCard(pc);
-                    Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is hidden!", pc.name);
+                    SystemController.Instance.Respond(null, $"Your new {Enum.GetName(typeof(CardType), cardType)} is hidden!", pc.name);
                 }
                 else
                 {
-                    Respond(null, $"Please enter a valid {Enum.GetName(typeof(CardType), cardType)}: -set {Enum.GetName(typeof(CardType), cardType)} Blah'thok", pc.name);
+                    SystemController.Instance.Respond(null, $"Please enter a valid {Enum.GetName(typeof(CardType), cardType)}: -set {Enum.GetName(typeof(CardType), cardType)} Blah'thok", pc.name);
                 }
             }
         }
@@ -127,12 +128,12 @@ namespace ChatBot.Bot.Plugins
             {
                 if (message.Length > ItemCharLimit)
                 {
-                    Respond(null, $"Sorry, character limit for {Enum.GetName(typeof(ItemType), itemType)} is: [color=red]{message.Length}[/color] [b]/ {ItemCharLimit}[/b]", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, character limit for {Enum.GetName(typeof(ItemType), itemType)} is: [color=red]{message.Length}[/color] [b]/ {ItemCharLimit}[/b]", pc.name);
                     return;
                 }
                 if (message.Contains("[url") || message.Contains("[eicon") || message.Contains("[icon"))
                 {
-                    Respond(null, $"Sorry, but you can't use eicon, icon, or url bbcode.", pc.name);
+                    SystemController.Instance.Respond(null, $"Sorry, but you can't use eicon, icon, or url bbcode.", pc.name);
                     return;
                 }
 
@@ -142,11 +143,11 @@ namespace ChatBot.Bot.Plugins
 
                 GameDb.UpdateCard(pc);
 
-                Respond(null, $"Your new {Enum.GetName(typeof(ItemType), itemType)} is set to: {message}!", pc.name);
+                SystemController.Instance.Respond(null, $"Your new {Enum.GetName(typeof(ItemType), itemType)} is set to: {message}!", pc.name);
             }
             else
             {
-                Respond(null, $"Please enter a valid {Enum.GetName(typeof(ItemType), itemType)}: -set {Enum.GetName(typeof(ItemType), itemType)} Blah'thok", pc.name);
+                SystemController.Instance.Respond(null, $"Please enter a valid {Enum.GetName(typeof(ItemType), itemType)}: -set {Enum.GetName(typeof(ItemType), itemType)} Blah'thok", pc.name);
             }
         }
     }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
 using Accord;
+using ChatBot.Core;
 
 namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 {
@@ -126,22 +127,11 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
             return tosend;
         }
 
-        /// <summary>
-        /// Handlse responding
-        /// </summary>
-        /// <param name="channel">target channel, if any</param>
-        /// <param name="message">base message, if any</param>
-        /// <param name="recipient">who to send the reply to, if a dm</param>
-        public override void Respond(string channel, string message, string recipient)
-        {
-            Api.SendMessage(channel, message, recipient);
-        }
-
         public void HandleUserCommands(string command, string channel, string message, PlayerCard pc)
         {
             if (string.IsNullOrWhiteSpace(command))
             {
-                Respond(channel, $"Sorry, {pc.name}, but please reformat your command.", pc.name);
+                SystemController.Instance.Respond(channel, $"Sorry, {pc.name}, but please reformat your command.", pc.name);
                 return;
             }
 
@@ -167,7 +157,7 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             "\\n[color=pink]-deck table[/color]: to see the current game's table." +
                             "\\n\\nNote: Not all features currently implemented.";
 
-                        Respond(null, tosend, pc.name);
+                        SystemController.Instance.Respond(null, tosend, pc.name);
                     }
                     break;
                 case CommandStrings.PlayingCards_NewGame:
@@ -177,22 +167,24 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                         try
                         {
                             _game = GetGame(pc.name);
-                            Respond(channel, $"Sorry, but you're already listed as in a game, [color=white]{pc.GetPublicName()}[/color]. Please leave it first with -leavegame or -stopgame.", pc.name);
+                            SystemController.Instance.Respond(channel, $"Sorry, but you're already listed as in a game, [color=white]{pc.GetPublicName()}[/color]. Please leave it first with -leavegame or -stopgame.", pc.name);
                             return;
                         }
                         catch { }
 
                         if (string.IsNullOrWhiteSpace(channel))
                         {
-                            Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                            SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                             return;
                         }
 
                         // personal game
                         if (string.IsNullOrWhiteSpace(message))
                         {
-                            Player player = new Player();
-                            player.player = pc;
+                            Player player = new Player
+                            {
+                                player = pc
+                            };
                             _game = new Game() { Players = new List<Player>() { player }, Deck = CreateNewDeck(false), Table = new List<PlayingCard>() };
                             Games.Add(_game);
                         }
@@ -215,7 +207,7 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             Games.Add(_game);
                         }
 
-                        Respond(channel, $"your new game of cards has been created, [color=white]{pc.GetPublicName()}[/color]!", pc.name);
+                        SystemController.Instance.Respond(channel, $"your new game of cards has been created, [color=white]{pc.GetPublicName()}[/color]!", pc.name);
                         Util.Shuffle(_game.Deck);
                     }
                     break;
@@ -228,7 +220,7 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
@@ -237,14 +229,14 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             if (_game.Players.Count() == 0)
                             {
                                 Games.Remove(_game);
-                                Respond(channel, $"You were the last remaining member, [color=white]{pc.GetPublicName()}[/color]. The game has been destroyed.", pc.name);
+                                SystemController.Instance.Respond(channel, $"You were the last remaining member, [color=white]{pc.GetPublicName()}[/color]. The game has been destroyed.", pc.name);
                                 return;
                             }
-                            Respond(channel, $"You have left the game, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You have left the game, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games to leave, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games to leave, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -258,16 +250,16 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             Games.Remove(_game);
-                            Respond(channel, $"You have stopped the game, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You have stopped the game, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games to stop, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games to stop, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -280,38 +272,40 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             if (string.IsNullOrWhiteSpace(message))
                             {
-                                Respond(channel, $"You must include a player to add, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"You must include a player to add, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             PlayerCard tpc = GameDb.GetCard(message);
                             if (tpc == null)
                             {
-                                Respond(channel, $"{message} isn't a registered adventurer, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"{message} isn't a registered adventurer, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             if (_game.Players.Any(x => x.player.name.Equals(message)))
                             {
-                                Respond(channel, $"{tpc.GetPublicName()} is already in a game, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"{tpc.GetPublicName()} is already in a game, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
-                            Player newPlayer = new Player();
-                            newPlayer.player = tpc;
-                            newPlayer.hand = new List<PlayingCard>();
+                            Player newPlayer = new Player
+                            {
+                                player = tpc,
+                                hand = new List<PlayingCard>()
+                            };
                             _game.Players.Add(newPlayer);
-                            Respond(channel, $"You have successfully added {tpc.GetPublicName()}, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You have successfully added {tpc.GetPublicName()}, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You must be in a game to use this command, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You must be in a game to use this command, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -332,11 +326,11 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                                     tosend += ", ";
                                 }
                             }
-                            Respond(channel, $"Current players: {tosend}.", pc.name);
+                            SystemController.Instance.Respond(channel, $"Current players: {tosend}.", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"No games found that you're a member of, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"No games found that you're a member of, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -349,36 +343,36 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             if (string.IsNullOrWhiteSpace(message))
                             {
-                                Respond(channel, $"You must include a player to remove, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"You must include a player to remove, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             PlayerCard tpc = GameDb.GetCard(message);
                             if (tpc == null)
                             {
-                                Respond(channel, $"{message} isn't a registered adventurer, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"{message} isn't a registered adventurer, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             if (!_game.Players.Any(x => x.player.name.Equals(message)))
                             {
-                                Respond(channel, $"{tpc.GetPublicName()} isn't in a game, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"{tpc.GetPublicName()} isn't in a game, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             Player toRemove = _game.Players.First(x => x.player.name.Equals(tpc.name));
                             _game.Players.Remove(toRemove);
-                            Respond(channel, $"You have successfully removed {tpc.GetPublicName()}, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You have successfully removed {tpc.GetPublicName()}, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You must be in a game to use this command, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You must be in a game to use this command, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -388,11 +382,11 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                         try
                         {
                             _game = GetGame(pc.name);
-                            Respond(channel, GetHandString(_game.Players.First(x => x.player.name.Equals(pc.name))), pc.name);
+                            SystemController.Instance.Respond(channel, GetHandString(_game.Players.First(x => x.player.name.Equals(pc.name))), pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -405,8 +399,8 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             _game = GetGame(pc.name);
 
                             if (string.IsNullOrWhiteSpace(channel))
-                            { 
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                            {
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
@@ -427,12 +421,12 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             // draw cards
                             if (_game.Deck.Count() == 0)
                             {
-                                Respond(channel, $"Deck is empty, [color=white]{pc.GetPublicName()}[/color]. Can't draw any more cards!", pc.name);
+                                SystemController.Instance.Respond(channel, $"Deck is empty, [color=white]{pc.GetPublicName()}[/color]. Can't draw any more cards!", pc.name);
                                 return;
                             }
                             else if (_game.Deck.Count() < cardsToDraw)
                             {
-                                Respond(channel, $"Deck does not contain enough cards ({_game.Deck.Count()}), [color=white]{pc.GetPublicName()}[/color]. Can't draw that many cards!", pc.name);
+                                SystemController.Instance.Respond(channel, $"Deck does not contain enough cards ({_game.Deck.Count()}), [color=white]{pc.GetPublicName()}[/color]. Can't draw that many cards!", pc.name);
                                 return;
                             }
 
@@ -443,11 +437,11 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                                 _game.Players.First(x => x.player.name.Equals(pc.name)).hand.Add(tcard);
                             }
 
-                            Respond(null, GetHandString(_game.Players.First(x => x.player.name.Equals(pc.name))), pc.name);
+                            SystemController.Instance.Respond(null, GetHandString(_game.Players.First(x => x.player.name.Equals(pc.name))), pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                             return;
                         }
                     }
@@ -462,7 +456,7 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
@@ -473,31 +467,31 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                             }
                             catch
                             {
-                                Respond(channel, $"Please select a valid card number!", pc.name);
+                                SystemController.Instance.Respond(channel, $"Please select a valid card number!", pc.name);
                                 return;
                             }
 
                             if (cardtodiscard <= 0)
                             {
-                                Respond(channel, $"Please select a valid card number!", pc.name);
+                                SystemController.Instance.Respond(channel, $"Please select a valid card number!", pc.name);
                                 return;
                             }
 
                             Player player = _game.Players.First(x => x.player.name.Equals(pc.name));
                             if (cardtodiscard > player.hand.Count())
                             {
-                                Respond(channel, $"Please select a valid card number!", pc.name);
+                                SystemController.Instance.Respond(channel, $"Please select a valid card number!", pc.name);
                                 return;
                             }
 
                             PlayingCard tpc = player.hand[cardtodiscard-1];
                             player.hand.Remove(tpc);
                             _game.Discards.Add(tpc);
-                            Respond(channel, $"\\nYou discard a {tpc.GetDescription()} from your hand.", pc.name);
+                            SystemController.Instance.Respond(channel, $"\\nYou discard a {tpc.GetDescription()} from your hand.", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -511,17 +505,17 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             Game newGame = new Game() { Players = new List<Player>(_game.Players), Deck = CreateNewDeck(false), Table = new List<PlayingCard>(), Discards = new List<PlayingCard>() };
                             _game = newGame;
-                            Respond(channel, $"\\nYou shuffle up and start a fresh game.", pc.name);
+                            SystemController.Instance.Respond(channel, $"\\nYou shuffle up and start a fresh game.", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -534,18 +528,18 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             PlayingCard tpc = _game.Deck.First();
                             _game.Deck.Remove(tpc);
                             _game.Table.Add(tpc);
-                            Respond(channel, $"You flip a {tpc.GetDescription()} onto the table.", pc.name);
+                            SystemController.Instance.Respond(channel, $"You flip a {tpc.GetDescription()} onto the table.", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -558,18 +552,18 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
 
                             if (string.IsNullOrWhiteSpace(channel))
                             {
-                                Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
+                                SystemController.Instance.Respond(channel, $"This command must be done in public, {pc.GetPublicName()}.", pc.name);
                                 return;
                             }
 
                             PlayingCard tpc = _game.Deck.First();
                             _game.Deck.Remove(tpc);
                             _game.Discards.Add(tpc);
-                            Respond(channel, $"\\nYou flip a {tpc.GetDescription()} into the discard pile.", pc.name);
+                            SystemController.Instance.Respond(channel, $"\\nYou flip a {tpc.GetDescription()} into the discard pile.", pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;
@@ -580,11 +574,11 @@ namespace ChatBot.Bot.Plugins.DungeonDiver.Minigames.PlayingCardGame
                         try
                         {
                             _game = GetGame(pc.name);
-                            Respond(channel, GetTableString(_game), pc.name);
+                            SystemController.Instance.Respond(channel, GetTableString(_game), pc.name);
                         }
                         catch
                         {
-                            Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
+                            SystemController.Instance.Respond(channel, $"You aren't in any games, [color=white]{pc.GetPublicName()}[/color].", pc.name);
                         }
                     }
                     break;

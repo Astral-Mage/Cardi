@@ -4,6 +4,7 @@ using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Quests;
+using ChatBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             int curSta = (pc.GetStat(StatTypes.Sta));
             if ( curSta < Convert.ToInt32(new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds))
             {
-                Respond(channel, $"You need {Math.Round(whatever, 0)}/{Convert.ToInt32(XPMULT * new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds)} stamina to dive.", user);
+                SystemController.Instance.Respond(channel, $"You need {Math.Round(whatever, 0)}/{Convert.ToInt32(XPMULT * new TimeSpan(0, REQUIRED_DIVE_STAMINA, 0).TotalSeconds)} stamina to dive.", user);
                 return;
             }
 
@@ -300,7 +301,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                                     extraResponseData += $" | ByType(";
                                     foreach (var byType in cr._DamageByType.Keys)
                                     {
-                                        extraResponseData += $" [color={(byType == RawDamageType.Magical ? "pink" : "brown")}]{byType.ToString()} ⨠ ";
+                                        extraResponseData += $" [color={(byType == RawDamageType.Magical ? "pink" : "brown")}]{byType} ⨠ ";
                                         extraResponseData += $" Dmg: {cr._DamageByType[byType]}";
                                         extraResponseData += $" | Mult: {Math.Round(cr._DmgMultByType[byType], 2)}";
                                         extraResponseData += $" | Ttl: {Math.Round(cr._TotalDamageByType[byType], 2)}";
@@ -354,7 +355,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 }
             }
 
-            Respond(channel, replyString, pc.Name);
+            SystemController.Instance.Respond(channel, replyString, pc.Name);
         }
     }
 }

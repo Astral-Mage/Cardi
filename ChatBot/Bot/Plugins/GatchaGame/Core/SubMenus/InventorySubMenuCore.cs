@@ -1,6 +1,7 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (!Data.DataDb.UserExists(user))
             {
-                Respond(channel, $"You need to create a character first to roll in the gatcha.", user);
+                SystemController.Instance.Respond(channel, $"You need to create a character first to roll in the gatcha.", user);
                 return;
             }
 
@@ -33,7 +34,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 cmder = GetInventorySubCommandList().First(x => x.command.Equals(cmd, StringComparison.OrdinalIgnoreCase));
                 if (cmder == null)
                 {
-                    Respond(null, $"I didn't understand your command. Use -box help to see all available commands!", user);
+                    SystemController.Instance.Respond(null, $"I didn't understand your command. Use -box help to see all available commands!", user);
                 }
 
                 if (message.Split(' ').Length > 1)
@@ -47,7 +48,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             }
             catch(Exception)
             {
-                Respond(null, $"I didn't understand your command. Use -box help to see all available commands!", user);
+                SystemController.Instance.Respond(null, $"I didn't understand your command. Use -box help to see all available commands!", user);
                 return;
             }
 
@@ -80,7 +81,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 if (i + 1 < pc.MaxInventory) replyString += $"\\n";
             }
 
-            Respond(null, replyString, user);
+            SystemController.Instance.Respond(null, replyString, user);
         }
 
         public void UpgradeStuff(string user, string message, string channel)
@@ -119,7 +120,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (sock.SocketRarity >= sock.MaxRarity)
             {
-                Respond(channel, $"Already Max Rarity.", card.Name);
+                SystemController.Instance.Respond(channel, $"Already Max Rarity.", card.Name);
                 return;
             }
 
@@ -131,11 +132,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 string extraInfo = sock.LevelUp();
                 card.SetStat(StatTypes.Gld, card.GetStat(StatTypes.Gld) - costToLevel);
                 Data.DataDb.UpdateCard(card);
-                Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "" : "Gained " + extraInfo)}", card.Name);
+                SystemController.Instance.Respond(channel, $"Congratulations, {card.DisplayName}! You've upgraded up your {sock.NameOverride}'s rarity! {((string.IsNullOrWhiteSpace(extraInfo)) ? "" : "Gained " + extraInfo)}", card.Name);
             }
             else
             {
-                Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade your {sock.NameOverride}. ([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})", card.Name);
+                SystemController.Instance.Respond(channel, $"Sorry, {card.DisplayName}, but you need more gold to upgrade your {sock.NameOverride}. ([color=red]{card.GetStat(StatTypes.Gld)}[/color]/{costToLevel})", card.Name);
             }
         }
 
@@ -168,7 +169,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                 $"\\n[color={"red"}]{CommandChar}{CommandStrings.Box} {CommandStrings.Upgrade} ⁕Value⁕[/color] Attempts to upgrade the item in the target box slot." +
                 $"[/color]";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         public void InventorySubMenu(Command command, string message, string user, string channel)
@@ -178,7 +179,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             if (message.Contains("\\n"))
             {
-                Respond(null, $"Sorry, but you can't insert newlines into any set commands!", user);
+                SystemController.Instance.Respond(null, $"Sorry, but you can't insert newlines into any set commands!", user);
                 return;
             }
 
@@ -194,12 +195,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     {
                         if (!int.TryParse(message.Trim(), out int rarity))
                         {
-                            Respond(channel, $"Please enter a valid rarity level. Example: box autotrash 3", user);
+                            SystemController.Instance.Respond(channel, $"Please enter a valid rarity level. Example: box autotrash 3", user);
                             return;
                         }
 
                         InventoryAutoTrashAction(user, rarity);
-                        Respond(channel, $"Gatcha Autotrash Rarity set to: {rarity}. Items of this rarity or lower will be auto-converted to currency.", user);
+                        SystemController.Instance.Respond(channel, $"Gatcha Autotrash Rarity set to: {rarity}. Items of this rarity or lower will be auto-converted to currency.", user);
                     }
                     break;
                 case CommandStrings.Upgrade:
@@ -211,7 +212,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     {
                         if (string.IsNullOrWhiteSpace(message))
                         {
-                            Respond(channel, "Please enter a valid number value.", user);
+                            SystemController.Instance.Respond(channel, "Please enter a valid number value.", user);
                             return;
                         }
                         List<int> iVals = new List<int>();
@@ -239,7 +240,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                         }
                         else
                         {
-                            Respond(channel, "Please enter a valid number value.", user);
+                            SystemController.Instance.Respond(channel, "Please enter a valid number value.", user);
                             return;
                         }
 
@@ -271,13 +272,13 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             {
                 if (pc.MaxInventory < value)
                 {
-                    if (values.Count == 1) Respond(channel, $"Your inventory isn't that large.", user);
+                    if (values.Count == 1) SystemController.Instance.Respond(channel, $"Your inventory isn't that large.", user);
                     continue;
                 }
 
                 if (pc.Inventory.Count < value)
                 {
-                    if (values.Count == 1) Respond(channel, $"That slot is already empty.", user);
+                    if (values.Count == 1) SystemController.Instance.Respond(channel, $"That slot is already empty.", user);
                     continue;
                 }
                 if (value <= 0)
@@ -297,7 +298,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                 toRemove.Add(item);
                 pc.SetStat(StatTypes.Sds, pc.GetStat(StatTypes.Sds) + convertedStardust);
-                if (values.Count == 1) Respond(channel, $"{pc.DisplayName}, you destroyed your {item.GetRarityString()}{item.GetName()}" + $" ➤ [b][color=black][color=purple]{convertedStardust}[/color][/color] Stardust", user);
+                if (values.Count == 1) SystemController.Instance.Respond(channel, $"{pc.DisplayName}, you destroyed your {item.GetRarityString()}{item.GetName()}" + $" ➤ [b][color=black][color=purple]{convertedStardust}[/color][/color] Stardust", user);
             }
 
             foreach (var v in toRemove)
@@ -307,7 +308,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             Data.DataDb.UpdateCard(pc);
 
             if (values.Count > 1)
-                Respond(channel, $"[/color]{pc.DisplayName}[color={BASE_COLOR}], you destroyed {totalItemsRemoved} item(s)" + $" ➤ [/color][b][color=black][color=purple]{totalConvertedStardust}[/color][/color] [color={BASE_COLOR}]Stardust", user);
+                SystemController.Instance.Respond(channel, $"[/color]{pc.DisplayName}[color={BASE_COLOR}], you destroyed {totalItemsRemoved} item(s)" + $" ➤ [/color][b][color=black][color=purple]{totalConvertedStardust}[/color][/color] [color={BASE_COLOR}]Stardust", user);
         }
 
         public void InventoryAutoTrashAction(string user, int value)

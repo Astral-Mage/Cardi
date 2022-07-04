@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatBot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,7 +25,7 @@ namespace ChatBot.Bot.Plugins
                 "\\n\\nApparently you can even find rare [color=cyan]boons[/color] for your equipment if you get lucky enough~" +
                 "\\nIf you find a boon for your weapon, it will show your bonus in [color=cyan]cyan[/color] on your card.";
 
-            Respond(null, toSend, sendingUser);
+            SystemController.Instance.Respond(null, toSend, sendingUser);
         }
 
         /// <summary>
@@ -77,11 +78,11 @@ namespace ChatBot.Bot.Plugins
 
                 pc.gold -= goldNeeded;
                 GameDb.UpdateCard(pc);
-                Respond(null, $"Congratulations, {nickname}! You have leveled your {Enum.GetName(typeof(ItemType), itemType)} up to level: [b]{currentItemLevel + 1}[/b]. You spent [b][color=yellow]{goldNeeded}[/color][/b] gold to upgrade your {customItemString}.", pc.name);
+                SystemController.Instance.Respond(null, $"Congratulations, {nickname}! You have leveled your {Enum.GetName(typeof(ItemType), itemType)} up to level: [b]{currentItemLevel + 1}[/b]. You spent [b][color=yellow]{goldNeeded}[/color][/b] gold to upgrade your {customItemString}.", pc.name);
             }
             else
             {
-                Respond(null, $"Sorry, {nickname}. You don't have the required gold [color=red]{pc.gold}[/color] [b]/ [color=yellow]{goldNeeded}[/color][/b] to upgrade your {customItemString} further.", pc.name);
+                SystemController.Instance.Respond(null, $"Sorry, {nickname}. You don't have the required gold [color=red]{pc.gold}[/color] [b]/ [color=yellow]{goldNeeded}[/color][/b] to upgrade your {customItemString} further.", pc.name);
             }
         }
     }

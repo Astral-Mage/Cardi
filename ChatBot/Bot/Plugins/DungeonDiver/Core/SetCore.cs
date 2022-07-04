@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ChatBot.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace ChatBot.Bot.Plugins
         /// <summary>
         /// list of valid colors
         /// </summary>
-        List<string> colors = new List<string>() { "red", "blue", "yellow", "green", "pink", "gray", "orange", "purple", "brown", "cyan", "black", "white" };
+        readonly List<string> colors = new List<string>() { "red", "blue", "yellow", "green", "pink", "gray", "orange", "purple", "brown", "cyan", "black", "white" };
 
         /// <summary>
         /// returns a list of commands for the set menu
@@ -47,7 +48,7 @@ namespace ChatBot.Bot.Plugins
 
             if (message.Contains("\\n"))
             {
-                Respond(null, $"Sorry, but you can't insert newlines into any set commands!", pc.name);
+                SystemController.Instance.Respond(null, $"Sorry, but you can't insert newlines into any set commands!", pc.name);
                 return;
             }
 
