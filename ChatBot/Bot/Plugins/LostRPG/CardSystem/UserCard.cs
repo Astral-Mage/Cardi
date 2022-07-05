@@ -1,11 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Enums;
-using ChatBot.Bot.Plugins.LostRPG.MagicSystem;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 {
@@ -21,10 +15,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public UserStatus Status { get; set; }
 
         // magic stuff
-        public Magic MainMagic { get; set; }
+        public MagicData MagicData { get; set; }
 
         //roleplay stuff
         public RoleplayData RpData { get; set; }
+
+        public StatData Stats { get; set; }
 
         public UserCard(string name, string alias, int userId = -1)
         {
@@ -33,9 +29,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Name = name;
             Alias = alias;
 
-            MainMagic = null;
-
             RpData = new RoleplayData();
+            MagicData = new MagicData();
         }
 
         public UserCard(string name)
@@ -45,9 +40,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Alias = Name;
             UserId = -1;
 
-            MainMagic = null;
-
             RpData = new RoleplayData();
+            MagicData = new MagicData();
         }
     }
 }

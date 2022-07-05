@@ -181,13 +181,16 @@
     <Compile Include="Bot\Plugins\GatchaGame\Sockets\WeaponSocket.cs" />
     <Compile Include="Bot\Plugins\GatchaGame\TriggeredEvents\TriggeredEvent.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserCard.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\MagicData.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\RoleplayData.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData\Modifier.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\DataDb.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\Data\MagicTypesDb.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData\StatDetails.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\GameData\MagicTypesDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\UserMagicDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\UserPrimaryDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\UserRoleplayDb.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\Data\UserData\XpConversionDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Dialogue\CreateUser.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Enums\DialogueStatus.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\DialogueController.cs" />
@@ -208,6 +211,7 @@
     <Compile Include="Bot\Plugins\DungeonDiver\Data\GameDb.cs" />
     <Compile Include="Bot\Plugins\DungeonDiver\Cards\PlayerCard.cs" />
     <Compile Include="Core\SystemController.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Bot\Plugins\DungeonDiver\Core\UpgradeCore.cs" />
     <Compile Include="Utility\Utility.cs" />

@@ -109,7 +109,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 return null;
             }
 
-            toReturn.MainMagic = GetUserMagicData(toReturn.UserId);
+            toReturn.MagicData = GetUserMagicData(toReturn.UserId);
             toReturn.RpData = GetUserRoleplayData(toReturn.UserId);
             return toReturn;
         }
@@ -180,7 +180,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             }
 
             UpdateUserRoleplayData(card.RpData);
-            UpdateUserMagicData(card.MainMagic);
+            UpdateUserMagicData(card.MagicData);
         }
 
         private int AddNewUserData(UserCard card)

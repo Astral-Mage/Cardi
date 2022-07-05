@@ -16,7 +16,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.MagicSystem
 
         public int MagicId { get; set; }
 
-        public int UserId { get; set; }
 
         public Magic()
         {
@@ -24,7 +23,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.MagicSystem
             Color = "white";
             Description = string.Empty;
             MagicId = -1;
-            UserId = -1;
         }
     }
 }

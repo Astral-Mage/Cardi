@@ -61,13 +61,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
             else if (Status == DialogueStatus.Inactive)
             {
                 Status = DialogueStatus.Active;
-                Respond(null, $"Starting Dialogue: {ChildType.Name}.", Owner);
+                SystemController.Instance.Respond(null, $"Starting Dialogue: {ChildType.Name}.", Owner);
             }
 
             if (!string.IsNullOrWhiteSpace(args) && args.StripPunctuation().ToLowerInvariant().Equals("cancel"))
             {
                 Status = DialogueStatus.Complete;
-                Respond(null, $"Dialogue {ChildType.Name} cancelled.", Owner);
+                SystemController.Instance.Respond(null, $"Dialogue {ChildType.Name} cancelled.", Owner);
                 return true;
             }
             else if (!string.IsNullOrWhiteSpace(args) && args.StripPunctuation().ToLowerInvariant().Equals("repeat"))
@@ -94,7 +94,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
             if (CurrentStep >= MaxSteps)
             {
                 Status = DialogueStatus.Complete;
-                Respond(null, $"Dialogue {ChildType.Name} complete!", Owner);
+                SystemController.Instance.Respond(null, $"Dialogue {ChildType.Name} complete!", Owner);
             }
             else if (BackingUp)
             {
@@ -106,47 +106,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// replies via the f-list api
-        /// </summary>
-        /// <param name="channel">channel to reply to</param>
-        /// <param name="message">message to reply with</param>
-        /// <param name="recipient">person to reply to</param>
-        public void Respond(string channel, string message, string recipient)
-        {
-            MessageType mt = MessageType.Basic;
-            if (string.IsNullOrWhiteSpace(channel))
-            {
-                mt = MessageType.Whisper;
-            }
-
-            Respond(channel, message, recipient, mt);
-        }
-
-        /// <summary>
-        /// replies via the f-list api
-        /// </summary>
-        /// <param name="channel">channel to reply to</param>
-        /// <param name="message">message to reply with</param>
-        /// <param name="recipient">person to reply to</param>
-        public void Respond(string channel, string message, string recipient, MessageType messagetype)
-        {
-            if (!string.IsNullOrWhiteSpace(channel))
-            {
-                recipient = string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(channel) && string.IsNullOrWhiteSpace(recipient))
-            {
-                Console.WriteLine($"Error attempting to send message with no valid channel or recipient.");
-                return;
-            }
-
-            message = $"[color={BASE_COLOR}]{message}[/color]";
-
-            SystemController.Instance.Respond(channel, message, recipient, messagetype);
         }
 
         /// <summary>

@@ -67,8 +67,7 @@ namespace ChatBot.Core
         /// <param name="message">message to reply with</param>
         /// <param name="recipient">person to reply to</param>
         /// <param name="messagetype">type of message we're sending</param>
-        /// <param name="baseColorOverride">potential color override</param>
-        public void Respond(string channel, string message, string recipient, MessageType messagetype, string baseColorOverride = "")
+        public void Respond(string channel, string message, string recipient, MessageType messagetype)
         {
             if (!string.IsNullOrWhiteSpace(channel))
             {
