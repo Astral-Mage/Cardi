@@ -10,6 +10,7 @@ using System.Linq;
 using System.Timers;
 using System.IO;
 using ChatBot.Bot.Plugins.GatchaGame.Quests;
+using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Data
 {
@@ -325,7 +326,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Data
                                 }
                                 catch(Exception e)
                                 {
-                                    Console.WriteLine($"wtf something emptied out {pc.Name}'s active sockets: {e.ToString()}");
+                                    Console.WriteLine($"wtf something emptied out {pc.Name}'s active sockets: {e}");
                                     return false;
                                 }
                             }

@@ -18,10 +18,10 @@ namespace ChatBot.Bot.Plugins
         {
             return new List<Command>
             {
-                new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
-                new Command(CommandStrings.Weapon, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your weapon"),
-                new Command(CommandStrings.Armor, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your gear"),
-                new Command(CommandStrings.Special, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your special"),
+                new Command(CommandStrings.Help, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
+                new Command(CommandStrings.Weapon, ChatTypeRestriction.Whisper, CommandSecurity.None, "upgrades your weapon"),
+                new Command(CommandStrings.Armor, ChatTypeRestriction.Whisper, CommandSecurity.None, "upgrades your gear"),
+                new Command(CommandStrings.Special, ChatTypeRestriction.Whisper, CommandSecurity.None, "upgrades your special"),
             };
         }
 

@@ -1,4 +1,5 @@
-﻿using ChatBot.Bot.Plugins.GatchaGame.Encounters;
+﻿using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
+using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using System;
@@ -177,7 +178,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame
             Timeout = new TimeSpan(18, 0, 0);
             CreatedDate = DateTime.Now;
             EventTitle = "[b]The Hungering Devourer[/b]";
-            TimeoutMessage = $"{EventTitle} event ended incomplete after {Timeout.ToString("c")}.";
+            TimeoutMessage = $"{EventTitle} event ended incomplete after {Timeout:c}.";
             StartMessage = $"Starting {EventTitle} event! Type " + "{cmdc}" + $"{CommandStrings.TB} to join the current assault force!";
             CooldownMessage = $"{EventTitle} event has cooled down, and may once more be triggered...";
             Cooldown = new TimeSpan(48, 0, 0);

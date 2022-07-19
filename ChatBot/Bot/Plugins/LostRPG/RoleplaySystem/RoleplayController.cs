@@ -193,7 +193,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             card.RpData.TotalExperience += Experience + LenXp + LimitXp;
 
             if (channel != null) channel = null;
-            SystemController.Instance.Respond(channel, $"Base Experience: {Experience} | " + $"Length Experience: {LenXp} | " + $"{(LimitXp > 0 ? $"Limit Experience: {LimitXp} | " : "")}" + $"Total Rp Experience: {Experience + LenXp + LimitXp}", user);
+            SystemController.Instance.Respond(channel, /*$"Base Experience: {Experience} | " + $"Length Experience: {LenXp} | " + $"{(LimitXp > 0 ? $"Limit Experience: {LimitXp} | " : "")}" +*/ $"Total Rp Experience: {Experience + LenXp + LimitXp}", user);
             DataDb.Instance.UpdateUserRoleplayData(card.RpData);
         }
     }

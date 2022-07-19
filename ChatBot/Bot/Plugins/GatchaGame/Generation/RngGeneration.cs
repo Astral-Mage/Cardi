@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.GatchaGame.Cards;
+using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
 using ChatBot.Bot.Plugins.GatchaGame.Cards.Stats;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;

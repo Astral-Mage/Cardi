@@ -229,29 +229,6 @@ namespace ChatBot
 
             Console.WriteLine($"{argName} --- {argVal}");
         }
-
-        /// <summary>
-        /// attempts to validate a flag
-        /// </summary>
-        /// <param name="flagVal">value of the flag to validate</param>
-        /// <param name="flagName">naem of the flag we're attempting to validate</param>
-        /// <param name="rawArgs">the unfiltered flag cmd to check</param>
-        /// <param name="isOptional">if the arg is optional or not</param>
-        //static void ValidateFlag(out bool flagVal, string flagName, Dictionary<string, string> rawArgs, bool isOptional = false)
-        //{
-        //    flagVal = false;
-        //    flagName = flagName.ToLowerInvariant();
-        //
-        //    if (!rawArgs.ContainsKey(flagName))
-        //    {
-        //        if (!isOptional)
-        //            FailedCliArgs.Add($"Failed Validation: {flagName}");
-        //        return;
-        //    }
-        //
-        //    flagVal = true;
-        //    Console.WriteLine($"{flagName} --- {flagVal}");
-        //}
 #endregion
 
         /// <summary>
@@ -275,10 +252,9 @@ namespace ChatBot
 
                 // Add our plugins here ////////////////////////////////////////////////
 #if DEBUG
-                //Bot.AddPlugin(new GatchaGame(Chat, commandChar));
                 Bot.AddPlugin(new LostRPG(Chat, commandChar));
 #else
-                //Bot.AddPlugin(new GatchaGame(Chat, commandChar));
+                Bot.AddPlugin(new LostRPG(Chat, commandChar));
 #endif
                 // End Plugin Adding ///////////////////////////////////////////////////
 

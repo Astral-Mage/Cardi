@@ -1,7 +1,10 @@
 ﻿using Accord;
+using ChatBot.Bot.Plugins.GatchaGame.Cards;
+using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;
@@ -224,14 +227,14 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         {
             return new List<Command>
             {
-                new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
-                new Command(CommandStrings.Weapon, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Weapon options"),
-                new Command(CommandStrings.Armor, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Armor options"),
-                new Command(CommandStrings.Special, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Special options"),
-                new Command(CommandStrings.Species, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Species options"),
-                new Command(CommandStrings.Class, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Class options"),
-                new Command(CommandStrings.Nickname, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Nickname options"),
-                new Command(CommandStrings.Signature, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of Signature options"),
+                new Command(CommandStrings.Help, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
+                new Command(CommandStrings.Weapon, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Weapon options"),
+                new Command(CommandStrings.Armor, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Armor options"),
+                new Command(CommandStrings.Special, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Special options"),
+                new Command(CommandStrings.Species, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Species options"),
+                new Command(CommandStrings.Class, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Class options"),
+                new Command(CommandStrings.Nickname, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Nickname options"),
+                new Command(CommandStrings.Signature, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of Signature options"),
             };
         }
     }

@@ -22,15 +22,15 @@ namespace ChatBot.Bot.Plugins
         {
             return new List<Command>
             {
-                new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
-                new Command(CommandStrings.Species, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your species"),
-                new Command(CommandStrings.Class, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your class"),
-                new Command(CommandStrings.Weapon, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your weapon"),
-                new Command(CommandStrings.Armor, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your gear"),
-                new Command(CommandStrings.Special, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your special"),
-                new Command(CommandStrings.Color, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your card's color theme"),
-                new Command(CommandStrings.Signature, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your card's signature"),
-                new Command(CommandStrings.Nickname, BotCommandRestriction.Whisper, CommandSecurity.None, "sets your character's nickname"),
+                new Command(CommandStrings.Help, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
+                new Command(CommandStrings.Species, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your species"),
+                new Command(CommandStrings.Class, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your class"),
+                new Command(CommandStrings.Weapon, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your weapon"),
+                new Command(CommandStrings.Armor, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your gear"),
+                new Command(CommandStrings.Special, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your special"),
+                new Command(CommandStrings.Color, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your card's color theme"),
+                new Command(CommandStrings.Signature, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your card's signature"),
+                new Command(CommandStrings.Nickname, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets your character's nickname"),
             };
         }
 

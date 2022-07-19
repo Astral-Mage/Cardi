@@ -1,9 +1,13 @@
 ﻿using Accord;
 using ChatApi;
+using ChatBot.Bot.Plugins.GatchaGame.Cards;
+using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
+using ChatBot.Bot.Plugins.GatchaGame.Data;
 using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;
@@ -159,37 +163,37 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         {
             return new List<Command>
             {
-                new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
-                new Command(CommandStrings.MoreHelp, BotCommandRestriction.Whisper, CommandSecurity.None, "returns additional help options"),
-                new Command(CommandStrings.MoreHelpLong, BotCommandRestriction.Whisper, CommandSecurity.None, "returns additional help options"),
+                new Command(CommandStrings.Help, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
+                new Command(CommandStrings.MoreHelp, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns additional help options"),
+                new Command(CommandStrings.MoreHelpLong, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns additional help options"),
 
-                new Command(CommandStrings.Create, BotCommandRestriction.Both, CommandSecurity.None, "creates a new character"),
-                new Command(CommandStrings.Roll, BotCommandRestriction.Both, CommandSecurity.None, "rolls in the gatcha"),
-                new Command(CommandStrings.Dive, BotCommandRestriction.Both, CommandSecurity.None, "dives into the dungeon"),
-                new Command(CommandStrings.Set, BotCommandRestriction.Both, CommandSecurity.None, "handles various set commands", "help"),
-                new Command(CommandStrings.Box, BotCommandRestriction.Both, CommandSecurity.None, "handles various inventory commands", "help"),
-                new Command(CommandStrings.Card, BotCommandRestriction.Both, CommandSecurity.None, "displays details about the character"),
-                new Command(CommandStrings.Smite, BotCommandRestriction.Both, CommandSecurity.Ops, "displays short details about the character"),
+                new Command(CommandStrings.Create, ChatTypeRestriction.Both, CommandSecurity.None, "creates a new character"),
+                new Command(CommandStrings.Roll, ChatTypeRestriction.Both, CommandSecurity.None, "rolls in the gatcha"),
+                new Command(CommandStrings.Dive, ChatTypeRestriction.Both, CommandSecurity.None, "dives into the dungeon"),
+                new Command(CommandStrings.Set, ChatTypeRestriction.Both, CommandSecurity.None, "handles various set commands", "help"),
+                new Command(CommandStrings.Box, ChatTypeRestriction.Both, CommandSecurity.None, "handles various inventory commands", "help"),
+                new Command(CommandStrings.Card, ChatTypeRestriction.Both, CommandSecurity.None, "displays details about the character"),
+                new Command(CommandStrings.Smite, ChatTypeRestriction.Both, CommandSecurity.Ops, "displays short details about the character"),
 
-                new Command(CommandStrings.Upgrade, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold", "help"),
+                new Command(CommandStrings.Upgrade, ChatTypeRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold", "help"),
 
-                new Command(CommandStrings.Equip, BotCommandRestriction.Both, CommandSecurity.None, "equips items"),
-                new Command(CommandStrings.Unequip, BotCommandRestriction.Both, CommandSecurity.None, "unequips items"),
-                new Command(CommandStrings.Divefloor, BotCommandRestriction.Both, CommandSecurity.None, "sets your default dive floor"),
-                new Command(CommandStrings.DivefloorLong, BotCommandRestriction.Both, CommandSecurity.None, "sets your default dive floor"),
-                new Command(CommandStrings.Status, BotCommandRestriction.Both, CommandSecurity.Ops, "sets the bot status"),
+                new Command(CommandStrings.Equip, ChatTypeRestriction.Both, CommandSecurity.None, "equips items"),
+                new Command(CommandStrings.Unequip, ChatTypeRestriction.Both, CommandSecurity.None, "unequips items"),
+                new Command(CommandStrings.Divefloor, ChatTypeRestriction.Both, CommandSecurity.None, "sets your default dive floor"),
+                new Command(CommandStrings.DivefloorLong, ChatTypeRestriction.Both, CommandSecurity.None, "sets your default dive floor"),
+                new Command(CommandStrings.Status, ChatTypeRestriction.Both, CommandSecurity.Ops, "sets the bot status"),
 
-                new Command(CommandStrings.Bully, BotCommandRestriction.Both, CommandSecurity.None, "attempts to bully your target"),
-                new Command(CommandStrings.Submit, BotCommandRestriction.Both, CommandSecurity.None, "submits to your bully and transfers them your stamina"),
-                new Command(CommandStrings.Fight, BotCommandRestriction.Both, CommandSecurity.None, "fight your bully and initiate a pvp duel"),
-                new Command(CommandStrings.Focus, BotCommandRestriction.Both, CommandSecurity.None, "focuses on a specific stat for enhanced  increases to it. 1 at a time."),
+                new Command(CommandStrings.Bully, ChatTypeRestriction.Both, CommandSecurity.None, "attempts to bully your target"),
+                new Command(CommandStrings.Submit, ChatTypeRestriction.Both, CommandSecurity.None, "submits to your bully and transfers them your stamina"),
+                new Command(CommandStrings.Fight, ChatTypeRestriction.Both, CommandSecurity.None, "fight your bully and initiate a pvp duel"),
+                new Command(CommandStrings.Focus, ChatTypeRestriction.Both, CommandSecurity.None, "focuses on a specific stat for enhanced  increases to it. 1 at a time."),
 
-                new Command(CommandStrings.Verbose, BotCommandRestriction.Both, CommandSecurity.None, "enables enhanced combat logging in whispers only."),
+                new Command(CommandStrings.Verbose, ChatTypeRestriction.Both, CommandSecurity.None, "enables enhanced combat logging in whispers only."),
 
-                new Command(CommandStrings.BaseCooldown, BotCommandRestriction.Both, CommandSecurity.None, "sets the dive stamina required."),
-                new Command(CommandStrings.StardustCooldown, BotCommandRestriction.Both, CommandSecurity.None, "sets the gatcha stardust required."),
-                new Command(CommandStrings.Reset, BotCommandRestriction.Both, CommandSecurity.None, "resets a specific user's specific cooldown timer."),
-                new Command(CommandStrings.Gift, BotCommandRestriction.Both, CommandSecurity.None, "gives a gift of gold to another user."),
+                new Command(CommandStrings.BaseCooldown, ChatTypeRestriction.Both, CommandSecurity.None, "sets the dive stamina required."),
+                new Command(CommandStrings.StardustCooldown, ChatTypeRestriction.Both, CommandSecurity.None, "sets the gatcha stardust required."),
+                new Command(CommandStrings.Reset, ChatTypeRestriction.Both, CommandSecurity.None, "resets a specific user's specific cooldown timer."),
+                new Command(CommandStrings.Gift, ChatTypeRestriction.Both, CommandSecurity.None, "gives a gift of gold to another user."),
 
             };
         }

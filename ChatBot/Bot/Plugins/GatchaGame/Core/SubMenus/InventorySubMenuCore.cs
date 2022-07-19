@@ -1,6 +1,9 @@
-﻿using ChatBot.Bot.Plugins.GatchaGame.Enums;
+﻿using ChatBot.Bot.Plugins.GatchaGame.Cards;
+using ChatBot.Bot.Plugins.GatchaGame.Cards.Floor;
+using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;
@@ -322,11 +325,11 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         {
             return new List<Command>
             {
-                new Command(CommandStrings.Help, BotCommandRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
-                new Command(CommandStrings.AutoTrash, BotCommandRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
-                new Command(CommandStrings.AutoTrashLong, BotCommandRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
-                new Command(CommandStrings.Trash, BotCommandRestriction.Whisper, CommandSecurity.None, "converts an inventory item into stardust or gold"),
-                new Command(CommandStrings.Upgrade, BotCommandRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold"),
+                new Command(CommandStrings.Help, ChatTypeRestriction.Whisper, CommandSecurity.None, "returns the list of help options"),
+                new Command(CommandStrings.AutoTrash, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
+                new Command(CommandStrings.AutoTrashLong, ChatTypeRestriction.Whisper, CommandSecurity.None, "sets an autotrash rarity for converting items when rolling"),
+                new Command(CommandStrings.Trash, ChatTypeRestriction.Whisper, CommandSecurity.None, "converts an inventory item into stardust or gold"),
+                new Command(CommandStrings.Upgrade, ChatTypeRestriction.Whisper, CommandSecurity.None, "upgrades your sockets for gold"),
             };
         }
     }
