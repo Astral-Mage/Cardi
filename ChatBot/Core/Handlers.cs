@@ -44,7 +44,7 @@ namespace ChatBot
         {
             if (e.userJoining.Equals(CharacterName))
             {
-                Chat.SetStatus(ChatStatus.DND, $"[session={e.name}]{(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code)}[/session] [color=pink]DM me with {CommandChar}{"help"} to get started![/color]", CharacterName);
+                //Chat.SetStatus(ChatStatus.DND, $"[session={e.name}]{(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code)}[/session] [color=pink]DM me with {CommandChar}{"help"} to get started![/color]", CharacterName);
                 Bot.HandleJoinedChannel(string.IsNullOrWhiteSpace(e.code) ? e.name : e.code);
             }
         }

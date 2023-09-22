@@ -644,6 +644,15 @@ namespace ChatBot.Bot.Plugins.GatchaGame
                     break;
                 case CommandStrings.Bully:
                     {
+
+
+
+
+
+
+
+
+
                         // setup our vars 
                         Encounter enc = null;
 
@@ -755,56 +764,6 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
                         // respond
                         SystemController.Instance.Respond(channel, submitStr, string.Empty);
-                    }
-                    break;
-                case CommandStrings.Fight:
-                    {
-                        // do some basic submit checks here
-                        if (!BasicSubmitChecks(channel, user, message, out Cards.PlayerCard card))
-                            break;
-
-                        // find encounter
-                        Encounter enc = null;
-                        foreach (var v in encounterTracker.PendingEncounters)
-                        {
-                            if (v.Value.EncounterType == EncounterTypes.Bully && v.Value.Participants.Any(x => x.Participant.Name.Equals(card.Name, StringComparison.InvariantCultureIgnoreCase)))
-                            {
-                                enc = v.Value;
-                                break;
-                            }
-                        }
-
-                        // break out if we couldn't find it for some reason
-                        if (enc == null)
-                            break;
-
-                        // bail out if we can't find our bully
-                        RngGeneration.TryGetCard(enc.Creator, out Cards.PlayerCard targetCard);
-                        if (null == targetCard)
-                            break;
-
-                        // bail out if we've timed out
-                        if (enc.HasTimedOut())
-                        {
-                            card.LastTriggeredCds[LastUsedCooldownType.LastBullied] = DateTime.MinValue;
-                            targetCard.LastTriggeredCds[LastUsedCooldownType.LastBully] = DateTime.MinValue;
-                            encounterTracker.KillEncounter(enc);
-                            break;
-                        }
-
-                        // refresh cards being used
-                        enc.Participants = new List<EncounterCard>();
-                        enc.AddParticipant(0, card);
-                        enc.AddParticipant(1, targetCard);
-
-                        // start fight here
-                        SystemController.Instance.Respond(channel, $"A fight is breaking out between {(string.IsNullOrEmpty(card.DisplayName) ? card.Name : card.DisplayName)} and {targetCard.DisplayName}!", string.Empty);
-                        enc.StartEncounter(EncounterTypes.Bully);
-                        var encResults = enc.RunEncounter();
-
-                        SystemController.Instance.Respond(channel, $"There was a winner but I haven't parsed the results yet.", string.Empty);
-                        Data.DataDb.UpdateCard(card);
-                        Data.DataDb.UpdateCard(targetCard);
                     }
                     break;
                 case CommandStrings.Upgrade:
@@ -1235,10 +1194,10 @@ namespace ChatBot.Bot.Plugins.GatchaGame
 
             cardStr += $"[b]Name: [/b]{displayname} | [b]Species: [/b]{species} | [b]Class: [/b]{cClass} ";
 
-            if (!string.IsNullOrWhiteSpace(pc.Signature) && showsig)
-            {
-                cardStr += $"\\n                      {pc.Signature}";
-            }
+            //if (!string.IsNullOrWhiteSpace(pc.Signature) && showsig)
+            //{
+            //    cardStr += $"\\n                      {pc.Signature}";
+            //}
             // Rank ‣ {pc.GetStat(StatTypes.Pvr)} | 
             cardStr += $"\\n                      [sub][color=pink](Sta: {Math.Round(whatever, 0)}/{Math.Floor(XPMULT * pc.GetStat(StatTypes.StM))})[/color] [b]Lvl: [/b]{pc.GetStat(StatTypes.Lvl)} | [color=yellow][b]Gold: [/b]{pc.GetStat(StatTypes.Gld)}[/color] | [color=cyan][b]Stardust: [/b]{pc.GetStat(StatTypes.Sds)}[/color] | [color=red][b]Defeated: [/b]{pc.GetStat(StatTypes.Kil) + pc.GetStat(StatTypes.KiB)}[/color] 〰 " +
                 $"[b]Pvp:[/b] Bullied ‣ {pc.GetStat(StatTypes.Bly)} | Submitted ‣ {pc.GetStat(StatTypes.Sbm)}[/sub]" +
@@ -1563,3 +1522,99 @@ namespace ChatBot.Bot.Plugins.GatchaGame
         }
     }
 }
+
+/// <summary>
+/// 
+/// </summary>
+//static void TransferFloorData()
+//{
+//    var ofloors = FloorDb.GetAllFloors();
+//    foreach (var floor in ofloors)
+//    {
+//        DataDb.AddNewFloor(floor);
+//    }
+//}
+
+/// <summary>
+/// 
+/// </summary>
+//static void TransferUserData()
+//{
+//
+//    var ocards = GameDb.GetAllCards();
+//    foreach (var card in ocards)
+//    {
+//        Bot.Plugins.GatchaGame.Cards.PlayerCard pc = new Bot.Plugins.GatchaGame.Cards.PlayerCard();
+//        RngGeneration.GenerateNewCharacterStats(pc);
+//        pc.AddStat(StatTypes.Exp, Convert.ToInt32(card.level * 10), false, false, false);
+//        pc.AddStat(StatTypes.Gld, card.level * 5, false, false, false);
+//
+//        pc.Name = card.name;
+//        pc.DisplayName = card.nickname;
+//        if (string.IsNullOrWhiteSpace(pc.DisplayName)) pc.DisplayName = pc.Name;
+//        pc.Signature = card.signature;
+//        pc.SpeciesDisplayName = card.species;
+//        pc.ClassDisplayName = card.mainClass;
+//        pc.AvailableSockets.Add(SocketTypes.Weapon);
+//        pc.AvailableSockets.Add(SocketTypes.Armor);
+//        pc.AvailableSockets.Add(SocketTypes.Passive);
+//
+//        pc.AddStat(StatTypes.Sds, card.level * 2, false, false, false);
+//        pc.AddStat(StatTypes.Kil, card.killed, false, false, false);
+//
+//        var tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Weapon, 1);
+//        tws.NameOverride = (string.IsNullOrWhiteSpace(card.weapon)) ? tws.NameOverride : card.weapon;
+//        pc.ActiveSockets.Add(tws);
+//
+//        tws = RngGeneration.GenerateRandomEquipment(out _, EquipmentTypes.Armor, 1);
+//        tws.NameOverride = (string.IsNullOrWhiteSpace(card.gear)) ? tws.NameOverride : card.gear;
+//        pc.ActiveSockets.Add(tws);
+//
+//        tws = RngGeneration.GenerateRandomPassive(out _, 1);
+//        tws.NameOverride = (string.IsNullOrWhiteSpace(card.special)) ? tws.NameOverride : card.special;
+//        pc.ActiveSockets.Add(tws);
+//
+//        if (card.weaponperklvl == 1)
+//        {
+//            pc.BoonsEarned.Add(BoonTypes.Sharpness);
+//            pc.CompletedQuests.Add(2010);
+//        }
+//        if (card.gearperklvl == 1)
+//        {
+//            pc.BoonsEarned.Add(BoonTypes.Resiliance);
+//            pc.CompletedQuests.Add(2011);
+//        }
+//        if (card.specialperklvl == 1)
+//        {
+//            pc.BoonsEarned.Add(BoonTypes.Empowerment);
+//            pc.CompletedQuests.Add(3302);
+//        }
+//
+//
+//        var gcards = new List<Bot.Plugins.GatchaGame.Cards.PlayerCard>
+//        {
+//            pc
+//        };
+//
+//        // check for level up here
+//        int val1;
+//        int curlvl;
+//        int val2;
+//        do
+//        {
+//            // -150 + 300x^1.8
+//            val1 = pc.GetStat(StatTypes.Exp);
+//            curlvl = pc.GetStat(StatTypes.Lvl);
+//            val2 = Convert.ToInt32((-150 + (300 * Math.Pow(curlvl, 1.8))));
+//            if (val1 > val2)
+//            {
+//                // leveled up
+//                pc.LevelUp();
+//                pc.AddStat(StatTypes.Lvl, 1);
+//        
+//            }
+//        } while (val1 > val2);
+//
+//        DataDb.AddNewUser(pc);
+//    }
+//}

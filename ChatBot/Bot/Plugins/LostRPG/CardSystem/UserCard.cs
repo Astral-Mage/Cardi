@@ -1,5 +1,8 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
-using ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Enums;
+using ChatBot.Bot.Plugins.LostRPG.ControllerSystem;
+using ChatBot.Bot.Plugins.LostRPG.Data;
+using System;
+using System.Collections.Generic;
 
 namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 {
@@ -12,36 +15,66 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public string Alias { get; set; }
 
-        public UserStatus Status { get; set; }
-
-        // magic stuff
-        public MagicData MagicData { get; set; }
-
-        //roleplay stuff
         public RoleplayData RpData { get; set; }
+
 
         public StatData Stats { get; set; }
 
-        public UserCard(string name, string alias, int userId = -1)
-        {
-            UserId = userId;
-            Status = UserStatus.Active;
-            Name = name;
-            Alias = alias;
+        public List<BaseController> Controllers { get; set; }
 
-            RpData = new RoleplayData();
-            MagicData = new MagicData();
-        }
+        public bool Verbose { get; set; }
+
+        public string CurrentTitle { get; set; }
+
+        public List<string> Titles { get; set; }
+
+        public List<int> Skills { get; set; }
+
+        public Specialization Spec { get; set; }
+
+        public Archetype Archetype { get; set; }
 
         public UserCard(string name)
         {
             Name = name;
-            Status = UserStatus.Active;
             Alias = Name;
             UserId = -1;
-
+            Verbose = true;
             RpData = new RoleplayData();
-            MagicData = new MagicData();
+            Stats = new StatData();
+            CurrentTitle = string.Empty;
+            Titles = new List<string>();
+            Skills = new List<int>();
+            Spec = null;
+            Archetype = null;
+        }
+
+        public void SetStats(StatData stats)
+        {
+            Stats = stats;
+        }
+
+        public int GetStat(StatTypes type)
+        {
+            if (!Stats.Stats.ContainsKey(type))
+            {
+                Stats.Stats.Add(type, 0);
+            }
+            return Convert.ToInt32(Math.Floor(Stats.Stats[type]));
+        }
+
+        public int GetMultipliedStat(StatTypes type)
+        {
+            if (!Stats.Stats.ContainsKey(type))
+            {
+                Stats.Stats.Add(type, 0);
+            }
+
+            int basemult = Spec.Stats.GetStat(type);
+            basemult += Archetype.Stats.GetStat(type) - 100;
+            double percentMult = basemult * .01f;
+            percentMult = Math.Round(percentMult, 2);
+            return Convert.ToInt32(Math.Floor(Stats.Stats[type] * percentMult));
         }
     }
 }

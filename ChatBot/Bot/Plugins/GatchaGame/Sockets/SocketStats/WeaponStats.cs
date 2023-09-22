@@ -7,9 +7,5 @@ using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.GatchaGame.Sockets.SocketStats
 {
-    class WeaponStats : ISocketStats
-    {
-        public DamageType DamageType;
-        public WeaponTypes WeaponType;
-    }
+
 }

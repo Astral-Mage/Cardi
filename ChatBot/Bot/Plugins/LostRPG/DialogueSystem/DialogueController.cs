@@ -69,12 +69,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem
         /// </summary>
         /// <param name="dId">our dialogue id</param>
         /// <param name="user">our requesting user</param>
-        public void StartDialogue(Type dId, string user)
+        public void StartDialogue(Type dId, string user, string sourceChannel)
         {
             Dialogue.Dialogue d = null;
             if (!ActiveDialogues.Any(x => x.Id.Equals(dId.GetHashCode()) && x.Owner.Equals(user)))
             {
-                d = (Dialogue.Dialogue)Activator.CreateInstance(dId, new object[] { user, CommandChar });
+                d = (Dialogue.Dialogue)Activator.CreateInstance(dId, new object[] { user, CommandChar, sourceChannel });
 
                 if (d.TypeOfDialogue == DialogueType.Conversation)
                 {

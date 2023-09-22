@@ -46,10 +46,9 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
                 return $"Already Max Rarity.";
             }
 
-            SocketRarity = SocketRarity + 1;
+            SocketRarity++;
             string toReturn = string.Empty;
-            int ranVal = 0;
-
+            int ranVal;
             if (RngGeneration.Rng.Next(100) < 4)
             {
                 List<StatTypes> AvailableStats = new List<StatTypes>();
@@ -65,23 +64,23 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Sockets
                 ranVal = RngGeneration.Rng.Next(1, 5);
                 var tas = AvailableStats[RngGeneration.Rng.Next(AvailableStats.Count)];
                 StatModifiers.Add(tas, ranVal);
-                toReturn += $"{ranVal} {tas.ToString()}, ";
+                toReturn += $"{ranVal} {tas}, ";
             }
             else if (SecondaryDamageType == DamageTypes.None && RngGeneration.Rng.Next(100) < 4)
             {
                 SecondaryDamageType = (DamageTypes)RngGeneration.Rng.Next(0, Enum.GetNames(typeof(DamageTypes)).Length-1);
-                toReturn += $"[b][color={SecondaryDamageType.GetDescription()}]{SecondaryDamageType.ToString()}[/color][/b] attribute, ";
+                toReturn += $"[b][color={SecondaryDamageType.GetDescription()}]{SecondaryDamageType}[/color][/b] attribute, ";
             }
 
             ranVal = RngGeneration.Rng.Next(5, 10);
             StatModifiers[StatTypes.Dmg] += ranVal;
-            toReturn += $"{ranVal} {StatTypes.Dmg.ToString()}, ";
+            toReturn += $"{ranVal} {StatTypes.Dmg}, ";
 
             List<StatTypes> tk = StatModifiers.Keys.ToList();
             ranVal = RngGeneration.Rng.Next(2, 5);
             StatTypes sts = tk[RngGeneration.Rng.Next(0, tk.Count)];
             StatModifiers[sts] += ranVal;
-            toReturn += $"{ranVal} {sts.ToString()}";
+            toReturn += $"{ranVal} {sts}";
             return toReturn;
         }
 

@@ -35,10 +35,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
         protected Dictionary<int, string> StoredArgs { get; set; }
 
         protected string CommandChar = string.Empty;
+        
+        public string Channel { get; set; }
 
 
 
-        protected Dialogue(int id, string owner, string commandChar) 
+        protected Dialogue(int id, string owner, string commandChar, string channel) 
         {
             CurrentStep = 0;
             Id = id;
@@ -50,6 +52,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
             BackingUp = false;
             StoredArgs = new Dictionary<int, string>();
             CommandChar = commandChar;
+            Channel = channel;
+        }
+
+        public virtual void GoToStep(int step)
+        {
+
         }
 
         public virtual bool Progress(string args = null)

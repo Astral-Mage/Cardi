@@ -14,18 +14,18 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             Description = "";
             SecurityType = CommandSecurity.None;
             ChatRestriction = ChatTypeRestriction.Whisper;
+            RequiresRegisteredUser = false;
         }
 
-        public override void Execute(ActionObject ao)
+        public override void Execute(ActionObject ao, UserCard card)
         {
-            if (!DataDb.Instance.UserExists(ao.User))
+            if (card == null)
             {
-                DialogueController.Instance.StartDialogue(typeof(CreateUser), ao.User);
+                DialogueController.Instance.StartDialogue(typeof(CreateUser), ao.User, ao.Channel);
                 return;
             }
             else
             {
-                UserCard card = DataDb.Instance.GetCard(ao.User);
                 SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"You've already created your character, {card.Alias}", ao.User);
                 return;
             }

@@ -13,20 +13,22 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
     [Serializable]
     public class BaseCard
     {
-        public string Name;
-        public string DisplayName;
-        public List<Socket> ActiveSockets;
-        public List<SocketTypes> AvailableSockets;
-        public CardTypes CardType;
-        public double LevelScaleValue;
-        public List<Socket> Inventory;
-        public int MaxInventory;
+        public string               Name;
+        public string               DisplayName;
+        public List<Socket>         ActiveSockets;
+        public List<SocketTypes>    AvailableSockets;
+        public CardTypes            CardType;
+        public double               LevelScaleValue;
+        public List<Socket>         Inventory;
+        public int                  MaxInventory;
         public CharacterStatusTypes Status;
 
-        public BaseStats Stats;
-        public int CurrentVitality;
+        public BaseStats            Stats;
+        public int                  CurrentVitality;
 
-        public List<BoonTypes> BoonsEarned;
+        public List<BoonTypes>      BoonsEarned;
+
+        public List<BaseController> Controllers;
 
         public BaseStats GetStats()
         {
@@ -162,6 +164,8 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             BoonsEarned = new List<BoonTypes>();
 
             Status = CharacterStatusTypes.Undefined;
+
+            Controllers = new List<BaseController>();
         }
 
         private BaseCard()

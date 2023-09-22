@@ -82,7 +82,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             return toReturn;
         }
 
-        private double CalculateLengthExperience(int sentences, int words, int typos)
+        private double CalculateLengthExperience(int sentences, int words)
         {
             int MIN_LEN = 20;
             if (words < MIN_LEN)
@@ -90,7 +90,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
                 return 0;
             }
 
-            double ourX = (.25 * sentences) + (.25 * (words - (typos * 2)));
+            double ourX = (.25 * sentences) + (.25 * (words));
             double flatReturn = 3;
             if (words > 25)
                 flatReturn += 3;
@@ -114,8 +114,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             if (fkVal == 100)
                 toReturn *= .75;
 
-            if (words - misspellings < (double)words * .5)
-                toReturn *= .5;
+            if (words - misspellings < (double)words * .2)
+                toReturn *= .8;
 
             if (words < 20)
                 toReturn *= .3;
@@ -139,12 +139,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
 
             string replyString = string.Empty;
             EnglishMaximumEntropySentenceDetector sd = new EnglishMaximumEntropySentenceDetector("../../Dictionaries/EnglishSD.nbin");
-            UserCard card = DataDb.Instance.GetCard(user);
+            UserCard card = DataDb.CardDb.GetCard(user);
 
             paragraphs = message.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Length;
             var parsedpost = sd.SentenceDetect(message);
             sentences = parsedpost.Length;
-
+            
             foreach (var v in parsedpost)
             {
                 var wordsInSentence = v.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -180,7 +180,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
 
 
             double Experience = CalculateBaseExperience(FleshKincaid, misspellings, words);
-            double LenXp = CalculateLengthExperience(sentences, words, misspellings);
+            double LenXp = CalculateLengthExperience(sentences, words);
             double LimitXp = CalculateLimitExperience(syllables / (double)words, misspellings, words, card.RpData);
 
 
@@ -191,10 +191,15 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             card.RpData.TotalWords += words;
             card.RpData.TotalMisspellings += misspellings;
             card.RpData.TotalExperience += Experience + LenXp + LimitXp;
+            double postpoints = Experience + LenXp + LimitXp;
+            int exp = Convert.ToInt32(Math.Round(postpoints, 0));
+            card.Stats.AddStat(StatTypes.Experience, exp);
+            card.RpData.UpdatePostHistory(postpoints);
 
             if (channel != null) channel = null;
-            SystemController.Instance.Respond(channel, /*$"Base Experience: {Experience} | " + $"Length Experience: {LenXp} | " + $"{(LimitXp > 0 ? $"Limit Experience: {LimitXp} | " : "")}" +*/ $"Total Rp Experience: {Experience + LenXp + LimitXp}", user);
-            DataDb.Instance.UpdateUserRoleplayData(card.RpData);
+            if (card.Verbose) SystemController.Instance.Respond(channel,$"Post Experience Earned: {exp}", user);
+            DataDb.CardDb.UpdateUserCard(card);
+            DataDb.RpDb.UpdateUserRoleplayData(card.RpData);
         }
     }
 }

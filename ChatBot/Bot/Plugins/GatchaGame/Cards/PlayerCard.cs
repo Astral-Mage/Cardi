@@ -53,6 +53,12 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Cards
             };
         }
 
+        public T GetController<T>() where T : BaseController
+        {
+            if (Controllers.Any(x => x.GetType() == typeof(T))) return (T)Controllers.First(x => x.GetType() == typeof(T));
+            return default;
+        }
+
         public double XpNeededToLevel()
         {
             return Convert.ToInt32((-150 + (300 * Math.Pow(GetStat(StatTypes.Lvl), 1.8)))) - GetStat(StatTypes.Exp);

@@ -41,7 +41,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         /// <summary>
         /// our hidden constructor
         /// </summary>
-        private DataDb() { }
+        public DataDb() { }
 
         /// <summary>
         /// db name

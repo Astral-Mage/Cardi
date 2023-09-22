@@ -173,7 +173,7 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Generation
 
             // static
             baseStats.AddStat(StatTypes.Gld, 0);
-            baseStats.AddStat(StatTypes.Sds, 70);
+            baseStats.AddStat(StatTypes.Sds, 7000);
             baseStats.AddStat(StatTypes.Lvl, 1);
             baseStats.AddStat(StatTypes.Cs1, 0);
             baseStats.AddStat(StatTypes.Sps, 0);

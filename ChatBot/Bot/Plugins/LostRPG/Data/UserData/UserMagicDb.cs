@@ -94,8 +94,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 Console.WriteLine(e);
             }
 
-            toReturn.PrimaryMagic = GetMagicById(toReturn.PrimaryMagic.MagicId);
-            toReturn.SecondaryMagic = GetMagicById(toReturn.SecondaryMagic.MagicId);
             return toReturn;
         }
 
@@ -148,7 +146,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.CommandText = query;
                         command.CommandType = System.Data.CommandType.Text;
                         command.Parameters.Add(new SQLiteParameter("@uid", card.UserId));
-                        command.Parameters.Add(new SQLiteParameter("@mid", card.MagicData.PrimaryMagic.MagicId));
                         command.Parameters.Add(new SQLiteParameter("@mid2", null));
                         command.ExecuteNonQuery();
                         command.Dispose();

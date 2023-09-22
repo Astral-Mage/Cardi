@@ -12,12 +12,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         public string CommandChar { get; set; }
         public string Channel { get; set; }
 
+        public string Message { get; set; }
+
         public ActionObject()
         {
             User = string.Empty;
             CommandChar = string.Empty;
             Channel = string.Empty;
-
+            Message = string.Empty;
         }
     }
 }

@@ -85,6 +85,10 @@ namespace ChatBot
             }
         }
 
+        /// <summary>
+        /// Called when a channel is joined
+        /// </summary>
+        /// <param name="channel">Channel that was joined</param>
         public void HandleJoinedChannel(string channel)
         {
             foreach (PluginBase plugin in plugins)

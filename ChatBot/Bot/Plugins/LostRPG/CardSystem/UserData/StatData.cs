@@ -3,53 +3,50 @@ using System.Collections.Generic;
 
 namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 {
+    [Serializable]
     public class StatData
     {
-        public Dictionary<StatTypes, double> Stats;
-        public List<Modifier> Modifiers;
+        public Dictionary<StatTypes, double> Stats { get; set; }
 
-        public void AddModifier(StatTypes statType, int numTurns)
+        public int GetStat(StatTypes type)
         {
-            Modifiers.Add(new Modifier() { StatType = statType, TurnDuration = numTurns });
-        }
-
-        public int GetStat(StatTypes type, bool baseStat = false)
-        {
+            if (!Stats.ContainsKey(type))
+            {
+                Stats.Add(type, 0);
+            }
             return Convert.ToInt32(Math.Floor(Stats[type]));
         }
 
-        public double GetPreciseStat(StatTypes type, bool baseStat = false)
+        public double GetPreciseStat(StatTypes type)
         {
             return Stats[type];
         }
 
-        public bool AddStat(StatTypes type, int value)
+        public void AddStat(StatTypes type, int value)
         {
-            if (Stats.ContainsKey(type))
-                return false;
+            if (!Stats.ContainsKey(type))
+            {
+                Stats[type] = value;
+                return;
+            }
 
-            Stats[type] = value;
-            return true;
+            Stats[type] += value;
+            return;
         }
 
-        public bool TryGetStat(StatTypes type, out int value, bool baseStat = false)
+        public void SetStat(StatTypes type, int value)
         {
-            value = 0;
-            try
-            {
-                value = GetStat(type, baseStat);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            Stats[type] = value;
+        }
+
+        public void SetStat(StatTypes type, double value)
+        {
+            Stats[type] = value;
         }
 
         public StatData()
         {
             Stats = new Dictionary<StatTypes, double>();
-            Modifiers = new List<Modifier>();
         }
     }
 }
