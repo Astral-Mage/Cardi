@@ -91,7 +91,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Cost = Convert.ToInt32(reader["cost"]);
                                 toReturn.Description = reader["description"].ToString();
 
-                                toReturn.SkillEffects = JsonConvert.DeserializeObject<List<BaseEffect>>(Convert.ToString(reader["effects"]));
+                                toReturn.SkillEffects = JsonConvert.DeserializeObject<List<Effect>>(Convert.ToString(reader["effects"]));
                                 toReturn.Tags = (JsonConvert.DeserializeObject<List<string>>(Convert.ToString(reader["tags"])));
                                 toReturn.RawStr = reader["rawstr"].ToString();
 

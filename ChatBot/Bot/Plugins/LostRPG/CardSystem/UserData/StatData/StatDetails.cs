@@ -7,45 +7,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
     [Serializable]
     public enum StatTypes
     {
-        //Atk, // attack chance
-        //Pdf, // physical def
-        //Mdf, // magic def
-        //Con, // temp hp, basically
-        //Spd, // attack speed
-        //Crt, // crit dmg multiplier
-        //Dmg, // base raw danage
-        //Vit, // health
-        //Eva, // evasion
-        //Int, // magic damage boost
-        //Prg, // progress
-        //Sta, // stamina
-        //StM, // stamina max
-        //Kil, // kills
-        //KiB, // boss kills
-        //Lvl, // level
-        //Gld, // gold
-        //Sds, // stardust
-        //Rom, // rooms cleared
-        //Adr, // auto-delete rarity threshold
-        //Dex, // phyiscal dmg boost
-        //Cs1, // class 1
-        //Sps, // species
-        //Exp, // experience
-        //Dff, // default floor
-        //Crc, // crit chance
-        //Ats, // attack spread modifier
-        //Upg, // number of level-up upgrades available
-        //Upe, // number of level-up upgrades equipped
-        //Bly, // times successfully bullied a target
-        //Sbm, // times submitted to bullying
-        //Dwi, // duels won
-        //Dlo, // duels lost
-        //Pvr, // pvp rank
-        //Foc, // focus stat
-        //Bcc, // base crit chance
-
-
-
         // tracking stats
         [Description("life")]
         Life,
@@ -93,7 +54,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 
         /// other info
         Damage,
+        MaxDamage,
         Healing,
+        MaxHealing,
         DebuffAbsorb,
         Speed,
     }

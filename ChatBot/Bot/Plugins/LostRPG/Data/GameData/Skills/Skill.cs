@@ -15,7 +15,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
         public string RawStr { get; set; }
         public int Speed { get; set; }
-        public List<BaseEffect> SkillEffects { get; set; }
+        public List<Effect> SkillEffects { get; set; }
         public string Description { get; set; }
 
         public int Stamina { get; set; }
@@ -42,7 +42,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             Tags = new List<string>();
             RawStr = string.Empty;
             Speed = 100;
-            SkillEffects = new List<BaseEffect>();
+            SkillEffects = new List<Effect>();
             Description = string.Empty;
             Stamina = 0;
             Cost = 0;
@@ -82,10 +82,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
                 // do skill effect stuff
                 Console.WriteLine("TODO: Skill Effect Stuff :TODO");
-                newSkill.SkillEffects = new List<BaseEffect>();
+                newSkill.SkillEffects = new List<Effect>();
                 foreach (var eff in brokenEffects)
                 {
-                    BaseEffect se = new BaseEffect();
+                    Effect se = new Effect();
                 }
             }
             catch

@@ -1,13 +1,8 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
-using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
-using ChatBot.Bot.Plugins.LostRPG.Data.GameData.Skills.SkillEffects;
 using ChatBot.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 {
@@ -25,7 +20,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         public override void Execute(ActionObject ao, UserCard card)
         {
             // setup
-            BaseEffect newEffect = BaseEffect.ReadRawString(ao.Message);
+            Effect newEffect = Effect.ReadRawString(ao.Message);
 
             if (newEffect == null)
             {

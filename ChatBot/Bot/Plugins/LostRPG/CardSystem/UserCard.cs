@@ -1,6 +1,4 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
-using ChatBot.Bot.Plugins.LostRPG.ControllerSystem;
-using ChatBot.Bot.Plugins.LostRPG.Data;
 using System;
 using System.Collections.Generic;
 
@@ -19,8 +17,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
 
         public StatData Stats { get; set; }
-
-        public List<BaseController> Controllers { get; set; }
 
         public bool Verbose { get; set; }
 

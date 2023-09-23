@@ -22,7 +22,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         /// </summary>
         readonly string EffectTable = "EffectData";
 
-        public int AddNewEffect(BaseEffect effect)
+        public int AddNewEffect(Effect effect)
         {
             try
             {
@@ -68,9 +68,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             return 1;
         }
 
-        public List<BaseEffect> GetAllEffectsByType(EffectTypes etype)
+        public List<Effect> GetAllEffectsByType(EffectTypes etype)
         {
-            List<BaseEffect> toReturn = new List<BaseEffect>();
+            List<Effect> toReturn = new List<Effect>();
 
             try
             {
@@ -84,7 +84,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         {
                             while (reader.Read())
                             {
-                                BaseEffect spec = new BaseEffect();
+                                Effect spec = new Effect();
 
                                 spec.Name = Convert.ToString(reader["name"]);
                                 spec.EffectId = Convert.ToInt32(reader["effectid"]);
@@ -115,9 +115,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             return toReturn;
         }
 
-        public BaseEffect GetEffect(int specid)
+        public Effect GetEffect(int specid)
         {
-            BaseEffect toReturn = new BaseEffect();
+            Effect toReturn = new Effect();
             try
             {
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
