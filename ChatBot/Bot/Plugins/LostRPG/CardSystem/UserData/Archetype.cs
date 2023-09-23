@@ -24,7 +24,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 
         public string RawString { get; set; }
 
-        public List<int> Specs { get; set; }
+        public List<int> Tags { get; set; }
 
         public Archetype()
         {
@@ -36,7 +36,41 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             RawString = string.Empty;
             Buffs = new List<int>();
             Debuffs = new List<int>();
-            Specs = new List<int>();
+            Tags = new List<int>();
+        }
+
+        public string GetInfo()
+        {
+            string toreturn = string.Empty;
+
+            toreturn += $"{Name}" +
+                $"\\n" +
+                $"\\n{(Description == string.Empty ? "--- Blank Description ---" : Description)}" +
+                $"\\n" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Life)}: {Stats.GetStat(StatTypes.Life)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Strength)}: {Stats.GetStat(StatTypes.Strength)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Dexterity)}: {Stats.GetStat(StatTypes.Dexterity)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Constitution)}: {Stats.GetStat(StatTypes.Constitution)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Intelligence)}: {Stats.GetStat(StatTypes.Intelligence)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Wisdom)}: {Stats.GetStat(StatTypes.Wisdom)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Perception)}: {Stats.GetStat(StatTypes.Perception)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Libido)}: {Stats.GetStat(StatTypes.Libido)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Charisma)}: {Stats.GetStat(StatTypes.Charisma)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Intuition)}: {Stats.GetStat(StatTypes.Intuition)}%" +
+                $"\\n";
+
+            List<string> tlist = new List<string>();
+            foreach (var tag in Tags)
+            {
+                tlist.Add(DataDb.TagsDb.GetTag(tag).Name);
+            }
+            toreturn += $"Tags: {string.Join(" • ", tlist)}";
+
+            if (Buffs.Count > 0) toreturn += $"\\nBuffs: {string.Join(" • ", Buffs)}";
+            if (Debuffs.Count > 0) toreturn += $"\\nDebuffs: {string.Join(" • ", Debuffs)}";
+            if (Skills.Count > 0) toreturn += $"\\nSkills: {string.Join(" • ", Skills)}";
+
+            return toreturn;
         }
 
         public static Archetype ReadRawString(string str)
@@ -59,25 +93,25 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
                 if (splitspec.ContainsKey("buffs")) splitspec["buffs"].Split(",".ToCharArray()).ToList().ForEach(x => arc.Buffs.Add(Convert.ToInt32(x)));
                 if (splitspec.ContainsKey("debuffs")) splitspec["debuffs"].Split(",".ToCharArray()).ToList().ForEach(x => arc.Debuffs.Add(Convert.ToInt32(x)));
 
-                var spec = DataDb.SpecDb.GetAllSpecs();
-                var toaddspecs = splitspec["specs"].Split(",".ToCharArray()).ToList();
+                var allTags = DataDb.TagsDb.GetAllTags();
+                var toaddtags = splitspec["tags"].Split(",".ToCharArray()).ToList();
                 
-                foreach(var s in toaddspecs)
+                foreach(var s in toaddtags)
                 {
                     bool found = false;
-                    foreach (var ta in spec)
+                    foreach (var ta in allTags)
                     {
                         if (ta.Name.ToLowerInvariant().Equals(s.ToLowerInvariant()))
                         {
                             found = true;
-                            arc.Specs.Add(ta.SpecId);
+                            arc.Tags.Add(ta.TagId);
                         }
 
                         if (found) break;
                     }
                 }
 
-                if (arc.Specs.Count != toaddspecs.Count)
+                if (arc.Tags.Count != toaddtags.Count)
                 {
                     return null;
                 }

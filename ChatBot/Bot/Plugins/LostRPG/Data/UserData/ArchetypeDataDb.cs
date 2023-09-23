@@ -24,7 +24,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {ArchetypeTable} (name, description, specs, stats, buffs, debuffs, rawstring, skills) VALUES (@name, @description, @specs, @stats, @buffs, @debuffs, @rawstring, @skills); SELECT last_insert_rowid() as pk;";
+                string query = $"INSERT INTO {ArchetypeTable} (name, description, tags, stats, buffs, debuffs, rawstring, skills) VALUES (@name, @description, @tags, @stats, @buffs, @debuffs, @rawstring, @skills); SELECT last_insert_rowid() as pk;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -39,7 +39,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@buffs", string.Join(",", spec.Buffs)));
                         command.Parameters.Add(new SQLiteParameter("@debuffs", string.Join(",", spec.Debuffs)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", spec.Skills)));
-                        command.Parameters.Add(new SQLiteParameter("@specs", string.Join(",", spec.Specs)));
+                        command.Parameters.Add(new SQLiteParameter("@tags", string.Join(",", spec.Tags)));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(spec.Stats)));
 
                         using (SQLiteDataReader reader = command.ExecuteReader())
@@ -73,7 +73,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT arcid, name, description, specs, stats, buffs, debuffs, rawstring, skills FROM {ArchetypeTable};";
+                    string sql = $"SELECT arcid, name, description, tags, stats, buffs, debuffs, rawstring, skills FROM {ArchetypeTable};";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         using (SQLiteDataReader reader = command.ExecuteReader())
@@ -85,7 +85,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 spec.Name = Convert.ToString(reader["name"]);
                                 spec.Description = Convert.ToString(reader["description"]);
                                 spec.ArcId = Convert.ToInt32(reader["arcid"]);
-                                Convert.ToString(reader["specs"]).Split(',').ToList().ForEach(x => spec.Specs.Add(Convert.ToInt32(x)));
+                                Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => spec.Tags.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["skills"]))) Convert.ToString(reader["skills"]).Split(',').ToList().ForEach(x => spec.Skills.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["buffs"]))) Convert.ToString(reader["buffs"]).Split(',').ToList().ForEach(x => spec.Buffs.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["debuffs"]))) Convert.ToString(reader["debuffs"]).Split(',').ToList().ForEach(x => spec.Debuffs.Add(Convert.ToInt32(x)));
@@ -116,7 +116,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT arcid, name, description, specs, stats, buffs, debuffs, rawstring, skills FROM {ArchetypeTable} WHERE arcid like @arcid;";
+                    string sql = $"SELECT arcid, name, description, tags, stats, buffs, debuffs, rawstring, skills FROM {ArchetypeTable} WHERE arcid like @arcid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@arcid", specid));
@@ -127,7 +127,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Name = Convert.ToString(reader["name"]);
                                 toReturn.Description = Convert.ToString(reader["description"]);
                                 toReturn.ArcId = Convert.ToInt32(reader["arcid"]);
-                                Convert.ToString(reader["specs"]).Split(',').ToList().ForEach(x => toReturn.Specs.Add(Convert.ToInt32(x)));
+                                Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => toReturn.Tags.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["skills"]))) Convert.ToString(reader["skills"]).Split(',').ToList().ForEach(x => toReturn.Skills.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["buffs"]))) Convert.ToString(reader["buffs"]).Split(',').ToList().ForEach(x => toReturn.Buffs.Add(Convert.ToInt32(x)));
                                 if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["debuffs"]))) Convert.ToString(reader["debuffs"]).Split(',').ToList().ForEach(x => toReturn.Debuffs.Add(Convert.ToInt32(x)));

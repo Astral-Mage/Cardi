@@ -106,7 +106,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                     string sql = $"SELECT tagid, name FROM {TagsTable} WHERE tagid like @tagid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@specid", specid));
+                        command.Parameters.Add(new SQLiteParameter("@tagid", specid));
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())

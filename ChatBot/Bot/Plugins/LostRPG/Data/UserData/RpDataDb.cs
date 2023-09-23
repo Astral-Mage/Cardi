@@ -18,9 +18,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         /// </summary>
         readonly string RoleplayTable = "RoleplayData";
 
-        public RoleplayData GetUserRoleplayData(int userId)
+        public Roleplay GetUserRoleplayData(int userId)
         {
-            RoleplayData toReturn = new RoleplayData();
+            Roleplay toReturn = new Roleplay();
             try
             {
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
@@ -60,7 +60,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             return toReturn;
         }
 
-        public void UpdateUserRoleplayData(RoleplayData rpData)
+        public void UpdateUserRoleplayData(Roleplay rpData)
         {
             try
             {
@@ -95,9 +95,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             }
         }
 
-        public RoleplayData AddNewUserRoleplayData(int userId)
+        public Roleplay AddNewUserRoleplayData(int userId)
         {
-            RoleplayData toReturn = new RoleplayData();
+            Roleplay toReturn = new Roleplay();
             toReturn.UserId = userId;
 
             try

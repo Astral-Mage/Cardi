@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 {
-    public class RoleplayData
+    public class Roleplay
     {
         public int TotalPosts { get; set; }
 
@@ -26,7 +26,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 
         public double FKScore { get; set; }
 
-        public RoleplayData()
+        public Roleplay()
         {
             TotalPosts = 0;
             TotalSentences = 0;

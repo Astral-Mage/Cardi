@@ -179,6 +179,7 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateSkillAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateSpecializationAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateTagAction.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\InfoAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\OrgasmAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Core\ActionObject.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Core\BaseAction.cs" />
@@ -186,10 +187,11 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\HelpAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserCard.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\RoleplayData.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Roleplay.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Tags.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\DataDb.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\InfoTypes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\StatTypes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionEnums.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionNames.cs" />
@@ -214,6 +216,7 @@
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Dialogue.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ProcTriggers.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Enums\UserStatus.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\InformationSystem\InfoCore.cs" />
     <Compile Include="Bot\Plugins\LostRPG\LostRPG.cs" />
     <Compile Include="Bot\Plugins\LostRPG\RoleplaySystem\RoleplayController.cs" />
     <Compile Include="Bot\Plugins\PluginBase.cs" />

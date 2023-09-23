@@ -13,7 +13,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public string Alias { get; set; }
 
-        public RoleplayData RpData { get; set; }
+        public Roleplay RpData { get; set; }
 
 
         public StatData Stats { get; set; }
@@ -36,7 +36,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Alias = Name;
             UserId = -1;
             Verbose = true;
-            RpData = new RoleplayData();
+            RpData = new Roleplay();
             Stats = new StatData();
             CurrentTitle = string.Empty;
             Titles = new List<string>();

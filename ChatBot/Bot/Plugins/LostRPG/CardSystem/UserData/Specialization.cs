@@ -19,10 +19,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 
         public List<int> Tags { get; set; }
 
-
         public List<int> Buffs { get; set; }
 
         public List<int> Debuffs { get; set; }
+
         public List<int> Skills { get; set; }
 
         public string RawString { get; set; }
@@ -42,6 +42,40 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             RawString = string.Empty;
         }
 
+        public string GetInfo()
+        {
+            string toreturn = string.Empty;
+
+            toreturn += $"{Name}" +
+                $"\\n" +
+                $"\\n{(Description == string.Empty ? "--- Blank Description ---" : Description)}" +
+                $"\\n" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Life)}: {Stats.GetStat(StatTypes.Life)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Strength)}: {Stats.GetStat(StatTypes.Strength)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Dexterity)}: {Stats.GetStat(StatTypes.Dexterity)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Constitution)}: {Stats.GetStat(StatTypes.Constitution)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Intelligence)}: {Stats.GetStat(StatTypes.Intelligence)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Wisdom)}: {Stats.GetStat(StatTypes.Wisdom)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Perception)}: {Stats.GetStat(StatTypes.Perception)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Libido)}: {Stats.GetStat(StatTypes.Libido)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Charisma)}: {Stats.GetStat(StatTypes.Charisma)}%" +
+                $"\\n{Enum.GetName(typeof(StatTypes), StatTypes.Intuition)}: {Stats.GetStat(StatTypes.Intuition)}%" +
+                $"\\n";
+
+            List<string> tlist = new List<string>();
+            foreach (var tag in Tags)
+            {
+                tlist.Add(DataDb.TagsDb.GetTag(tag).Name);
+            }
+            toreturn += $"Tags: {string.Join(" • ", tlist)}";
+
+            if (Buffs.Count > 0) toreturn += $"\\nBuffs: {string.Join(" • ", Buffs)}";
+            if (Debuffs.Count > 0) toreturn += $"\\nDebuffs: {string.Join(" • ", Debuffs)}";
+            if (Skills.Count > 0) toreturn += $"\\nSkills: {string.Join(" • ", Skills)}";
+
+            return toreturn;
+        }
+
         public static Specialization ReadRawString(string str)
         {
             // -createspec name:fire+boy life:110 str:90 dex:120 con:90 int:120 wis:100 per:100 lib:90 cha:100 tui:100 skills:13,104 buffs:1 debuffs:9 tags:3,4
@@ -58,8 +92,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
                 newspec.RawString = str;
                 newspec.Name = splitspec["name"];
                 newspec.Name = newspec.Name.Replace("+", " ");
-                var taglist = DataDb.TagsDb.GetAllTags();
 
+                var taglist = DataDb.TagsDb.GetAllTags();
                 if (splitspec.ContainsKey("tags"))
                 {
                     var tlist = splitspec["tags"].Split(",".ToCharArray()).ToList();
@@ -92,14 +126,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
                         return null;
                     }
                 }
-
-                if (!taglist.Any(x => x.Name.Equals(newspec.Name)))
+                else
                 {
-                    Tags nTag = new Tags(newspec.Name);
-                    DataDb.TagsDb.AddNewTag(nTag);
-                    newspec.Tags.Add(nTag.TagId);
+                    throw new Exception("Bad tags");
                 }
-
 
                 if (splitspec.ContainsKey("skills")) splitspec["skills"].Split(",".ToCharArray()).ToList().ForEach(x => newspec.Skills.Add(Convert.ToInt32(x)));
                 if (splitspec.ContainsKey("buffs")) splitspec["buffs"].Split(",".ToCharArray()).ToList().ForEach(x => newspec.Buffs.Add(Convert.ToInt32(x)));

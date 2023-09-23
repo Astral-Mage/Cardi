@@ -37,7 +37,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             }
         }
 
-        private double CalculateLimitExperience(double spw, int misspellings, int words, RoleplayData rpData)
+        private double CalculateLimitExperience(double spw, int misspellings, int words, Roleplay rpData)
         {
             double overallSyllablesPerWord = (rpData.TotalWords > 0) ? rpData.TotalSyllables / (double)rpData.TotalWords : 0;
             double overallWordsPerPost = (rpData.TotalPosts > 0) ? rpData.TotalWords / (double)rpData.TotalPosts : 0;
