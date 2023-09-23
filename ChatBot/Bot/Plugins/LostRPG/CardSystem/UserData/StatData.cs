@@ -14,7 +14,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             {
                 Stats.Add(type, 0);
             }
-            return Convert.ToInt32(Math.Floor(Stats[type]));
+            var toreturn = Convert.ToInt32(Math.Floor(Stats[type]));
+            return toreturn;
         }
 
         public double GetPreciseStat(StatTypes type)

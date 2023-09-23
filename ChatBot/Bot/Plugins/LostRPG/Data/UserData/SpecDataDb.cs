@@ -132,6 +132,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                     Convert.ToString(reader["debuffs"]).Split(',').ToList().ForEach(x => toReturn.Debuffs.Add(Convert.ToInt32(x)));
 
                                 toReturn.Stats = (JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"])));
+                                toReturn.SpecId = Convert.ToInt32(reader["specid"]);
                             }
                             reader.Close();
                         }

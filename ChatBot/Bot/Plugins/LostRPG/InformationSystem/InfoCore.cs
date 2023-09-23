@@ -3,22 +3,25 @@ using ChatBot.Bot.Plugins.LostRPG.CardSystem;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
 {
     public static class InfoCore
     {
-        public static void GetSpecInfo(UserCard card, string message, string channel, List<string> splitmsg)
+        public static void GetSpecInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
         {
             string toSend = string.Empty;
             var specs = DataDb.SpecDb.GetAllSpecs();
             if (splitmsg.Count == 1)
             {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
+
                 toSend += card.Spec.GetInfo();
             }
             else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
@@ -42,18 +45,28 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
             }
             else
             {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
                 toSend += card.Spec.GetInfo();
             }
-            SystemController.Instance.Respond(channel, toSend, card.Name);
+            SystemController.Instance.Respond(channel, toSend, user);
         }
 
-        public static void GetTagInfo(UserCard card, string message, string channel, List<string> splitmsg)
+        public static void GetTagInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
         {
             string toSend = string.Empty;
 
             var arcs = DataDb.TagsDb.GetAllTags();
             if (splitmsg.Count == 1)
             {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
                 List<int> allTags = new List<int>();
                 card.Spec.Tags.ForEach(x => allTags.Add(x));
                 card.Archetype.Tags.ForEach((x) =>
@@ -63,7 +76,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                         allTags.Add(x);
                     }
                 });
-
 
                 List<string> allTagsName = new List<string>();
                 
@@ -89,16 +101,21 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     $"\\n" +
                     $"\\n{string.Join(" • ", TagList)}";
             }
-            SystemController.Instance.Respond(channel, toSend, null);
+            SystemController.Instance.Respond(channel, toSend, user);
         }
 
-        public static void GetArcInfo(UserCard card, string message, string channel, List<string> splitmsg)
+        public static void GetArcInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
         {
             string toSend = string.Empty;
 
             var arcs = DataDb.ArcDb.GetAllArchetypes();
             if (splitmsg.Count == 1)
             {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
                 toSend += card.Archetype.GetInfo();
             }
             else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
@@ -122,9 +139,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
             }
             else
             {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
                 toSend += card.Archetype.GetInfo();
             }
-            SystemController.Instance.Respond(channel, toSend, card.Name);
+            SystemController.Instance.Respond(channel, toSend, user);
         }
     }
 }

@@ -36,26 +36,34 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 return;
             }
 
-            switch(res)
+            try
             {
-                case InfoTypes.Spec:
-                    {
-                        InformationSystem.InfoCore.GetSpecInfo(card, ao.Message, ao.Channel, splitmsg);
-                    }
-                    break;
-                case InfoTypes.Arc:
-                    {
-                        InformationSystem.InfoCore.GetArcInfo(card, ao.Message, ao.Channel, splitmsg);
-                    }
-                    break;
-                case InfoTypes.Tags:
-                    {
-                        InformationSystem.InfoCore.GetTagInfo(card, ao.Message, ao.Channel, splitmsg);
-                    }
-                    break;
-                default:
-                    break;
+                switch (res)
+                {
+                    case InfoTypes.Spec:
+                        {
+                            InformationSystem.InfoCore.GetSpecInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                        }
+                        break;
+                    case InfoTypes.Arc:
+                        {
+                            InformationSystem.InfoCore.GetArcInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                        }
+                        break;
+                    case InfoTypes.Tags:
+                        {
+                            InformationSystem.InfoCore.GetTagInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
+            catch
+            {
+                SystemController.Instance.Respond(ao.Channel, "Info return failure.", ao.User);
+            }
+
         }
     }
 }
