@@ -190,11 +190,11 @@
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Tags.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\DataDb.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData\StatDetails.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\StatTypes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionEnums.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionNames.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Archetype.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\SkillTypes.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\MiscTags.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Specialization.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\Targets.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\GameData\Skills\Skill.cs" />
@@ -242,9 +242,7 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Bot\Plugins\LostRPG\Data\GameData\Skills\SkillEffects\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
