@@ -104,6 +104,51 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
             SystemController.Instance.Respond(channel, toSend, user);
         }
 
+        public static void GetCallingInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
+        {
+            string toSend = string.Empty;
+
+            var callings = DataDb.CallingDb.GetAllCallings();
+            if (splitmsg.Count == 1)
+            {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
+                toSend += card.Calling.GetInfo();
+            }
+            else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
+            {
+                List<string> callingList = new List<string>();
+                callings.ForEach(x => callingList.Add(x.Name));
+                toSend += $"\\n All Available Callings" +
+                    $"\\n" +
+                    $"\\n{string.Join(" • ", callingList)}";
+            }
+            else if (splitmsg.Count > 1)
+            {
+                foreach (var cal in callings)
+                {
+                    if (cal.Name.ToLowerInvariant().Equals(splitmsg.Last().ToLowerInvariant()))
+                    {
+                        toSend += cal.GetInfo();
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                if (card == null)
+                {
+                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
+                    return;
+                }
+                toSend += card.Calling.GetInfo();
+            }
+            SystemController.Instance.Respond(channel, toSend, user);
+        }
+
         public static void GetArcInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
         {
             string toSend = string.Empty;

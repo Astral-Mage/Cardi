@@ -1,4 +1,6 @@
-﻿using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
+﻿using Accord;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +24,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
         public int Cost { get; set; }
         public int SkillId { get; set; }
+        public StatData Stats { get; set; }
 
         public Skill(string rawStr)
         {
@@ -47,18 +50,19 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             Stamina = 0;
             Cost = 0;
             SkillId = 0;
+            Stats = new StatData();
         }
 
         public static Skill ReadRawString(string rawstring)
         {
-            // -cs level:1 damage:160 dex:140 str:120 buffs:1 debuffs: 3 speed:90 charge:2 charges:1 tags:Weapon reaction:0 target:enemy cd:3
+            // -cs level:1 damage:160 dex:140 str:120 buffs:1 debuffs: 3 speed:90 charge:2 charges:1 tags:Weapon reaction:0 target:enemy cd:3 name:pants+mcgee
             Skill newSkill = new Skill();
 
-            List<string> slashed = rawstring.Split('\\').ToList();
+            List<string> slashed = rawstring.Split(" ".ToCharArray()).ToList();
             Dictionary<string, string> brokenSkill = new Dictionary<string, string>();
             foreach (var v in slashed)
             {
-                var tsplit = v.Split(" ".ToCharArray(), 2).ToList();
+                var tsplit = v.Split(":".ToCharArray(), 2).ToList();
                 if (!brokenSkill.ContainsKey(tsplit.First()))
                 {
                     brokenSkill.Add(tsplit.First(), tsplit.Last());
@@ -74,23 +78,35 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             {
                 newSkill.Level = Convert.ToInt32(brokenSkill[RequiredSkillTags.level.ToString()]);
                 newSkill.Name = brokenSkill[RequiredSkillTags.name.ToString()].TrimEnd();
+                newSkill.Name = newSkill.Name.Replace("+", "");
                 newSkill.Speed = Convert.ToInt32(brokenSkill[RequiredSkillTags.speed.ToString()]);
-                newSkill.Tags = brokenSkill[RequiredSkillTags.tags.ToString()].Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
+                newSkill.Tags = brokenSkill[RequiredSkillTags.tags.ToString()].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 var effects = brokenSkill[RequiredSkillTags.effects.ToString()];
-                var brokenEffects = effects.Split("-".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+                var brokenEffects = effects.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
                 // do skill effect stuff
                 Console.WriteLine("TODO: Skill Effect Stuff :TODO");
                 newSkill.SkillEffects = new List<Effect>();
                 foreach (var eff in brokenEffects)
                 {
-                    Effect se = new Effect();
+                    Effect se = DataDb.EffectDb.GetEffect(Convert.ToInt32(eff));
+                    newSkill.SkillEffects.Add(se);
                 }
             }
             catch
             {
                 return null;
+            }
+
+            // stats
+            List<StatTypes> slist = new List<StatTypes>() { StatTypes.Damage, StatTypes.Strength, StatTypes.Dexterity, StatTypes.Constitution, StatTypes.Intelligence, StatTypes.Wisdom, StatTypes.Perception, StatTypes.Libido, StatTypes.Charisma, StatTypes.Intuition, StatTypes.Life };
+            foreach (var v in slist)
+            {
+                if (brokenSkill.ContainsKey(v.GetDescription()))
+                {
+                    newSkill.Stats.AddStat(v, Convert.ToInt32(brokenSkill[v.GetDescription()]));
+                }
             }
 
             // optional checks

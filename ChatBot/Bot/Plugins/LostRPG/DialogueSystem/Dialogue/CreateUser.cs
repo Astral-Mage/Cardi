@@ -17,7 +17,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
 
         public CreateUser(string owner, string commandChar, string channel) : base(typeof(CreateUser).GetHashCode(), owner, commandChar, channel)
         {
-            MaxSteps = 5;
+            MaxSteps = 6;
             ChildType = GetType();
             TypeOfDialogue = Enums.DialogueType.Conversation;
             Locale = Enums.DialogueLocale.Private;
@@ -155,34 +155,69 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
 
             Card.Spec = spec;
 
+            string toSend = "Finally, what is your calling:";
+            var callings = DataDb.CallingDb.GetAllCallings();
+            foreach (var c in callings)
+            {
+                toSend += $"[sup]⌈[/sup]{c.Name}[sub]⌋[/sub] ";
+            }
+            SystemController.Instance.Respond(null, toSend, Owner);
+        }
+
+        public void Six(string args)
+        {
+            if (string.IsNullOrEmpty(args))
+            {
+                SystemController.Instance.Respond(null, "You must enter a value. Sorry!", Owner);
+                CurrentStep = 5;
+                BackingUp = true;
+                return;
+            }
+
+            var specs = DataDb.CallingDb.GetAllCallings();
+            Calling call = null;
+            if (specs.Any(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant())))
+            {
+                call = specs.First(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant()));
+            }
+            else
+            {
+                SystemController.Instance.Respond(null, "You must enter a valid calling. Sorry!", Owner);
+                CurrentStep = 5;
+                BackingUp = true;
+                return;
+            }
+
+            Card.Calling = call;
+
+            Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Weapon));
+            Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Armor));
+            Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Passive));
+
 
             Card.Stats.AddStat(StatTypes.Life, 1000);
             Card.Stats.AddStat(StatTypes.CurrentLife, Card.GetMultipliedStat(StatTypes.Life));
-            Card.Stats.AddStat(StatTypes.ShieldHealth, 0);
             Card.Stats.AddStat(StatTypes.Level, 1);
             Card.Stats.AddStat(StatTypes.Experience, 0);
-            Card.Stats.AddStat(StatTypes.MaxStamina, 90);
-            Card.Stats.AddStat(StatTypes.CurrentStamina, 90);
 
             Card.Stats.AddStat(StatTypes.Kills, 0);
             Card.Stats.AddStat(StatTypes.Gold, 0);
             Card.Stats.AddStat(StatTypes.Stardust, 0);
+            int baseStat = 20;
+            Card.Stats.AddStat(StatTypes.Strength, baseStat);
+            Card.Stats.AddStat(StatTypes.Dexterity, baseStat);
+            Card.Stats.AddStat(StatTypes.Constitution, baseStat);
 
-            Card.Stats.AddStat(StatTypes.Strength, 10);
-            Card.Stats.AddStat(StatTypes.Dexterity, 10);
-            Card.Stats.AddStat(StatTypes.Constitution, 10);
+            Card.Stats.AddStat(StatTypes.Intelligence, baseStat);
+            Card.Stats.AddStat(StatTypes.Wisdom, baseStat);
+            Card.Stats.AddStat(StatTypes.Perception, baseStat);
 
-            Card.Stats.AddStat(StatTypes.Intelligence, 10);
-            Card.Stats.AddStat(StatTypes.Wisdom, 10);
-            Card.Stats.AddStat(StatTypes.Perception, 10);
-
-            Card.Stats.AddStat(StatTypes.Libido, 10);
-            Card.Stats.AddStat(StatTypes.Charisma, 10);
-            Card.Stats.AddStat(StatTypes.Intuition, 10);
+            Card.Stats.AddStat(StatTypes.Libido, baseStat);
+            Card.Stats.AddStat(StatTypes.Charisma, baseStat);
+            Card.Stats.AddStat(StatTypes.Intuition, baseStat);
 
             DataDb.CardDb.AddNewUser(Card);
             SystemController.Instance.Respond(null, $"Thanks! Type {CommandChar}card to see your character card!", Owner);
-
         }
     }
 }

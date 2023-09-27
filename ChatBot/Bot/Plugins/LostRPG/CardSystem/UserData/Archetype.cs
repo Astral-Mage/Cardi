@@ -66,9 +66,24 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             }
             toreturn += $"Tags: {string.Join(" • ", tlist)}";
 
-            if (Buffs.Count > 0) toreturn += $"\\nBuffs: {string.Join(" • ", Buffs)}";
-            if (Debuffs.Count > 0) toreturn += $"\\nDebuffs: {string.Join(" • ", Debuffs)}";
-            if (Skills.Count > 0) toreturn += $"\\nSkills: {string.Join(" • ", Skills)}";
+            if (Buffs.Count > 0) toreturn += $"\\n⏫ ";
+            foreach (var s in Buffs)
+            {
+                toreturn += $"⟨ {DataDb.EffectDb.GetEffect(s).Name} ⟩";
+            }
+
+            if (Debuffs.Count > 0) toreturn += $"\\n⏬ ";
+            foreach (var s in Debuffs)
+            {
+                toreturn += $"⟨ {DataDb.EffectDb.GetEffect(s).Name} ⟩";
+            }
+
+
+            if (Skills.Count > 0) toreturn += $"\\n❇️ ";
+            foreach (var s in Skills)
+            {
+                toreturn += $"⟨ {DataDb.SkillsDb.GetSkill(s).Name} ⟩";
+            }
 
             return toreturn;
         }

@@ -7,7 +7,6 @@ using ChatBot.Bot.Plugins.GatchaGame.Encounters;
 using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using ChatBot.Bot.Plugins.GatchaGame.Generation;
 using ChatBot.Bot.Plugins.GatchaGame.Sockets;
-using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;

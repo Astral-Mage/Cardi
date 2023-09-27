@@ -1,10 +1,13 @@
-﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+﻿using Accord;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 {
@@ -23,9 +26,65 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         {
             string toSend = string.Empty;
             UserCard cardToUse = card;
+            bool verbose = false;
+
+            if (ao.Message.Contains("-v"))
+            {
+                verbose = true;
+                ao.Message = ao.Message.Replace("-v", "");
+            }
+
             if (!string.IsNullOrWhiteSpace(ao.Message) && DataDb.CardDb.UserExists(ao.Message))
             {
                 cardToUse = DataDb.CardDb.GetCard(ao.Message);
+            }
+
+            // main stats
+            string lifestr = $"Life: {cardToUse.Stats.GetStat(StatTypes.CurrentLife)}/{cardToUse.GetMultipliedStat(StatTypes.Life)}{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Life)}[/sup]")}";
+            string expstr = $"[sub]Exp: {cardToUse.Stats.GetStat(StatTypes.Experience)}[/sub]";
+            string killsstr = $"[sub]Kills: {cardToUse.Stats.GetStat(StatTypes.Kills)}[/sub]";
+            string duststr = $"[sub]Stardust: {cardToUse.Stats.GetStat(StatTypes.Stardust)}[/sub]";
+
+            string strstr = $"[sub]{StatTypes.Strength.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Strength)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Strength)}[/sup]")}";
+            string dexstr = $"[sub]{StatTypes.Dexterity.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Dexterity)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Dexterity)}[/sup]")}";
+            string constr = $"[sub]{StatTypes.Constitution.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Constitution)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Constitution)}[/sup]")}";
+
+            string intstr = $"[sub]{StatTypes.Intelligence.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Intelligence)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Intelligence)}[/sup]")}";
+            string wisstr = $"[sub]{StatTypes.Wisdom.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Wisdom)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Wisdom)}[/sup]")}";
+            string perstr = $"[sub]{StatTypes.Perception.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Perception)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Perception)}[/sup]")}";
+
+            string libstr = $"[sub]{StatTypes.Libido.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Libido)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Libido)}[/sup]")}";
+            string chastr = $"[sub]{StatTypes.Charisma.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Charisma)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Charisma)}[/sup]")}";
+            string tuistr = $"[sub]{StatTypes.Intuition.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Intuition)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Intuition)}[/sup]")}";
+
+            //   ⋯   
+
+            toSend += $"                               [icon]{cardToUse.Name}[/icon]" +
+                $"\\n                                               [ {cardToUse.Alias} ]  [ {cardToUse.CurrentTitle} ]" +
+                $"\\n                                ⟨{cardToUse.Archetype.Name}⟩ ⟪{cardToUse.Spec.Name}⟫ ⟨{cardToUse.Calling.Name}⟩" +
+                $"\\n                                               [color=orange][b]{expstr} {killsstr} {duststr}[/b][/color]" +
+                $"\\n                                                  [color=green][b]{lifestr}[/b][/color]" +
+                $"\\n                   [color=brown][b]{strstr} {dexstr} {constr}[/b][/color] [color=cyan][b]{intstr} {wisstr} {perstr}[/b][/color] [color=pink][b]{libstr} {chastr} {tuistr}[/b][/color]";
+
+            string extra = $"\\n";
+
+            // equipment
+            if (cardToUse.ActiveSockets.Any(x => x.SocketType == SocketTypes.Weapon))
+            {
+                var weapon = cardToUse.ActiveSockets.First(x => x.SocketType == SocketTypes.Weapon);
+                extra += $"\\n⚔️ {weapon.GetName()}{weapon.GetShortDescription()}";
+            }
+
+            if (cardToUse.ActiveSockets.Any(x => x.SocketType == SocketTypes.Armor))
+            {
+                var armor = cardToUse.ActiveSockets.First(x => x.SocketType == SocketTypes.Armor);
+                extra += $"\\n🛡 {armor.GetName()}{armor.GetShortDescription()}";
+            }
+
+            if (cardToUse.ActiveSockets.Any(x => x.SocketType == SocketTypes.Passive))
+            {
+                var passive = cardToUse.ActiveSockets.First(x => x.SocketType == SocketTypes.Passive);
+                extra += $"\\n💫 {passive.GetName()}{passive.GetShortDescription()}";
             }
 
             // construct skill list
@@ -36,24 +95,47 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 foreach (var v in cardToUse.Skills)
                 {
                     Skill skill = DataDb.SkillsDb.GetSkill(Convert.ToInt32(v));
-                    skillnames.Add(skill.Name);
+                    if (!skillnames.Contains(skill.Name)) skillnames.Add(skill.Name);
                 }
-                skilllist = string.Join(" | ", skillnames);
+            }
+            if (cardToUse.Calling.Skill > -1)
+            {
+                var ta = DataDb.SkillsDb.GetSkill(cardToUse.Calling.Skill).Name;
+                if (!skillnames.Contains(ta)) skillnames.Add(ta);
+            }
+            foreach (var s in cardToUse.Archetype.Skills)
+            {
+                var ta = DataDb.SkillsDb.GetSkill(s).Name;
+                if (!skillnames.Contains(ta)) skillnames.Add(ta);
+            }
+            foreach (var s in cardToUse.Spec.Skills)
+            {
+                var ta = DataDb.SkillsDb.GetSkill(s).Name;
+                if (!skillnames.Contains(ta))  skillnames.Add(ta);
+            }
+            foreach (var sn in skillnames)
+            {
+                skilllist += $"⟨ {sn} ⟩";
+            }
+            if (!string.IsNullOrWhiteSpace(skilllist)) extra += $"\\n❇️ {skilllist}";
+
+            // buffs and debuffs
+            List<string> enames = new List<string>();
+            var eBuffs = cardToUse.GetPassiveEffectsByType(EffectTypes.Buff);
+            if (eBuffs.Any()) eBuffs.ForEach(x => enames.Add(x.Name));
+
+            if (enames.Any())
+            {
+                extra += $"\\n⏫ ";
+                foreach (var v in enames)
+                {
+                    extra += $"⟪ {v} ⟫";
+                }
             }
 
+            // extra += $"\\n⏬ ";
 
-            toSend += $"" +
-                $"\\n{cardToUse.Alias}      ⋯      [sup]⌈[/sup]{cardToUse.CurrentTitle}[sub]⌋[/sub]      ⋯      ⟪{cardToUse.Archetype.Name}⟫ ⟨{cardToUse.Spec.Name}⟩" +
-                $"\\n[b]Life: {cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife)}/{cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Life)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Life)}[/sup] | Experience: {cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Experience)} | Kills: {cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Kills)} | Stardust: {cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Stardust)}[/b]" +
-                $"\\n[color=brown][b]Strength: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Strength)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Strength)}[/sup]  Dexterity: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Dexterity)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Dexterity)}[/sup]  Constitution: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Constitution)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Constitution)}[/sup][/b][/color]" +
-                $"\\n[color=cyan][b]Intelligence: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Intelligence)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Intelligence)}[/sup]  Wisdom: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Wisdom)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Wisdom)}[/sup]  Perception: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Perception)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Perception)}[/sup][/b][/color]" +
-                $"\\n[color=pink][b]Libido: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Libido)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Libido)}[/sup]  Charisma: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Charisma)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Charisma)}[/sup]  Intuition: {cardToUse.GetMultipliedStat(CardSystem.UserData.StatTypes.Intuition)}[sup]{cardToUse.Stats.GetStat(CardSystem.UserData.StatTypes.Intuition)}[/sup][/b][/color]" +
-                $"\\nWeapon: " +
-                $"\\nArmor: " +
-                $"\\nSpecial: " +
-                $"\\nBuffs: " +
-                $"\\nDebuffs: " +
-                $"\\nSkills: {skilllist}";
+            if (!verbose) toSend += extra;
             SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
         }
     }

@@ -173,6 +173,7 @@
     <Compile Include="Bot\Plugins\GatchaGame\Sockets\SocketStats\WeaponStats.cs" />
     <Compile Include="Bot\Plugins\GatchaGame\Sockets\WeaponSocket.cs" />
     <Compile Include="Bot\Plugins\GatchaGame\TriggeredEvents\TriggeredEvent.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateCallingAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\AttackAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateArchetypeAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateEffectAction.cs" />
@@ -187,11 +188,18 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\HelpAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserCard.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Calling.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Roleplay.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Tags.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CombatSystem\CombatController.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\DataDb.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\DamageTypes.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\GenericEquipmentNames.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\InfoTypes.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\Prefixes.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\SocketTypes.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\Enums\StatPrefixes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\StatTypes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionEnums.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ActionNames.cs" />
@@ -202,6 +210,7 @@
     <Compile Include="Bot\Plugins\LostRPG\Data\GameData\Skills\Skill.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\GameData\Skills\Effect.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\ArchetypeDataDb.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\UserData\CallingsDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\CardDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\EffectDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\SkillsDataDb.cs" />
@@ -216,6 +225,12 @@
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Dialogue.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\ProcTriggers.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Enums\UserStatus.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentController.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentObjects\ArmorSocket.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentObjects\EquipmentSocket.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentObjects\PassiveSocket.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentObjects\Socket.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\EquipmentSystem\EquipmentObjects\WeaponSocket.cs" />
     <Compile Include="Bot\Plugins\LostRPG\InformationSystem\InfoCore.cs" />
     <Compile Include="Bot\Plugins\LostRPG\LostRPG.cs" />
     <Compile Include="Bot\Plugins\LostRPG\RoleplaySystem\RoleplayController.cs" />

@@ -50,67 +50,70 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                     brokenEt.Add(split.First(), split.Last());
                 }
 
-                Enum.TryParse(Convert.ToString(brokenEt["type"]), out EffectTypes et);
+                Enum.TryParse(Convert.ToString(brokenEt["type"]).Capitalize(), out EffectTypes et);
                 be.EffectType = et;
                 be.Name = Convert.ToString(brokenEt["name"]);
                 be.Name = be.Name.Replace("+", " ");
-                Enum.TryParse(Convert.ToString(brokenEt["target"]), out EffectTargets ttar);
+                Enum.TryParse(Convert.ToString(brokenEt["target"]).Capitalize(), out EffectTargets ttar);
                 be.Target = ttar;
 
                 if (brokenEt.ContainsKey("pchance")) be.ProcChance = Convert.ToInt32(brokenEt["pchance"]);
                 else be.ProcChance = 100;
                 if (brokenEt.ContainsKey("ptrigger"))
                 {
-                    Enum.TryParse(Convert.ToString(brokenEt["ptrigger"]), out ProcTriggers ptrig);
+                    Enum.TryParse(Convert.ToString(brokenEt["ptrigger"]).Capitalize(), out ProcTriggers ptrig);
                     be.ProcTrigger = ptrig;
                 }
                 else be.ProcTrigger = ProcTriggers.None;
 
                 int dur = Convert.ToInt32(brokenEt["dur"]);
+                if (dur == 0) be.GlobalDuration = TimeSpan.MaxValue;
                 if (dur == 1) be.GlobalDuration = new TimeSpan(4, 0, 0);
                 if (dur == 2) be.GlobalDuration = new TimeSpan(12, 0, 0);
                 if (dur == 3) be.GlobalDuration = new TimeSpan(24, 0, 0);
                 else be.GlobalDuration = new TimeSpan(7, 0, 0, 0);
 
                 be.GlobalDuration = new TimeSpan();
-                bool found;
-                var specs = DataDb.SpecDb.GetAllSpecs();
-                bool throwex = false;
-                foreach (var tag in brokenEt["tags"].Split(",".ToCharArray()))
+                if (brokenEt.ContainsKey("tags"))
                 {
-                    if (int.TryParse(tag, out int res))
+                    bool found;
+                    var specs = DataDb.SpecDb.GetAllSpecs();
+                    bool throwex = false;
+                    foreach (var tag in brokenEt["tags"].Split(",".ToCharArray()))
                     {
-                        foreach (var spec in specs)
+                        if (int.TryParse(tag, out int res))
                         {
-                            if (spec.SpecId == res)
+                            foreach (var spec in specs)
                             {
-                                be.Tags.Add(res);
-                                break;
+                                if (spec.SpecId == res)
+                                {
+                                    be.Tags.Add(res);
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            found = false;
+                            foreach (var spec in specs)
+                            {
+                                if (spec.Name.ToLowerInvariant().Equals(tag.ToLowerInvariant()))
+                                {
+                                    be.Tags.Add(spec.SpecId);
+                                    found = true;
+                                }
+                            }
+                            if (!found)
+                            {
+                                throwex = true;
                             }
                         }
                     }
-                    else
+                    if (throwex)
                     {
-                        found = false;
-                        foreach (var spec in specs)
-                        {
-                            if (spec.Name.ToLowerInvariant().Equals(tag.ToLowerInvariant()))
-                            {
-                                be.Tags.Add(spec.SpecId);
-                                found = true;
-                            }
-                        }
-                        if (!found)
-                        {
-                            throwex = true;
-                        }
+                        return null;
                     }
                 }
-                if (throwex)
-                {
-                    return null;
-                }
-
 
                 if (brokenEt.ContainsKey(StatTypes.Strength.GetDescription())) be.Stats.AddStat(StatTypes.Strength, Convert.ToInt32(brokenEt[StatTypes.Strength.GetDescription()]));
                 if (brokenEt.ContainsKey(StatTypes.Dexterity.GetDescription())) be.Stats.AddStat(StatTypes.Dexterity, Convert.ToInt32(brokenEt[StatTypes.Dexterity.GetDescription()]));

@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
 using Newtonsoft.Json;
 using System;
@@ -23,7 +24,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {SkillsTable} (name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr) VALUES (@name, @reaction, @speed, @level, @stamina, @cost, @description, @effects, @tags, @rawstr); SELECT last_insert_rowid() as pk;";
+                string query = $"INSERT INTO {SkillsTable} (name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats) VALUES (@name, @reaction, @speed, @level, @stamina, @cost, @description, @effects, @tags, @rawstr, @stats); SELECT last_insert_rowid() as pk;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -42,6 +43,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@effects", JsonConvert.SerializeObject(skill.SkillEffects)));
                         command.Parameters.Add(new SQLiteParameter("@tags", JsonConvert.SerializeObject(skill.Tags)));
                         command.Parameters.Add(new SQLiteParameter("@rawstr", skill.RawStr));
+                        command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(skill.Stats)));
 
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
@@ -58,7 +60,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 }
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Console.WriteLine("Db write error: addnewuser");
             }
@@ -74,7 +76,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT skillid, name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr FROM {SkillsTable} WHERE skillid like @skillid;";
+                    string sql = $"SELECT skillid, name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats FROM {SkillsTable} WHERE skillid like @skillid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@skillid", skillid));
@@ -94,7 +96,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.SkillEffects = JsonConvert.DeserializeObject<List<Effect>>(Convert.ToString(reader["effects"]));
                                 toReturn.Tags = (JsonConvert.DeserializeObject<List<string>>(Convert.ToString(reader["tags"])));
                                 toReturn.RawStr = reader["rawstr"].ToString();
-
+                                toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
                             }
                             reader.Close();
                         }

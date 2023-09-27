@@ -1,6 +1,9 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
 using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
+using ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -34,7 +37,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT name, alias, userid, stats, title, skills, spec, archetype FROM {CardTable} WHERE name like @name;";
+                    string sql = $"SELECT name, alias, userid, stats, title, skills, spec, archetype, sockets, calling FROM {CardTable} WHERE name like @name;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@name", user));
@@ -60,6 +63,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Spec = DataDb.SpecDb.GetSpec(specid);
                                 int arcid = Convert.ToInt32(reader["archetype"]);
                                 toReturn.Archetype = DataDb.ArcDb.GetArc(arcid);
+                                int callid = Convert.ToInt32(reader["calling"]);
+                                toReturn.Calling = DataDb.CallingDb.GetCalling(callid);
+
+                                toReturn.ActiveSockets = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["sockets"])));
                             }
                             reader.Close();
                         }
@@ -106,7 +113,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"UPDATE {CardTable} SET alias = @tali, stats = @stats, title = @title, name = @name, skills = @skills, spec = @spec, archetype = @arc WHERE userid = @uid;";
+                string query = $"UPDATE {CardTable} SET alias = @tali, stats = @stats, title = @title, name = @name, skills = @skills, spec = @spec, archetype = @arc, sockets = @activesockets, calling = @calling WHERE userid = @uid;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -122,7 +129,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(card.Stats)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
                         command.Parameters.Add(new SQLiteParameter("@spec", card.Spec.SpecId));
+                        command.Parameters.Add(new SQLiteParameter("@calling", card.Calling.CallingId));
+
                         command.Parameters.Add(new SQLiteParameter("@arc", card.Archetype.ArcId));
+                        command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(card.ActiveSockets).ToString()));
 
                         command.ExecuteNonQuery();
                         command.Dispose();
@@ -142,7 +152,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {CardTable} (name, alias, stats, title, skills, spec, archetype) VALUES (@name, @alias, @stats, @title, @skills, @spec, @arc);";
+                string query = $"INSERT INTO {CardTable} (name, alias, stats, title, skills, spec, archetype, sockets, calling) VALUES (@name, @alias, @stats, @title, @skills, @spec, @arc, @activesockets, @calling);";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -158,7 +168,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
                         command.Parameters.Add(new SQLiteParameter("@spec", card.Spec.SpecId));
                         command.Parameters.Add(new SQLiteParameter("@arc", card.Archetype.ArcId));
+                        command.Parameters.Add(new SQLiteParameter("@calling", card.Calling.CallingId));
 
+
+                        var wtf = ConvertInventoryToJObject(card.ActiveSockets).ToString();
+                        var wtf2 = ConvertInventoryToJObject(card.ActiveSockets);
+                        command.Parameters.Add(new SQLiteParameter("@activesockets", wtf));
 
                         command.ExecuteNonQuery();
                         command.Dispose();
@@ -261,6 +276,91 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             card.UserId = DataDb.CardDb.AddNewUserData(card);
             DataDb.RpDb.AddNewUserRoleplayData(card.UserId);
             
+        }
+
+        private static List<Socket> ConvertJObjectToInventory(JArray jObj)
+        {
+            List<Socket> toReturn = new List<Socket>();
+
+            if (jObj.Count == 0)
+            {
+                return toReturn;
+            }
+
+            KeyValuePair<string, string>[] ugh = JsonConvert.DeserializeObject<KeyValuePair<string, string>[]>(jObj.ToString());
+            List<KeyValuePair<string, string>> boop = new List<KeyValuePair<string, string>>(ugh);
+
+            foreach (var v in boop)
+            {
+                Type socketType = Type.GetType(v.Key);
+                string socketData = v.Value;
+                Socket socket;
+
+                if (socketType == typeof(WeaponSocket))
+                {
+                    socket = JsonConvert.DeserializeObject<WeaponSocket>(socketData);
+                }
+                else if (socketType == typeof(ArmorSocket))
+                {
+                    socket = JsonConvert.DeserializeObject<ArmorSocket>(socketData);
+                }
+                else if (socketType == typeof(PassiveSocket))
+                {
+                    socket = JsonConvert.DeserializeObject<PassiveSocket>(socketData);
+                }
+                else
+                    throw new Exception();
+
+                toReturn.Add(socket);
+            }
+
+            return toReturn;
+        }
+
+        private static JArray ConvertInventoryToJObject(List<Socket> socketList)
+        {
+            List<KeyValuePair<string, string>> ugh = new List<KeyValuePair<string, string>>();
+            for (int x = 0; x < socketList.Count; x++)
+            {
+                string iStr;
+                Type iType;
+                switch (socketList[x].SocketType)
+                {
+                    case SocketTypes.Passive:
+                        {
+                            PassiveSocket ps = (PassiveSocket)socketList[x];
+                            iStr = JsonConvert.SerializeObject(ps);
+                            iType = ps.GetType();
+                        }
+                        break;
+                    case SocketTypes.Weapon:
+                        {
+                            WeaponSocket ws = (WeaponSocket)socketList[x];
+                            iStr = JsonConvert.SerializeObject(ws);
+                            iType = ws.GetType();
+                        }
+                        break;
+                    case SocketTypes.Armor:
+                        {
+                            ArmorSocket ws = (ArmorSocket)socketList[x];
+                            iStr = JsonConvert.SerializeObject(ws);
+                            iType = ws.GetType();
+                        }
+                        break;
+                    default:
+                        throw new Exception();
+                }
+                ugh.Add(new KeyValuePair<string, string>(iType.ToString(), iStr));
+            }
+            try
+            {
+                string pants = JsonConvert.SerializeObject(ugh.ToArray());
+                return (ugh.Count > 0) ? JArray.Parse(pants) : new JArray();
+            }
+            catch (Exception)
+            {
+                throw new Exception();
+            }
         }
     }
 }

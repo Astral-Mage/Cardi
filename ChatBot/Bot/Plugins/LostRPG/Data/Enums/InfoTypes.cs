@@ -17,6 +17,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.Enums
         All,
         [Description("tags")]
         Tags,
-
+        [Description("calling")]
+        Calling,
     }
 }

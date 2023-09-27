@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+using ChatBot.Bot.Plugins.LostRPG.CombatSystem;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Core;
@@ -68,21 +69,23 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 return false;
             }
 
-            int damage = 300 + RNG.Seed.Next(0, 50);
-            int life = target.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife);
-            life = life - damage;
+            CombatController.Attack(source, target);
 
-            outputstr += $"{source.Alias} attacks {target.Alias} for {damage} damage.";
-            if (life <= 0)
-            {
-                outputstr += $" {target.Alias} has been downed and is no longer able to continue fighting. You did {life * -1} overkill damage, {source.Alias}";
-                life = 0;
-            }
-
-            target.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, life);
-
-            DataDb.CardDb.UpdateUserCard(target);
-            DataDb.CardDb.UpdateUserCard(source);
+            //int damage = 300 + RNG.Seed.Next(0, 50);
+            //int life = target.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife);
+            //life -= damage;
+            //
+            //outputstr += $"{source.Alias} attacks {target.Alias} for {damage} damage.";
+            //if (life <= 0)
+            //{
+            //    outputstr += $" {target.Alias} has been downed and is no longer able to continue fighting. You did {life * -1} overkill damage, {source.Alias}";
+            //    life = 0;
+            //}
+            //
+            //target.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, life);
+            //
+            //DataDb.CardDb.UpdateUserCard(target);
+            //DataDb.CardDb.UpdateUserCard(source);
             return true;
         }
     }

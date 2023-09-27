@@ -77,9 +77,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE ;";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE effecttype = '@etype';";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
+                        command.Parameters.Add(new SQLiteParameter("@etype", etype));
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -89,12 +90,18 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 spec.Name = Convert.ToString(reader["name"]);
                                 spec.EffectId = Convert.ToInt32(reader["effectid"]);
                                 spec.Description = Convert.ToString(reader["description"]);
-                                Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => spec.Tags.Add(Convert.ToInt32(x)));
+                                //Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => spec.Tags.Add(Convert.ToInt32(x)));
                                 spec.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
                                 spec.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 spec.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 spec.ProcChance = Convert.ToInt32(reader["procchance"]);
-                                spec.GlobalDuration = new TimeSpan(Convert.ToInt32(reader["duration"]));
+
+                                int dur = Convert.ToInt32(reader["duration"]);
+                                if (dur == 0) spec.GlobalDuration = TimeSpan.MaxValue;
+                                else if (dur == 1) spec.GlobalDuration = new TimeSpan(4, 0, 0);
+                                else if (dur == 2) spec.GlobalDuration = new TimeSpan(12, 0, 0);
+                                else if (dur == 3) spec.GlobalDuration = new TimeSpan(24, 0, 0);
+                                else spec.GlobalDuration = new TimeSpan(7, 0, 0, 0);
                                 spec.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
 
 
@@ -123,10 +130,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE specid like @effectid;";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE effectid like @effectid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@specid", specid));
+                        command.Parameters.Add(new SQLiteParameter("@effectid", specid));
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())
@@ -134,11 +141,20 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Name = Convert.ToString(reader["name"]);
                                 toReturn.EffectId = Convert.ToInt32(reader["effectid"]);
                                 toReturn.Description = Convert.ToString(reader["description"]);
-                                Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => toReturn.Tags.Add(Convert.ToInt32(x)));
+                                //Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => toReturn.Tags.Add(Convert.ToInt32(x)));
                                 toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
                                 toReturn.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 toReturn.ProcChance = Convert.ToInt32(reader["procchance"]);
-                                toReturn.GlobalDuration = new TimeSpan(Convert.ToInt32(reader["duration"]));
+
+                                int dur = Convert.ToInt32(reader["duration"]);
+                                if (dur == 0) toReturn.GlobalDuration = TimeSpan.MaxValue;
+                                else if (dur == 1) toReturn.GlobalDuration = new TimeSpan(4, 0, 0);
+                                else if (dur == 2) toReturn.GlobalDuration = new TimeSpan(12, 0, 0);
+                                else if (dur == 3) toReturn.GlobalDuration = new TimeSpan(24, 0, 0);
+                                else toReturn.GlobalDuration = new TimeSpan(7, 0, 0, 0);
+
+
+
                                 toReturn.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 toReturn.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                             }

@@ -9,7 +9,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.Enums
     public enum EffectTargets
     {
         Self,
-        Enemy,
+        Target,
         Area,
     }
 }

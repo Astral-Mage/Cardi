@@ -55,6 +55,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                             InformationSystem.InfoCore.GetTagInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
                         }
                         break;
+                    case InfoTypes.Calling:
+                        {
+                            InformationSystem.InfoCore.GetCallingInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+
+                        }
+                        break;
                     default:
                         break;
                 }

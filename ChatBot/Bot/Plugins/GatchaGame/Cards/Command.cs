@@ -1,4 +1,4 @@
-﻿using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
+﻿using ChatBot.Bot.Plugins.GatchaGame.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

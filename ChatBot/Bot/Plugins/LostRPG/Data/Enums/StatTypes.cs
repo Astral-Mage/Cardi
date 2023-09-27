@@ -53,6 +53,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 
 
         /// other info
+        [Description("damage")]
         Damage,
         MaxDamage,
         Healing,

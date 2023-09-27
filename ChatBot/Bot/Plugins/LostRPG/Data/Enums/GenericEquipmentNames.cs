@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace ChatBot.Bot.Plugins.GatchaGame.Enums
+namespace ChatBot.Bot.Plugins.LostRPG.Data.Enums
 {
     [Serializable]
     public enum WeaponTypes
@@ -40,19 +40,16 @@ namespace ChatBot.Bot.Plugins.GatchaGame.Enums
         Mace,
     }
 
-    public enum ChatTypeRestriction
+    [Serializable]
+    public enum ArmorTypes
     {
-        Whisper,
-        Message,
-        Both
-    }
-
-    /// <summary>
-    /// whether or not there's security access required for this command
-    /// </summary>
-    public enum CommandSecurity
-    {
-        Ops,
-        None
+        [Description("Tunic")]
+        Tunic,
+        [Description("Brigadine")]
+        Brigadine,
+        [Description("Shield")]
+        Shield,
+        [Description("Armguard")]
+        ArmGuard,
     }
 }
