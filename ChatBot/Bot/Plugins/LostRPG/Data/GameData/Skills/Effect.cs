@@ -22,6 +22,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
         public ProcTriggers ProcTrigger { get; set;}
         public int EffectId { get; set; }
         public EffectTargets Target { get; set; }
+        public DateTime CreationDate { get; set; }
 
         public Effect()
         {
@@ -34,6 +35,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             ProcTrigger = ProcTriggers.None;
             EffectId = 0;
             Target = EffectTargets.Self;
+            CreationDate = DateTime.Now;
+        }
+
+        public TimeSpan GetRemainingDuration()
+        {
+            if (GlobalDuration == TimeSpan.MaxValue) return GlobalDuration;
+
+            DateTime now = DateTime.Now;
+            TimeSpan leftover = now - CreationDate;
+
+            return GlobalDuration - leftover;
         }
 
         public static Effect ReadRawString(string str)
@@ -68,12 +80,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
                 int dur = Convert.ToInt32(brokenEt["dur"]);
                 if (dur == 0) be.GlobalDuration = TimeSpan.MaxValue;
-                if (dur == 1) be.GlobalDuration = new TimeSpan(4, 0, 0);
-                if (dur == 2) be.GlobalDuration = new TimeSpan(12, 0, 0);
-                if (dur == 3) be.GlobalDuration = new TimeSpan(24, 0, 0);
+                else if (dur == 1) be.GlobalDuration = new TimeSpan(1, 0, 0);
+                else if (dur == 2) be.GlobalDuration = new TimeSpan(8, 0, 0);
+                else if (dur == 3) be.GlobalDuration = new TimeSpan(48, 0, 0);
                 else be.GlobalDuration = new TimeSpan(7, 0, 0, 0);
-
-                be.GlobalDuration = new TimeSpan();
                 if (brokenEt.ContainsKey("tags"))
                 {
                     bool found;

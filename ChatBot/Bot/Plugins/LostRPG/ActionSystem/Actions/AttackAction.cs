@@ -2,6 +2,7 @@
 using ChatBot.Bot.Plugins.LostRPG.CombatSystem;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
+using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
 using ChatBot.Core;
 using System.Linq;
 
@@ -21,7 +22,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
         public override void Execute(ActionObject ao, UserCard card)
         {
-            var split = ao.Message.Split(_secondaryCommandChar.ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries).ToList();
+            var split = ao.Message.Split(ao.CommandChar.ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries).ToList();
 
             // target checks
             if (split.Count < 1)
@@ -43,8 +44,28 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 return;
             }
 
+            // check for skills
+            Skill skillToUse = null;
+            if (split.Count > 1)
+            {
+                string stu = split.Last();
+                foreach (var s in card.GetUsableSkills())
+                {
+                    if (s.Name.Equals(stu))
+                    {
+                        skillToUse = s;
+                        break;
+                    }
+                    else if (int.TryParse(stu, out int skillid) && s.SkillId == skillid)
+                    {
+                        skillToUse = s;
+                        break;
+                    }
+                }
+            }
+
             // attack
-            if (!Attack(card, enemy, out string output))
+            if (!Attack(card, enemy, skillToUse, out string output))
             {
                 SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, output, ao.User);
                 return;
@@ -54,7 +75,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, output, ao.User);
         }
 
-        private bool Attack(UserCard source, UserCard target, out string outputstr)
+        private bool Attack(UserCard source, UserCard target, Skill skilltouse, out string outputstr)
         {
             outputstr = string.Empty;
             if (source.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife) <=0)
@@ -69,23 +90,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 return false;
             }
 
-            CombatController.Attack(source, target);
-
-            //int damage = 300 + RNG.Seed.Next(0, 50);
-            //int life = target.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife);
-            //life -= damage;
-            //
-            //outputstr += $"{source.Alias} attacks {target.Alias} for {damage} damage.";
-            //if (life <= 0)
-            //{
-            //    outputstr += $" {target.Alias} has been downed and is no longer able to continue fighting. You did {life * -1} overkill damage, {source.Alias}";
-            //    life = 0;
-            //}
-            //
-            //target.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, life);
-            //
-            //DataDb.CardDb.UpdateUserCard(target);
-            //DataDb.CardDb.UpdateUserCard(source);
+            CombatController.Attack(source, target, skilltouse, out outputstr);
             return true;
         }
     }

@@ -37,6 +37,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public Calling Calling { get; set; }
 
+        public List<Effect> ActiveEffects { get; set; }
+
         // equipment
         public List<Socket> ActiveSockets { get; set; }
 
@@ -55,11 +57,21 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Archetype = null;
             Calling = null;
             ActiveSockets = new List<Socket>();
+            ActiveEffects = new List<Effect>();
         }
 
         public void SetStats(StatData stats)
         {
             Stats = stats;
+        }
+
+        public List<Skill> GetUsableSkills()
+        {
+            List<Skill> toReturn = new List<Skill>();
+            if (Calling.Skill > -1) toReturn.Add(DataDb.SkillsDb.GetSkill(Calling.Skill));
+            foreach (var sk in Archetype.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            foreach (var sk in Spec.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            return toReturn;
         }
 
         public int GetStat(StatTypes type)
@@ -70,6 +82,21 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             }
             return Convert.ToInt32(Math.Floor(Stats.Stats[type]));
         }
+
+        public List<Effect> GetActiveEffectByType(EffectTypes types)
+        {
+            List<Effect> eNames = new List<Effect>();
+
+            foreach (var ae in ActiveEffects)
+            {
+                if (ae.EffectType == types)
+                {
+                    eNames.Add(ae);
+                }
+            }
+
+            return eNames;
+        } 
 
         public List<Effect> GetPassiveEffectsByType(EffectTypes type)
         {
@@ -170,8 +197,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
                 });
             }
 
-
-
             // multipliers
             // add  spec
             int basemult = Spec.Stats.GetStat(type);
@@ -186,6 +211,18 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             // arc / calling
             basemult += Archetype.Stats.GetStat(type) - 100;
             if (Calling.Stats.Stats.ContainsKey(type)) basemult += Calling.Stats.GetStat(type) - 100;
+
+            // debuffs
+            var debuffs = GetPassiveEffectsByType(EffectTypes.Debuff);
+            var db2 = GetActiveEffectByType(EffectTypes.Debuff);
+            db2.ForEach(x => debuffs.Add(x));
+            foreach (var debuff in debuffs)
+            {
+                if (debuff.Stats.Stats.ContainsKey(type)) basemult += debuff.Stats.GetStat(type) - 100;
+            }
+
+            if (basemult < 0) basemult = 0;
+
             double percentMult = basemult * .01f;
             percentMult = Math.Round(percentMult, 2);
 

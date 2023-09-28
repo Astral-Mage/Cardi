@@ -115,7 +115,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             }
             foreach (var sn in skillnames)
             {
-                skilllist += $"⟨ {sn} ⟩";
+                skilllist += $"⟨ {sn} ⟩  ";
             }
             if (!string.IsNullOrWhiteSpace(skilllist)) extra += $"\\n❇️ {skilllist}";
 
@@ -129,11 +129,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 extra += $"\\n⏫ ";
                 foreach (var v in enames)
                 {
-                    extra += $"⟪ {v} ⟫";
+                    extra += $"⟪ {v} ⟫  ";
                 }
             }
 
-            // extra += $"\\n⏬ ";
+            enames = new List<string>();
+            eBuffs = cardToUse.GetActiveEffectByType(EffectTypes.Debuff);
+            if (eBuffs.Any()) extra += $"\\n⏬ ";
+            foreach (var en in eBuffs)
+            {
+                extra += $"⟪ {en.Name} ⟫[sup]{en.GetRemainingDuration().ToHumanReadableString()}[/sup]  ";
+            }
 
             if (!verbose) toSend += extra;
             SystemController.Instance.Respond(ao.Channel, toSend, ao.User);

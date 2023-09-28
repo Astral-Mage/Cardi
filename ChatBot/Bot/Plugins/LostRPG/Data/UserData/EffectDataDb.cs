@@ -26,7 +26,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {EffectTable} (name, effecttype, description, tags, stats, duration, procchance, proctrigger, target) VALUES (@name, @etype, @description, @tags, @stats, @dur, @procc, @proct, @target); SELECT last_insert_rowid() as pk;";
+                string query = $"INSERT INTO {EffectTable} (name, effecttype, description, tags, stats, duration, procchance, proctrigger, target, creationdate) VALUES (@name, @etype, @description, @tags, @stats, @dur, @procc, @proct, @target, @creationdate); SELECT last_insert_rowid() as pk;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -44,6 +44,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@procc", effect.ProcChance));
                         command.Parameters.Add(new SQLiteParameter("@proct", effect.ProcTrigger));
                         command.Parameters.Add(new SQLiteParameter("@target", effect.Target));
+                        command.Parameters.Add(new SQLiteParameter("@creationdate", effect.CreationDate.ToString()));
 
 
                         using (SQLiteDataReader reader = command.ExecuteReader())
@@ -77,7 +78,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE effecttype = '@etype';";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effecttype = '@etype';";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@etype", etype));
@@ -95,14 +96,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 spec.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 spec.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 spec.ProcChance = Convert.ToInt32(reader["procchance"]);
-
-                                int dur = Convert.ToInt32(reader["duration"]);
-                                if (dur == 0) spec.GlobalDuration = TimeSpan.MaxValue;
-                                else if (dur == 1) spec.GlobalDuration = new TimeSpan(4, 0, 0);
-                                else if (dur == 2) spec.GlobalDuration = new TimeSpan(12, 0, 0);
-                                else if (dur == 3) spec.GlobalDuration = new TimeSpan(24, 0, 0);
-                                else spec.GlobalDuration = new TimeSpan(7, 0, 0, 0);
+                                spec.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 spec.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
+                                spec.CreationDate = Convert.ToDateTime(reader["creationdate"]);
 
 
                                 toReturn.Add(spec);
@@ -130,7 +126,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target FROM {EffectTable} WHERE effectid like @effectid;";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effectid like @effectid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@effectid", specid));
@@ -145,18 +141,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
                                 toReturn.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 toReturn.ProcChance = Convert.ToInt32(reader["procchance"]);
-
-                                int dur = Convert.ToInt32(reader["duration"]);
-                                if (dur == 0) toReturn.GlobalDuration = TimeSpan.MaxValue;
-                                else if (dur == 1) toReturn.GlobalDuration = new TimeSpan(4, 0, 0);
-                                else if (dur == 2) toReturn.GlobalDuration = new TimeSpan(12, 0, 0);
-                                else if (dur == 3) toReturn.GlobalDuration = new TimeSpan(24, 0, 0);
-                                else toReturn.GlobalDuration = new TimeSpan(7, 0, 0, 0);
-
-
-
+                                toReturn.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 toReturn.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 toReturn.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
+                                toReturn.CreationDate = Convert.ToDateTime(reader["creationdate"]);
                             }
                             reader.Close();
                         }

@@ -39,9 +39,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             // save to db
             newSkill.RawStr = ao.Message;
             DataDb.SkillsDb.AddNewSkill(newSkill);
-            card.Skills.Add(newSkill.SkillId);
-            DataDb.CardDb.UpdateUserCard(card);
-
             SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Skill (Id: {newSkill.SkillId}) || Name: {newSkill.Name} | Level: {newSkill.Level} | Effect Count: {newSkill.SkillEffects.Count} | Tags: {string.Join(", ", newSkill.Tags)} | Speed: {newSkill.Speed} | Reaction: {newSkill.Reaction} | Description: {newSkill.Description}", ao.User);
 
             return;

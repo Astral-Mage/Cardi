@@ -182,6 +182,7 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateTagAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\InfoAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\OrgasmAction.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\RestoreAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Core\ActionObject.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Core\BaseAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CardAction.cs" />
