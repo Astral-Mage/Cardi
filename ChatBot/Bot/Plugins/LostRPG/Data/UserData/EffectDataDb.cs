@@ -96,7 +96,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 spec.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 spec.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 spec.ProcChance = Convert.ToInt32(reader["procchance"]);
-                                spec.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
+                                if (reader["duration"].ToString().Equals("9.22337203685478E+18"))
+                                    spec.GlobalDuration = TimeSpan.MaxValue;
+                                else
+                                    spec.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 spec.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 spec.CreationDate = Convert.ToDateTime(reader["creationdate"]);
 
@@ -141,7 +144,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
                                 toReturn.ProcTrigger = (ProcTriggers)Convert.ToInt32(reader["proctrigger"]);
                                 toReturn.ProcChance = Convert.ToInt32(reader["procchance"]);
-                                toReturn.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
+
+                                var idk = reader["duration"].ToString();
+                                if (reader["duration"].ToString().Equals("9.22337203685478E+18"))
+                                    toReturn.GlobalDuration = TimeSpan.MaxValue;
+                                else
+                                    toReturn.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 toReturn.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 toReturn.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 toReturn.CreationDate = Convert.ToDateTime(reader["creationdate"]);

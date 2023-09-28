@@ -138,6 +138,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                 if (brokenEt.ContainsKey(StatTypes.Intuition.GetDescription())) be.Stats.AddStat(StatTypes.Intuition, Convert.ToInt32(brokenEt[StatTypes.Intuition.GetDescription()]));
 
                 if (brokenEt.ContainsKey(StatTypes.Speed.GetDescription())) be.Stats.AddStat(StatTypes.Speed, Convert.ToInt32(brokenEt[StatTypes.Speed.GetDescription()]));
+                if (brokenEt.ContainsKey(StatTypes.Shield.GetDescription())) be.Stats.AddStat(StatTypes.Shield, Convert.ToInt32(brokenEt[StatTypes.Shield.GetDescription()]));
+                if (brokenEt.ContainsKey(StatTypes.Barrier.GetDescription())) be.Stats.AddStat(StatTypes.Barrier, Convert.ToInt32(brokenEt[StatTypes.Barrier.GetDescription()]));
+
 
                 return be;
             }

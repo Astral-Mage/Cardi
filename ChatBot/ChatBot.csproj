@@ -180,6 +180,8 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateSkillAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateSpecializationAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateTagAction.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\DefendAction.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\IgnoreAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\InfoAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\OrgasmAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\RestoreAction.cs" />
@@ -194,6 +196,7 @@
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Tags.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CombatSystem\CombatController.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CombatSystem\ImpendingAttack.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\DataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\DamageTypes.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\GenericEquipmentNames.cs" />

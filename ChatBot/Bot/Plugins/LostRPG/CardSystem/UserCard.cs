@@ -71,6 +71,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             if (Calling.Skill > -1) toReturn.Add(DataDb.SkillsDb.GetSkill(Calling.Skill));
             foreach (var sk in Archetype.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
             foreach (var sk in Spec.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            foreach (var sk in Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
             return toReturn;
         }
 

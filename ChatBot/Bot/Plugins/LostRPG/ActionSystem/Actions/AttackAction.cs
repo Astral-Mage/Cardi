@@ -44,6 +44,18 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 return;
             }
 
+            // health checks
+            if (card.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife) <= 0)
+            {
+                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"You're too injured to fight anyone right now, {card.Alias}.", ao.User);
+                return;
+            }
+            if (enemy.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife) <= 0)
+            {
+                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Your target is too wounded to fight right now, {card.Alias}.", ao.User);
+                return;
+            }
+
             // check for skills
             Skill skillToUse = null;
             if (split.Count > 1)
@@ -64,34 +76,34 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 }
             }
 
-            // attack
-            if (!Attack(card, enemy, skillToUse, out string output))
+            string tosend = $"{card.Alias} is attacking {enemy.Alias}";
+            if (skillToUse != null) tosend += $" with {skillToUse.Name}";
+            tosend += ".";
+            tosend += $" {enemy.Alias} may either -ignore, or -defend.";
+
+            var enemyskills = enemy.GetUsableSkills();
+            if (enemyskills.Any(x => x.Reaction))
             {
-                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, output, ao.User);
+                tosend += $" Available Reactions: ";
+
+                enemyskills.ForEach((x) =>
+                {
+                    if (x.Reaction)
+                    {
+                        tosend += $"⟨ {x.Name} ⟩";
+                    }
+                });
+
+            }
+
+            if (!CombatController.CreateImpendingAttack(card, enemy, skillToUse))
+            {
                 return;
             }
-
-            // reply
-            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, output, ao.User);
-        }
-
-        private bool Attack(UserCard source, UserCard target, Skill skilltouse, out string outputstr)
-        {
-            outputstr = string.Empty;
-            if (source.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife) <=0)
+            else
             {
-                outputstr += $"You're too injured to fight anyone right now, {source.Alias}.";
-                return false;
+                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, tosend, ao.User);
             }
-
-            if (target.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife) <= 0)
-            {
-                outputstr += $"Your target is too wounded to fight right now, {source.Alias}.";
-                return false;
-            }
-
-            CombatController.Attack(source, target, skilltouse, out outputstr);
-            return true;
         }
     }
 }

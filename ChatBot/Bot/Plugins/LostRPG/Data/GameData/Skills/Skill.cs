@@ -55,7 +55,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
         public static Skill ReadRawString(string rawstring)
         {
-            // -cs level:1 damage:160 dex:140 str:120 buffs:1 debuffs: 3 speed:90 charge:2 charges:1 tags:Weapon reaction:0 target:enemy cd:3 name:pants+mcgee
+            // -createskill level:1 effects:17 con:120 speed:100 tags:Weapon reaction:0 target:self name:Ice+Wall reaction
             Skill newSkill = new Skill();
 
             List<string> slashed = rawstring.Split(" ".ToCharArray()).ToList();
@@ -78,21 +78,25 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             {
                 newSkill.Level = Convert.ToInt32(brokenSkill[RequiredSkillTags.level.ToString()]);
                 newSkill.Name = brokenSkill[RequiredSkillTags.name.ToString()].TrimEnd();
-                newSkill.Name = newSkill.Name.Replace("+", "");
+                newSkill.Name = newSkill.Name.Replace("+", " ");
                 newSkill.Speed = Convert.ToInt32(brokenSkill[RequiredSkillTags.speed.ToString()]);
                 newSkill.Tags = brokenSkill[RequiredSkillTags.tags.ToString()].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
-                var effects = brokenSkill[RequiredSkillTags.effects.ToString()];
-                var brokenEffects = effects.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
-
-                // do skill effect stuff
-                Console.WriteLine("TODO: Skill Effect Stuff :TODO");
-                newSkill.SkillEffects = new List<Effect>();
-                foreach (var eff in brokenEffects)
+                var effects = (brokenSkill.ContainsKey(RequiredSkillTags.effects.ToString()) ? brokenSkill[RequiredSkillTags.effects.ToString()] : null);
+                if (effects != null)
                 {
-                    Effect se = DataDb.EffectDb.GetEffect(Convert.ToInt32(eff));
-                    newSkill.SkillEffects.Add(se);
+                    var brokenEffects = effects.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
+
+                    // do skill effect stuff
+                    Console.WriteLine("TODO: Skill Effect Stuff :TODO");
+                    newSkill.SkillEffects = new List<Effect>();
+                    foreach (var eff in brokenEffects)
+                    {
+                        Effect se = DataDb.EffectDb.GetEffect(Convert.ToInt32(eff));
+                        newSkill.SkillEffects.Add(se);
+                    }
                 }
+
             }
             catch
             {
@@ -100,7 +104,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             }
 
             // stats
-            List<StatTypes> slist = new List<StatTypes>() { StatTypes.Damage, StatTypes.Strength, StatTypes.Dexterity, StatTypes.Constitution, StatTypes.Intelligence, StatTypes.Wisdom, StatTypes.Perception, StatTypes.Libido, StatTypes.Charisma, StatTypes.Intuition, StatTypes.Life };
+            List<StatTypes> slist = new List<StatTypes>() { StatTypes.Damage, StatTypes.Strength, StatTypes.Dexterity, StatTypes.Constitution, StatTypes.Intelligence, StatTypes.Wisdom, StatTypes.Perception, StatTypes.Libido, StatTypes.Charisma, StatTypes.Intuition, StatTypes.Life, StatTypes.Shield };
             foreach (var v in slist)
             {
                 if (brokenSkill.ContainsKey(v.GetDescription()))

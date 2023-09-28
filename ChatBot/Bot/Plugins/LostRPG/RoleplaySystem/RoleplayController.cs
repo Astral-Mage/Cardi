@@ -197,7 +197,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.RoleplaySystem
             card.RpData.UpdatePostHistory(postpoints);
 
             if (channel != null) channel = null;
-            if (card.Verbose) SystemController.Instance.Respond(channel,$"Post Experience Earned: {exp}", user);
+            //if (card.Verbose) SystemController.Instance.Respond(channel,$"Post Experience Earned: {exp}", user);
             DataDb.CardDb.UpdateUserCard(card);
             DataDb.RpDb.UpdateUserRoleplayData(card.RpData);
         }

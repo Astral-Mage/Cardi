@@ -52,7 +52,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                 }
                 toSend += card.Spec.GetInfo();
             }
-            SystemController.Instance.Respond(channel, toSend, user);
+            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
         }
 
         public static void GetTagInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
@@ -101,7 +101,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     $"\\n" +
                     $"\\n{string.Join(" • ", TagList)}";
             }
-            SystemController.Instance.Respond(channel, toSend, user);
+            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
         }
 
         public static void GetCallingInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
@@ -146,7 +146,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                 }
                 toSend += card.Calling.GetInfo();
             }
-            SystemController.Instance.Respond(channel, toSend, user);
+            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
         }
 
         public static void GetArcInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
@@ -191,7 +191,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                 }
                 toSend += card.Archetype.GetInfo();
             }
-            SystemController.Instance.Respond(channel, toSend, user);
+            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
         }
     }
 }

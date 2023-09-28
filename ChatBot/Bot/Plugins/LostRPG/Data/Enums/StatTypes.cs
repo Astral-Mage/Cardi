@@ -11,7 +11,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         [Description("life")]
         Life,
         CurrentLife,
-        ShieldHealth,
+        [Description("shield")]
+        Shield,
+        [Description("barrier")]
+        Barrier,
         Level,
         Experience,
         MaxStamina,
