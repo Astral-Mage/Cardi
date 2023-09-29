@@ -60,7 +60,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 }
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Db write error: addnewuser");
             }

@@ -10,10 +10,15 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
 {
     public static class InfoCore
     {
-        public static void GetSpecInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
+        public static void GetCustomizationInfo(UserCard card, string message, string channel, List<string> splitmsg, string user, CustomizationTypes ctype)
         {
-            string toSend = string.Empty;
-            var specs = DataDb.SpecDb.GetAllSpecs();
+            var customs = DataDb.CustomDb.GetAllCustomizationsByType(ctype);
+            string tosend = string.Empty;
+            if (customs == null || !customs.Any())
+            {
+                SystemController.Instance.Respond(channel, $"No available customizations of type {ctype}.", user);
+                return;
+            }
             if (splitmsg.Count == 1)
             {
                 if (card == null)
@@ -21,41 +26,40 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
                     return;
                 }
-
-                toSend += card.Spec.GetInfo();
+                tosend += $"[u][b]{ctype} details for {card.Alias}[/b][/u]\\n\\n{card.GetActiveCustomizationByType(ctype).GetInfo()}";
             }
             else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
             {
-                List<string> SpecList = new List<string>();
-                specs.ForEach(x => SpecList.Add(x.Name));
-                toSend += $"\\n All Available Specializations" +
-                    $"\\n" +
-                    $"\\n{string.Join(" • ", SpecList)}";
+                if (customs.Any())
+                {
+                    tosend = $"\\n                   [u][b]Available {ctype} Customizations[/b][/u]\\n\\n";
+                    foreach (var c in customs)
+                    {
+                        tosend += $"[b]⨠ {c.GetName()}[/b]   {c.GetStatString()} " +
+                            $"{c.GetEffectString(EffectTypes.Buff)}" +
+                            $"{c.GetEffectString(EffectTypes.Debuff)}" +
+                            $"{c.GetSkillString()}";
+                        if (c != customs.Last()) tosend += "\\n";
+                    }
+                }
             }
             else if (splitmsg.Count > 1)
             {
-                foreach (var spec in specs)
+                foreach (var spec in customs)
                 {
                     if (spec.Name.ToLowerInvariant().Equals(splitmsg.Last().ToLowerInvariant()))
                     {
-                        toSend += spec.GetInfo();
+                        tosend += spec.GetInfo();
                         break;
                     }
                 }
             }
-            else
-            {
-                if (card == null)
-                {
-                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
-                    return;
-                }
-                toSend += card.Spec.GetInfo();
-            }
-            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
+
+            if (card == null) SystemController.Instance.Respond(channel, tosend, user);
+            else SystemController.Instance.Respond(channel, tosend, user);
         }
 
-        public static void GetTagInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
+        public static void GetTagInfo(UserCard card, string channel, List<string> splitmsg, string user)
         {
             string toSend = string.Empty;
 
@@ -68,8 +72,15 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     return;
                 }
                 List<int> allTags = new List<int>();
-                card.Spec.Tags.ForEach(x => allTags.Add(x));
-                card.Archetype.Tags.ForEach((x) =>
+                card.GetActiveCustomizationByType(CustomizationTypes.Specialization).Tags.ForEach(x => allTags.Add(x));
+                card.GetActiveCustomizationByType(CustomizationTypes.Archetype).Tags.ForEach((x) =>
+                {
+                    if (!allTags.Contains(x))
+                    {
+                        allTags.Add(x);
+                    }
+                });
+                card.GetActiveCustomizationByType(CustomizationTypes.Calling).Tags.ForEach((x) =>
                 {
                     if (!allTags.Contains(x))
                     {
@@ -100,96 +111,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                 toSend += $"\\n All Available Tags" +
                     $"\\n" +
                     $"\\n{string.Join(" • ", TagList)}";
-            }
-            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
-        }
-
-        public static void GetCallingInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
-        {
-            string toSend = string.Empty;
-
-            var callings = DataDb.CallingDb.GetAllCallings();
-            if (splitmsg.Count == 1)
-            {
-                if (card == null)
-                {
-                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
-                    return;
-                }
-                toSend += card.Calling.GetInfo();
-            }
-            else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
-            {
-                List<string> callingList = new List<string>();
-                callings.ForEach(x => callingList.Add(x.Name));
-                toSend += $"\\n All Available Callings" +
-                    $"\\n" +
-                    $"\\n{string.Join(" • ", callingList)}";
-            }
-            else if (splitmsg.Count > 1)
-            {
-                foreach (var cal in callings)
-                {
-                    if (cal.Name.ToLowerInvariant().Equals(splitmsg.Last().ToLowerInvariant()))
-                    {
-                        toSend += cal.GetInfo();
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                if (card == null)
-                {
-                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
-                    return;
-                }
-                toSend += card.Calling.GetInfo();
-            }
-            if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
-        }
-
-        public static void GetArcInfo(UserCard card, string message, string channel, List<string> splitmsg, string user)
-        {
-            string toSend = string.Empty;
-
-            var arcs = DataDb.ArcDb.GetAllArchetypes();
-            if (splitmsg.Count == 1)
-            {
-                if (card == null)
-                {
-                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
-                    return;
-                }
-                toSend += card.Archetype.GetInfo();
-            }
-            else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
-            {
-                List<string> SpecList = new List<string>();
-                arcs.ForEach(x => SpecList.Add(x.Name));
-                toSend += $"\\n All Available Archetypes" +
-                    $"\\n" +
-                    $"\\n{string.Join(" • ", SpecList)}";
-            }
-            else if (splitmsg.Count > 1)
-            {
-                foreach (var arc in arcs)
-                {
-                    if (arc.Name.ToLowerInvariant().Equals(splitmsg.Last().ToLowerInvariant()))
-                    {
-                        toSend += arc.GetInfo();
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                if (card == null)
-                {
-                    SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
-                    return;
-                }
-                toSend += card.Archetype.GetInfo();
             }
             if (!string.IsNullOrWhiteSpace(toSend)) SystemController.Instance.Respond(channel, toSend, user);
         }

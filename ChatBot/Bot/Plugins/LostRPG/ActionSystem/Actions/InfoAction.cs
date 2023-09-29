@@ -42,23 +42,23 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 {
                     case InfoTypes.Spec:
                         {
-                            InformationSystem.InfoCore.GetSpecInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                            InformationSystem.InfoCore.GetCustomizationInfo(card, ao.Message, ao.Channel, splitmsg, ao.User, CustomizationTypes.Specialization);
                         }
                         break;
                     case InfoTypes.Arc:
                         {
-                            InformationSystem.InfoCore.GetArcInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                            InformationSystem.InfoCore.GetCustomizationInfo(card, ao.Message, ao.Channel, splitmsg, ao.User, CustomizationTypes.Archetype);
+
                         }
                         break;
                     case InfoTypes.Tags:
                         {
-                            InformationSystem.InfoCore.GetTagInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
+                            InformationSystem.InfoCore.GetTagInfo(card, ao.Channel, splitmsg, ao.User);
                         }
                         break;
                     case InfoTypes.Calling:
                         {
-                            InformationSystem.InfoCore.GetCallingInfo(card, ao.Message, ao.Channel, splitmsg, ao.User);
-
+                            InformationSystem.InfoCore.GetCustomizationInfo(card, ao.Message, ao.Channel, splitmsg, ao.User, CustomizationTypes.Calling);
                         }
                         break;
                     default:

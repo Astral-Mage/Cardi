@@ -38,7 +38,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT name, alias, userid, stats, title, skills, spec, archetype, sockets, calling, effects FROM {CardTable} WHERE name like @name;";
+                    string sql = $"SELECT name, alias, userid, stats, title, skills, sockets, chistory, effects FROM {CardTable} WHERE name like @name;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@name", user));
@@ -59,13 +59,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                         return;
                                     });
                                 }
-
-                                int specid = Convert.ToInt32(reader["spec"]);
-                                toReturn.Spec = DataDb.SpecDb.GetSpec(specid);
-                                int arcid = Convert.ToInt32(reader["archetype"]);
-                                toReturn.Archetype = DataDb.ArcDb.GetArc(arcid);
-                                int callid = Convert.ToInt32(reader["calling"]);
-                                toReturn.Calling = DataDb.CallingDb.GetCalling(callid);
+                                if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["chistory"]))) toReturn.CustomizationHistory = JsonConvert.DeserializeObject<List<BaseCustomization>>(Convert.ToString(reader["chistory"]));
                                 var what = Convert.ToString(reader["effects"]);
                                 toReturn.ActiveEffects = new List<Effect>();
                                 if (what != "null" && !string.IsNullOrEmpty(what))
@@ -129,7 +123,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"UPDATE {CardTable} SET alias = @tali, stats = @stats, title = @title, name = @name, skills = @skills, spec = @spec, archetype = @arc, sockets = @activesockets, calling = @calling, effects = @effects WHERE userid = @uid;";
+                string query = $"UPDATE {CardTable} SET alias = @tali, stats = @stats, title = @title, name = @name, skills = @skills, sockets = @activesockets, chistory = @chistory, effects = @effects WHERE userid = @uid;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -144,9 +138,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@name", card.Name));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(card.Stats)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
-                        command.Parameters.Add(new SQLiteParameter("@spec", card.Spec.SpecId));
-                        command.Parameters.Add(new SQLiteParameter("@calling", card.Calling.CallingId));
-
+                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.CustomizationHistory)));
                         if (card.ActiveEffects != null)
                         {
                             List<Effect> pants = new List<Effect>();
@@ -155,7 +147,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         }
 
                         command.Parameters.Add(new SQLiteParameter("@effects", JsonConvert.SerializeObject(card.ActiveEffects)));
-                        command.Parameters.Add(new SQLiteParameter("@arc", card.Archetype.ArcId));
                         command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(card.ActiveSockets).ToString()));
 
                         command.ExecuteNonQuery();
@@ -176,7 +167,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {CardTable} (name, alias, stats, title, skills, spec, archetype, sockets, calling, effects) VALUES (@name, @alias, @stats, @title, @skills, @spec, @arc, @activesockets, @calling, @effects);";
+                string query = $"INSERT INTO {CardTable} (name, alias, stats, title, skills, sockets, effects, chistory) VALUES (@name, @alias, @stats, @title, @skills, @activesockets, @effects, @chistory);";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -190,9 +181,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@title", card.CurrentTitle));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(card.Stats)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
-                        command.Parameters.Add(new SQLiteParameter("@spec", card.Spec.SpecId));
-                        command.Parameters.Add(new SQLiteParameter("@arc", card.Archetype.ArcId));
-                        command.Parameters.Add(new SQLiteParameter("@calling", card.Calling.CallingId));
+
+                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.CustomizationHistory)));
 
                         if (card.ActiveEffects != null)
                         {

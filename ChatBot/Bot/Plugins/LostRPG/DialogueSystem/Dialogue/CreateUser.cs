@@ -78,12 +78,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
 
             Card.CurrentTitle = args.Trim();
 
-            var arcs = DataDb.ArcDb.GetAllArchetypes();
+            var arcs = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Archetype);
 
             string arcstr = string.Empty;
             foreach (var a in arcs)
             {
-                arcstr += $"[sup]⌈[/sup]{a.Name}[sub]⌋[/sub] ";
+                arcstr += $"{a.GetName()}  ";
             }
 
             SystemController.Instance.Respond(null, "Next, what is your Archetype. An Archetype is what you identify your position in the world to be. Please choose from the list, for now." +
@@ -101,8 +101,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            List<Archetype> arcs = DataDb.ArcDb.GetAllArchetypes();
-            Archetype arc = null;
+            List<BaseCustomization> arcs = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Archetype);
+            BaseCustomization arc = null;
             if (arcs.Any(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant())))
             {
                 arc = arcs.First(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant()));
@@ -115,9 +115,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            Card.Archetype = arc;
+            arc.Active = true;
+            Card.CustomizationHistory.Add(arc);
 
-            var specs = DataDb.SpecDb.GetAllSpecs();
+            var specs = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Specialization);
             string specstr = string.Empty;
             foreach (var a in specs)
             {
@@ -139,8 +140,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            var specs = DataDb.SpecDb.GetAllSpecs();
-            Specialization spec = null;
+            var specs = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Specialization);
+            BaseCustomization spec = null;
             if (specs.Any(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant())))
             {
                 spec = specs.First(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant()));
@@ -153,10 +154,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            Card.Spec = spec;
+            spec.Active = true;
+            Card.CustomizationHistory.Add(spec);
 
             string toSend = "Finally, what is your calling:";
-            var callings = DataDb.CallingDb.GetAllCallings();
+            var callings = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Calling);
             foreach (var c in callings)
             {
                 toSend += $"[sup]⌈[/sup]{c.Name}[sub]⌋[/sub] ";
@@ -174,8 +176,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            var specs = DataDb.CallingDb.GetAllCallings();
-            Calling call = null;
+            var specs = DataDb.CustomDb.GetAllCustomizationsByType(CustomizationTypes.Calling);
+            BaseCustomization call = null;
             if (specs.Any(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant())))
             {
                 call = specs.First(x => x.Name.ToLowerInvariant().Equals(args.Trim().ToLowerInvariant()));
@@ -188,12 +190,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
                 return;
             }
 
-            Card.Calling = call;
+            call.Active = true;
+            Card.CustomizationHistory.Add(call);
 
             Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Weapon));
             Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Armor));
             Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Passive));
-
 
             Card.Stats.AddStat(StatTypes.Life, 1000);
             Card.Stats.AddStat(StatTypes.CurrentLife, Card.GetMultipliedStat(StatTypes.Life));

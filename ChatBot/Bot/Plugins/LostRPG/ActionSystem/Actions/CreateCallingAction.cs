@@ -20,7 +20,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         public override void Execute(ActionObject ao, UserCard card)
         {
             // setup spec
-            Calling newCalling = Calling.ReadRawString(ao.Message);
+            BaseCustomization newCalling = Calling.ReadRawString(ao.Message);
             if (newCalling == null)
             {
                 SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Calling Creation Failure", ao.User);
@@ -28,8 +28,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             }
 
             // save to db
-            DataDb.CallingDb.AddNewCalling(newCalling);
-            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Calling (Id: {newCalling.CallingId}) || Name: {newCalling.Name}", ao.User);
+            DataDb.CustomDb.AddNewCustomization(newCalling);
+            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Calling (Id: {newCalling.Id}) || Name: {newCalling.Name}", ao.User);
 
             return;
         }

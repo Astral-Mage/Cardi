@@ -18,13 +18,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             SecurityType = CommandSecurity.Ops;
             ChatRestriction = ChatTypeRestriction.Both;
             RequiresRegisteredUser = false;
-            AlternateNames.Add("createarc");
+            AlternateNames.Add("ca");
         }
 
         public override void Execute(ActionObject ao, UserCard card)
         {
             // setup spec
-            Archetype newArc = Archetype.ReadRawString(ao.Message);
+            BaseCustomization newArc = BaseCustomization.ReadRawString(ao.Message);
             if (newArc == null)
             {
                 SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Spec Creation Failure", ao.User);
@@ -32,8 +32,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             }
 
             // save to db
-            DataDb.ArcDb.AddNewArchetype(newArc);
-            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Archetype (Id: {newArc.ArcId}) || Name: {newArc.Name}", ao.User);
+            DataDb.CustomDb.AddNewCustomization(newArc);
+            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created {newArc.Customization} (Id: {newArc.Id}) || Name: {newArc.Name}", ao.User);
 
             return;
         }

@@ -78,10 +78,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effecttype = '@etype';";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effecttype = @etype;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
-                        command.Parameters.Add(new SQLiteParameter("@etype", etype));
+                        int type = (int)etype;
+                        command.Parameters.Add(new SQLiteParameter("@etype", type));
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
                             while (reader.Read())

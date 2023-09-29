@@ -191,6 +191,7 @@
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\CreateAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\ActionSystem\Actions\HelpAction.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserCard.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Base\BaseCustomization.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Calling.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\Roleplay.cs" />
     <Compile Include="Bot\Plugins\LostRPG\CardSystem\UserData\StatData.cs" />
@@ -213,14 +214,13 @@
     <Compile Include="Bot\Plugins\LostRPG\Data\Enums\Targets.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\GameData\Skills\Skill.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\GameData\Skills\Effect.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\Data\UserData\ArchetypeDataDb.cs" />
+    <Compile Include="Bot\Plugins\LostRPG\Data\UserData\CustomizationDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\CallingsDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\CardDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\EffectDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\SkillsDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\Base\DataDbCore.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\RpDataDb.cs" />
-    <Compile Include="Bot\Plugins\LostRPG\Data\UserData\SpecDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\Data\UserData\TagsDataDb.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Dialogue\CreateUser.cs" />
     <Compile Include="Bot\Plugins\LostRPG\DialogueSystem\Enums\DialogueStatus.cs" />

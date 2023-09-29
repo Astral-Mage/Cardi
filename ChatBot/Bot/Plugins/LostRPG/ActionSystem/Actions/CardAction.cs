@@ -61,7 +61,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             toSend += $"                               [icon]{cardToUse.Name}[/icon]" +
                 $"\\n                                               [ {cardToUse.Alias} ]  [ {cardToUse.CurrentTitle} ]" +
-                $"\\n                                ⟨{cardToUse.Archetype.Name}⟩ ⟪{cardToUse.Spec.Name}⟫ ⟨{cardToUse.Calling.Name}⟩" +
+                $"\\n                                ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Name}⟩ ⟪{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Name}⟫ ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Name}⟩" +
                 $"\\n                                               [color=orange][b]{expstr} {killsstr} {duststr}[/b][/color]" +
                 $"\\n                                                  [color=green][b]{lifestr}[/b][/color]" +
                 $"\\n                   [color=brown][b]{strstr} {dexstr} {constr}[/b][/color] [color=cyan][b]{intstr} {wisstr} {perstr}[/b][/color] [color=pink][b]{libstr} {chastr} {tuistr}[/b][/color]";
@@ -98,17 +98,18 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                     if (!skillnames.Contains(skill.Name)) skillnames.Add(skill.Name);
                 }
             }
-            if (cardToUse.Calling.Skill > -1)
+
+            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Skills)
             {
-                var ta = DataDb.SkillsDb.GetSkill(cardToUse.Calling.Skill).Name;
+                var ta = DataDb.CustomDb.GetCustomizationById(s).Name;
                 if (!skillnames.Contains(ta)) skillnames.Add(ta);
             }
-            foreach (var s in cardToUse.Archetype.Skills)
+            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Skills)
             {
                 var ta = DataDb.SkillsDb.GetSkill(s).Name;
                 if (!skillnames.Contains(ta)) skillnames.Add(ta);
             }
-            foreach (var s in cardToUse.Spec.Skills)
+            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Skills)
             {
                 var ta = DataDb.SkillsDb.GetSkill(s).Name;
                 if (!skillnames.Contains(ta))  skillnames.Add(ta);

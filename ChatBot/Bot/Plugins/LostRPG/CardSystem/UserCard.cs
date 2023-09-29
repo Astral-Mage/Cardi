@@ -31,11 +31,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public List<int> Skills { get; set; }
 
-        public Specialization Spec { get; set; }
-
-        public Archetype Archetype { get; set; }
-
-        public Calling Calling { get; set; }
+        public List<BaseCustomization> CustomizationHistory { get; set; }
 
         public List<Effect> ActiveEffects { get; set; }
 
@@ -53,11 +49,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             CurrentTitle = string.Empty;
             Titles = new List<string>();
             Skills = new List<int>();
-            Spec = null;
-            Archetype = null;
-            Calling = null;
             ActiveSockets = new List<Socket>();
             ActiveEffects = new List<Effect>();
+            CustomizationHistory = new List<BaseCustomization>();
+        }
+
+        public List<BaseCustomization> GetActiveCustomizations()
+        {
+            return CustomizationHistory.Where(x => x.Active).ToList();
         }
 
         public void SetStats(StatData stats)
@@ -65,12 +64,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Stats = stats;
         }
 
+        public BaseCustomization GetActiveCustomizationByType(CustomizationTypes type)
+        {
+            return CustomizationHistory.First(x => x.Active && x.Customization == type);
+        }
+
         public List<Skill> GetUsableSkills()
         {
             List<Skill> toReturn = new List<Skill>();
-            if (Calling.Skill > -1) toReturn.Add(DataDb.SkillsDb.GetSkill(Calling.Skill));
-            foreach (var sk in Archetype.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
-            foreach (var sk in Spec.Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Calling).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Archetype).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Specialization).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
             foreach (var sk in Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
             return toReturn;
         }
@@ -102,79 +106,40 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public List<Effect> GetPassiveEffectsByType(EffectTypes type)
         {
             List<Effect> effectNames = new List<Effect>();
-            switch(type)
+
+            List<Effect> ListEffects = DataDb.EffectDb.GetAllEffectsByType(type);
+            GetActiveCustomizationByType(CustomizationTypes.Archetype).Effects.ForEach((x) =>
             {
-                case EffectTypes.Debuff:
+                foreach (var eff in ListEffects)
+                {
+                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
                     {
-                        if (Spec.Debuffs.Any())
-                        {
-                            Spec.Debuffs.ForEach((x) =>
-                            {
-                                var tee = DataDb.EffectDb.GetEffect(x);
-                                if (tee.GlobalDuration == TimeSpan.MaxValue)
-                                {
-                                    effectNames.Add(tee);
-                                }
-                            });
-                        }
-                        if (Archetype.Debuffs.Any())
-                        {
-                            Archetype.Debuffs.ForEach((x) =>
-                            {
-                                var tee = DataDb.EffectDb.GetEffect(x);
-                                if (tee.GlobalDuration == TimeSpan.MaxValue)
-                                {
-                                    effectNames.Add(tee);
-                                }
-                            });
-                        }
-                        if (Calling.Debuff > 0)
-                        {
-                            var tee = DataDb.EffectDb.GetEffect(Calling.Debuff);
-                            if (tee.GlobalDuration == TimeSpan.MaxValue)
-                            {
-                                effectNames.Add(tee);
-                            }
-                        }
+                        effectNames.Add(eff);
                     }
-                    break;
-                case EffectTypes.Buff:
+                }
+            });
+
+            GetActiveCustomizationByType(CustomizationTypes.Specialization).Effects.ForEach((x) =>
+            {
+                foreach (var eff in ListEffects)
+                {
+                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
                     {
-                        if (Spec.Buffs.Any())
-                        {
-                            Spec.Buffs.ForEach((x) =>
-                            {
-                                var tee = DataDb.EffectDb.GetEffect(x);
-                                if (tee.GlobalDuration == TimeSpan.MaxValue)
-                                {
-                                    effectNames.Add(tee);
-                                }
-                            });
-                        }
-                        if (Archetype.Buffs.Any())
-                        {
-                            Archetype.Buffs.ForEach((x) =>
-                            {
-                                var tee = DataDb.EffectDb.GetEffect(x);
-                                if (tee.GlobalDuration == TimeSpan.MaxValue)
-                                {
-                                    effectNames.Add(tee);
-                                }
-                            });
-                        }
-                        if (Calling.Buff > 0)
-                        {
-                            var tee = DataDb.EffectDb.GetEffect(Calling.Buff);
-                            if (tee.GlobalDuration == TimeSpan.MaxValue)
-                            {
-                                effectNames.Add(tee);
-                            }
-                        }
+                        effectNames.Add(eff);
                     }
-                    break;
-                default:
-                    throw new Exception();
-            }
+                }
+            });
+
+            GetActiveCustomizationByType(CustomizationTypes.Calling).Effects.ForEach((x) =>
+            {
+                foreach (var eff in ListEffects)
+                {
+                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
+                    {
+                        effectNames.Add(eff);
+                    }
+                }
+            });
 
             return effectNames;
         }
@@ -199,19 +164,19 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             }
 
             // multipliers
-            // add  spec
-            int basemult = Spec.Stats.GetStat(type);
+            int basemult = 0;
+
+            if (GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.GetStat(type);
+            if (GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.GetStat(type);
+            if (GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.GetStat(type);
+
 
             // buffs
             var ebuffs = GetPassiveEffectsByType(EffectTypes.Buff);
             foreach (var buff in ebuffs)
             {
-                if (buff.Stats.Stats.ContainsKey(type)) basemult += buff.Stats.GetStat(type) - 100;
+                if (buff.Stats.Stats.ContainsKey(type)) basemult += buff.Stats.GetStat(type);
             }
-
-            // arc / calling
-            basemult += Archetype.Stats.GetStat(type) - 100;
-            if (Calling.Stats.Stats.ContainsKey(type)) basemult += Calling.Stats.GetStat(type) - 100;
 
             // debuffs
             var debuffs = GetPassiveEffectsByType(EffectTypes.Debuff);
@@ -219,7 +184,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             db2.ForEach(x => debuffs.Add(x));
             foreach (var debuff in debuffs)
             {
-                if (debuff.Stats.Stats.ContainsKey(type)) basemult += debuff.Stats.GetStat(type) - 100;
+                if (debuff.Stats.Stats.ContainsKey(type)) basemult += debuff.Stats.GetStat(type);
             }
 
             if (basemult < 0) basemult = 0;
@@ -228,7 +193,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             percentMult = Math.Round(percentMult, 2);
 
             // deliver stat
-            return Convert.ToInt32(Math.Floor(baseVal * percentMult));
+            return Convert.ToInt32(Math.Floor(baseVal * (1 + percentMult)));
         }
     }
 }

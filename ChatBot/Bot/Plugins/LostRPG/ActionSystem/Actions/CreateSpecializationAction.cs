@@ -20,7 +20,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         public override void Execute(ActionObject ao, UserCard card)
         {
             // setup spec
-            Specialization newSpec = Specialization.ReadRawString(ao.Message);
+            BaseCustomization newSpec = BaseCustomization.ReadRawString(ao.Message);
             if (newSpec == null)
             {
                 SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Spec Creation Failure", ao.User);
@@ -28,8 +28,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             }
 
             // save to db
-            DataDb.SpecDb.AddNewSpec(newSpec);
-            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Specialization (Id: {newSpec.SpecId}) || Name: {newSpec.Name}", ao.User);
+            DataDb.CustomDb.AddNewCustomization(newSpec);
+            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created Specialization (Id: {newSpec.Id}) || Name: {newSpec.Name}", ao.User);
 
             return;
         }

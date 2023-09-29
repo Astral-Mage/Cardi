@@ -38,6 +38,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             CreationDate = DateTime.Now;
         }
 
+        public string GetShortDescription()
+        {
+            return $"⟨ {Name} ⟩";
+        }
+
         public TimeSpan GetRemainingDuration()
         {
             if (GlobalDuration == TimeSpan.MaxValue) return GlobalDuration;
@@ -87,7 +92,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                 if (brokenEt.ContainsKey("tags"))
                 {
                     bool found;
-                    var specs = DataDb.SpecDb.GetAllSpecs();
+                    var specs = DataDb.CustomDb.GetAllCustomizations().Where(x => x.Customization == CustomizationTypes.Specialization);
                     bool throwex = false;
                     foreach (var tag in brokenEt["tags"].Split(",".ToCharArray()))
                     {
@@ -95,7 +100,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                         {
                             foreach (var spec in specs)
                             {
-                                if (spec.SpecId == res)
+                                if (spec.Id == res)
                                 {
                                     be.Tags.Add(res);
                                     break;
@@ -109,7 +114,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                             {
                                 if (spec.Name.ToLowerInvariant().Equals(tag.ToLowerInvariant()))
                                 {
-                                    be.Tags.Add(spec.SpecId);
+                                    be.Tags.Add(spec.Id);
                                     found = true;
                                 }
                             }
