@@ -1,4 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
@@ -24,20 +25,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             string toSend = string.Empty;
 
             card.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, card.Stats.GetStat(CardSystem.UserData.StatTypes.Life));
-            List<Effect> toRemove = new List<Effect>();
-            foreach (var eff in card.ActiveEffects)
+
+            List<EffectDetails> tokill = new List<EffectDetails>();
+            foreach (var ae in card.ActiveEffects)
             {
-                if (eff.GetRemainingDuration().TotalMilliseconds <= 0)
-                    toRemove.Add(eff);
+                if (ae.EffectType == EffectTypes.Debuff) tokill.Add(ae);
             }
-            toRemove.ForEach(x => card.ActiveEffects.Remove(x));
+            tokill.ForEach(x => card.ActiveEffects.Remove(x));
 
             DataDb.CardDb.UpdateUserCard(card);
 
-
-
-
-            toSend += $"Alias: {card.Alias} | UserId: {card.UserId}'s health has been restored.";
+            toSend += $"Alias: {card.Alias} | UserId: {card.UserId}'s health has been restored and all active debuffs have been removed.";
             SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
         }
     }

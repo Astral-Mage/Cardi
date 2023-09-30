@@ -59,12 +59,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                         return;
                                     });
                                 }
-                                if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["chistory"]))) toReturn.CustomizationHistory = JsonConvert.DeserializeObject<List<BaseCustomization>>(Convert.ToString(reader["chistory"]));
+                                if (!string.IsNullOrWhiteSpace(Convert.ToString(reader["chistory"]))) toReturn.ActiveCustomizations = JsonConvert.DeserializeObject<List<CustomizationDetails>>(Convert.ToString(reader["chistory"]));
                                 var what = Convert.ToString(reader["effects"]);
-                                toReturn.ActiveEffects = new List<Effect>();
+                                toReturn.ActiveEffects = new List<EffectDetails>();
                                 if (what != "null" && !string.IsNullOrEmpty(what))
                                 {
-                                    toReturn.ActiveEffects = JsonConvert.DeserializeObject<List<Effect>>(Convert.ToString(reader["effects"]));
+                                    toReturn.ActiveEffects = JsonConvert.DeserializeObject<List<EffectDetails>>(Convert.ToString(reader["effects"]));
                                 }
                                 toReturn.ActiveSockets = ConvertJObjectToInventory(JArray.Parse(Convert.ToString(reader["sockets"])));
                             }
@@ -84,14 +84,16 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             toReturn.RpData = DataDb.RpDb.GetUserRoleplayData(toReturn.UserId);
 
             // check duration stuff
-            List<Effect> toRemove = new List<Effect>();
-            foreach (var eff in toReturn.ActiveEffects)
+            List<EffectDetails> toRemove = new List<EffectDetails>();
+
+            foreach (var ae in toReturn.ActiveEffects)
             {
-                if (eff.GetRemainingDuration().TotalMilliseconds <= 0)
-                    toRemove.Add(eff);
+                if (ae.GetRemainingDuration().TotalMilliseconds <= 0)
+                {
+                    toRemove.Add(ae);
+                }
             }
             toRemove.ForEach(x => toReturn.ActiveEffects.Remove(x));
-
             return toReturn;
         }
 
@@ -138,14 +140,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@name", card.Name));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(card.Stats)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
-                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.CustomizationHistory)));
-                        if (card.ActiveEffects != null)
-                        {
-                            List<Effect> pants = new List<Effect>();
-                            card.ActiveEffects.ForEach((x) => { if (x.EffectId != 0) pants.Add(x); });
-                            card.ActiveEffects = pants;
-                        }
-
+                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.ActiveCustomizations)));
                         command.Parameters.Add(new SQLiteParameter("@effects", JsonConvert.SerializeObject(card.ActiveEffects)));
                         command.Parameters.Add(new SQLiteParameter("@activesockets", ConvertInventoryToJObject(card.ActiveSockets).ToString()));
 
@@ -182,15 +177,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(card.Stats)));
                         command.Parameters.Add(new SQLiteParameter("@skills", string.Join(",", card.Skills.ToArray())));
 
-                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.CustomizationHistory)));
-
-                        if (card.ActiveEffects != null)
-                        {
-                            List<Effect> pants = new List<Effect>();
-                            card.ActiveEffects.ForEach((x) => { if (x.EffectId == 0) pants.Add(x); });
-                            card.ActiveEffects = pants;
-                        }
-
+                        command.Parameters.Add(new SQLiteParameter("@chistory", JsonConvert.SerializeObject(card.ActiveCustomizations)));
                         command.Parameters.Add(new SQLiteParameter("@effects", JsonConvert.SerializeObject(card.ActiveEffects)));
 
                         var wtf = ConvertInventoryToJObject(card.ActiveSockets).ToString();

@@ -59,9 +59,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             //   ⋯   
 
-            toSend += $"                               [icon]{cardToUse.Name}[/icon]" +
-                $"\\n                                               [ {cardToUse.Alias} ]  [ {cardToUse.CurrentTitle} ]" +
-                $"\\n                                ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Name}⟩ ⟪{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Name}⟫ ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Name}⟩" +
+            toSend += $"   [icon]{cardToUse.Name}[/icon]" +
+                $"\\n[color=white][[/color] {cardToUse.Alias} [color=white]]  [[/color] {cardToUse.CurrentTitle} [color=white]][/color]" +
+                $"\\n[color=white]⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Name}⟩ ⟪{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Name}⟫ ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Name}⟩[/color]" +
                 $"\\n                                               [color=orange][b]{expstr} {killsstr} {duststr}[/b][/color]" +
                 $"\\n                                                  [color=green][b]{lifestr}[/b][/color]" +
                 $"\\n                   [color=brown][b]{strstr} {dexstr} {constr}[/b][/color] [color=cyan][b]{intstr} {wisstr} {perstr}[/b][/color] [color=pink][b]{libstr} {chastr} {tuistr}[/b][/color]";
@@ -120,7 +120,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             }
             if (!string.IsNullOrWhiteSpace(skilllist)) extra += $"\\n❇️ {skilllist}";
 
-            // buffs and debuffs
+            // passive buffs and debuffs
             List<string> enames = new List<string>();
             var eBuffs = cardToUse.GetPassiveEffectsByType(EffectTypes.Buff);
             if (eBuffs.Any()) eBuffs.ForEach(x => enames.Add(x.Name));
@@ -134,12 +134,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 }
             }
 
+            // active buffs and debuffs
             enames = new List<string>();
             eBuffs = cardToUse.GetActiveEffectByType(EffectTypes.Debuff);
             if (eBuffs.Any()) extra += $"\\n⏬ ";
             foreach (var en in eBuffs)
             {
-                extra += $"⟪ {en.Name} ⟫[sup]{en.GetRemainingDuration().ToHumanReadableString()}[/sup]  ";
+                extra += $"⟪ {en.Name} ⟫[sup]{en.UserDetails.GetRemainingDuration().ToHumanReadableString()}[/sup]  ";
             }
 
             if (!verbose) toSend += extra;

@@ -104,9 +104,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             {
                 foreach (var eff in attack.AttackerSkill.SkillEffects)
                 {
-                    effectadd += $" {attack.Defender.Alias} has been debuffed with ⟪ {eff.Name} ⟫.";
-                    eff.CreationDate = DateTime.Now;
-                    attack.Defender.ActiveEffects.Add(eff);
+                    var te = DataDb.EffectDb.GetEffect(eff);
+                    effectadd += $" {attack.Defender.Alias} has been debuffed with ⟪ {te.Name} ⟫.";
+                    te.CreationDate = DateTime.Now;
+                    attack.Defender.ActiveEffects.Add(new CardSystem.UserData.EffectDetails(te.EffectId, te.Duration, te.EffectType));
                 }
             }
 

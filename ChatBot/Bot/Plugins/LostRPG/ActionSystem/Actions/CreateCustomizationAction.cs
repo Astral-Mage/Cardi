@@ -2,23 +2,19 @@
 using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
-using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
 using ChatBot.Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 {
-    public class CreateArchetypeAction : BaseAction
+    public class CreateCustomizationAction : BaseAction
     {
-        public CreateArchetypeAction()
+        public CreateCustomizationAction()
         {
             Description = "";
             SecurityType = CommandSecurity.Ops;
             ChatRestriction = ChatTypeRestriction.Both;
             RequiresRegisteredUser = false;
-            AlternateNames.Add("ca");
+            AlternateNames.Add("cc");
         }
 
         public override void Execute(ActionObject ao, UserCard card)

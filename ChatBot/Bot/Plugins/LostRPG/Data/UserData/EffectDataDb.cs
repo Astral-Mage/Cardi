@@ -26,7 +26,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         {
             try
             {
-                string query = $"INSERT INTO {EffectTable} (name, effecttype, description, tags, stats, duration, procchance, proctrigger, target, creationdate) VALUES (@name, @etype, @description, @tags, @stats, @dur, @procc, @proct, @target, @creationdate); SELECT last_insert_rowid() as pk;";
+                string query = $"INSERT INTO {EffectTable} (name, effecttype, description, tags, stats, duration, procchance, proctrigger, target, creationdate, level) VALUES (@name, @etype, @description, @tags, @stats, @dur, @procc, @proct, @target, @creationdate, @level); SELECT last_insert_rowid() as pk;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -36,11 +36,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.CommandText = query;
                         command.CommandType = System.Data.CommandType.Text;
                         command.Parameters.Add(new SQLiteParameter("@name", effect.Name));
+                        command.Parameters.Add(new SQLiteParameter("@level", effect.Level));
                         command.Parameters.Add(new SQLiteParameter("@etype", effect.EffectType));
                         command.Parameters.Add(new SQLiteParameter("@description", effect.Description));
                         command.Parameters.Add(new SQLiteParameter("@tags", string.Join(",", effect.Tags)));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(effect.Stats)));
-                        command.Parameters.Add(new SQLiteParameter("@dur", effect.GlobalDuration.Ticks));
+                        command.Parameters.Add(new SQLiteParameter("@dur", effect.Duration.Ticks));
                         command.Parameters.Add(new SQLiteParameter("@procc", effect.ProcChance));
                         command.Parameters.Add(new SQLiteParameter("@proct", effect.ProcTrigger));
                         command.Parameters.Add(new SQLiteParameter("@target", effect.Target));
@@ -78,7 +79,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effecttype = @etype;";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate, level FROM {EffectTable} WHERE effecttype = @etype;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         int type = (int)etype;
@@ -91,6 +92,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
 
                                 spec.Name = Convert.ToString(reader["name"]);
                                 spec.EffectId = Convert.ToInt32(reader["effectid"]);
+                                spec.Level = Convert.ToInt32(reader["level"]);
+
                                 spec.Description = Convert.ToString(reader["description"]);
                                 //Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => spec.Tags.Add(Convert.ToInt32(x)));
                                 spec.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
@@ -98,9 +101,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 spec.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 spec.ProcChance = Convert.ToInt32(reader["procchance"]);
                                 if (reader["duration"].ToString().Equals("9.22337203685478E+18"))
-                                    spec.GlobalDuration = TimeSpan.MaxValue;
+                                    spec.Duration = TimeSpan.MaxValue;
                                 else
-                                    spec.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
+                                    spec.Duration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 spec.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 spec.CreationDate = Convert.ToDateTime(reader["creationdate"]);
 
@@ -130,7 +133,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate FROM {EffectTable} WHERE effectid like @effectid;";
+                    string sql = $"SELECT effectid, name, description, tags, stats, duration, procchance, proctrigger, effecttype, target, creationdate, level FROM {EffectTable} WHERE effectid like @effectid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@effectid", specid));
@@ -140,6 +143,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                             {
                                 toReturn.Name = Convert.ToString(reader["name"]);
                                 toReturn.EffectId = Convert.ToInt32(reader["effectid"]);
+                                toReturn.Level = Convert.ToInt32(reader["level"]);
+
                                 toReturn.Description = Convert.ToString(reader["description"]);
                                 //Convert.ToString(reader["tags"]).Split(',').ToList().ForEach(x => toReturn.Tags.Add(Convert.ToInt32(x)));
                                 toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
@@ -148,9 +153,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
 
                                 var idk = reader["duration"].ToString();
                                 if (reader["duration"].ToString().Equals("9.22337203685478E+18"))
-                                    toReturn.GlobalDuration = TimeSpan.MaxValue;
+                                    toReturn.Duration = TimeSpan.MaxValue;
                                 else
-                                    toReturn.GlobalDuration = new TimeSpan(long.Parse(reader["duration"].ToString()));
+                                    toReturn.Duration = new TimeSpan(long.Parse(reader["duration"].ToString()));
                                 toReturn.Target = (EffectTargets)Convert.ToInt32(reader["target"]);
                                 toReturn.EffectType = (EffectTypes)Convert.ToInt32(reader["effecttype"]);
                                 toReturn.CreationDate = Convert.ToDateTime(reader["creationdate"]);

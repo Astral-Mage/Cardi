@@ -55,25 +55,50 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             return raw ? Name : tosend;
         }
 
-        public string GetSkillString(bool includelinebreak = false)
+        public string GetSkillString(bool includelinebreak = false, int level = 1)
         {
             string toreturn = "";
 
             if (Skills.Any())
             {
-                toreturn += $"❇️ ";
-                foreach (var s in Skills)
+                if (level == 4)
                 {
-                    toreturn += $"⟨ {DataDb.SkillsDb.GetSkill(s).Name} ⟩";
+                    for(int x = 1; x < 4; x++)
+                    {
+                        for (int y = 1; y <= x; y++)
+                        {
+                            toreturn += $"❇️";
+                        }
+                        toreturn += " ";
+
+                        foreach (var s in Skills)
+                        {
+                            var sk = DataDb.SkillsDb.GetSkill(s);
+                            if (sk.Level == x) toreturn += $"⟨ {sk.Name} ⟩ ";
+                        }
+                        toreturn += "\\n";
+                    }
                 }
+                else if (level > 0 && level < 4)
+                {
+                    toreturn += $"❇️ ";
+                    foreach (var s in Skills)
+                    {
+                        var sk = DataDb.SkillsDb.GetSkill(s);
+                        if (sk.Level == level) toreturn += $"⟨ {sk.Name} ⟩ ";
+
+                    }
+                }
+
                 if (includelinebreak) toreturn += "\\n";
             }
             return toreturn;
         }
 
-        public string GetEffectString(EffectTypes type, bool includelinebreak = false)
+        public string GetEffectString(EffectTypes type, bool includelinebreak = false, int level = 1)
         {
             string toreturn = "⏫ ";
+            if (type == EffectTypes.Debuff) toreturn = "⏬ ";
             string list = "";
             if (Effects.Any())
             {
@@ -81,12 +106,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
                 {
                     var eff = DataDb.EffectDb.GetEffect(Effects[x]);
                     if (eff.EffectType == type)
-                        list += eff.GetShortDescription();
+                        list += eff.GetShortDescription() + " ";
                 }
             }
-            if (includelinebreak && !string.IsNullOrWhiteSpace(list)) toreturn += "\\n";
-
-            return (String.IsNullOrWhiteSpace(list)) ? string.Empty : toreturn + list;
+            if (!string.IsNullOrWhiteSpace(list)) toreturn = toreturn + list;
+            else return "";
+            if (includelinebreak) toreturn += "\\n";
+            return toreturn;
         }
 
         public string GetStatString(bool includelinebreak = false)
@@ -132,7 +158,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             toreturn += GetEffectString(EffectTypes.Buff, true);
             toreturn += GetEffectString(EffectTypes.Debuff, true);
 
-            toreturn += GetSkillString(true);
+            toreturn += GetSkillString(false, 4);
             toreturn += GetTagsString();
 
             return toreturn;
@@ -150,7 +176,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
                     splitspec.Add(split.First(), split.Last());
                 });
 
-                BaseCustomization arc = new Archetype();
+                BaseCustomization arc = new BaseCustomization();
                 arc.RawString = str;
                 arc.Name = splitspec["name"];
                 arc.Name = arc.Name.Replace("+", " ");

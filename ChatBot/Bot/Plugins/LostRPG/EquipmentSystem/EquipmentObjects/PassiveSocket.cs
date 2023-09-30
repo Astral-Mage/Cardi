@@ -36,8 +36,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             
             string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
             string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
-            
-            return (!string.IsNullOrWhiteSpace(NameOverride) || withOverride == true) ? NameOverride : prefix + " " + suffix;
+
+            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"[color=white]{prefix} {suffix}[/color]";
         }
 
         public override string LevelUp()

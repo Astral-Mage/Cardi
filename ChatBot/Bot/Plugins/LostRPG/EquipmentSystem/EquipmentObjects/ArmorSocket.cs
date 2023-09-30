@@ -94,17 +94,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             return toReturn;
         }
 
-        public string GetName(bool withOverride)
-        {
-            string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First().Key);
-            string sufSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.Last().Key);
-
-            string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
-            string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
-
-            return (!string.IsNullOrWhiteSpace(NameOverride) || withOverride == true) ? NameOverride : prefix + $" {GearType.GetDescription()} of " + suffix;
-        }
-
         public override string GetName()
         {
             string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First().Key);
@@ -116,7 +105,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
             string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
 
-            return (!string.IsNullOrWhiteSpace(NameOverride)) ? NameOverride : prefix + $" {GearType.GetDescription()} of " + suffix;
+            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"[color=white]{prefix} {GearType.GetDescription()} of {suffix}[/color]";
         }
     }
 }

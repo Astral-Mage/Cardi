@@ -31,9 +31,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public List<int> Skills { get; set; }
 
-        public List<BaseCustomization> CustomizationHistory { get; set; }
+        public List<CustomizationDetails> ActiveCustomizations { get; set; }
 
-        public List<Effect> ActiveEffects { get; set; }
+
+        public List<EffectDetails> ActiveEffects { get; set; }
 
         // equipment
         public List<Socket> ActiveSockets { get; set; }
@@ -50,13 +51,20 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Titles = new List<string>();
             Skills = new List<int>();
             ActiveSockets = new List<Socket>();
-            ActiveEffects = new List<Effect>();
-            CustomizationHistory = new List<BaseCustomization>();
+            ActiveEffects = new List<EffectDetails>();
+            ActiveCustomizations = new List<CustomizationDetails>();
         }
 
         public List<BaseCustomization> GetActiveCustomizations()
         {
-            return CustomizationHistory.Where(x => x.Active).ToList();
+            List<BaseCustomization> toReturn = new List<BaseCustomization>();
+
+            foreach (var v in ActiveCustomizations)
+            {
+                toReturn.Add(DataDb.CustomDb.GetCustomizationById(v.cid));
+            }
+
+            return toReturn;
         }
 
         public void SetStats(StatData stats)
@@ -64,9 +72,46 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             Stats = stats;
         }
 
+        public bool SetActiveCustomization(BaseCustomization oldcustom, BaseCustomization newcustom)
+        {
+
+            bool foundhistory = false;
+            bool diddisable = false;
+            foreach (var ac in ActiveCustomizations)
+            {
+                if (ac.cid == newcustom.Id)
+                {
+                    ac.isactive = true;
+                    foundhistory = true;
+                }
+
+                if (ac.cid == oldcustom.Id)
+                {
+                    ac.isactive = false;
+                    diddisable = true;
+                }
+            }
+
+            if (!foundhistory)
+            {
+                ActiveCustomizations.Add(new CustomizationDetails() { cid = newcustom.Id, currentlevel = 1, isactive = true });
+            }
+
+
+            return diddisable;
+        }
+
         public BaseCustomization GetActiveCustomizationByType(CustomizationTypes type)
         {
-            return CustomizationHistory.First(x => x.Active && x.Customization == type);
+            foreach (var v in ActiveCustomizations)
+            {
+                if (v.isactive)
+                {
+                    var tc = DataDb.CustomDb.GetCustomizationById(v.cid);
+                    if (tc.Customization == type) return tc;
+                }
+            }
+            return null;
         }
 
         public List<Skill> GetUsableSkills()
@@ -91,13 +136,28 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public List<Effect> GetActiveEffectByType(EffectTypes types)
         {
             List<Effect> eNames = new List<Effect>();
-
+            List<EffectDetails> toRemove = new List<EffectDetails>();
             foreach (var ae in ActiveEffects)
             {
-                if (ae.EffectType == types)
+                if (ae.GetRemainingDuration().TotalMilliseconds <= 0)
                 {
-                    eNames.Add(ae);
+                    toRemove.Add(ae);
                 }
+                else if (ae.EffectType == types)
+                {
+                    var eft = DataDb.EffectDb.GetEffect(ae.eid);
+                    eNames.Add(eft);
+                    eft.UserDetails = ae;
+                }
+            }
+
+            if (toRemove.Any())
+            {
+                foreach (var ae in toRemove)
+                {
+                    ActiveEffects.Remove(ae);
+                }
+                DataDb.CardDb.UpdateUserCard(this);
             }
 
             return eNames;
@@ -112,7 +172,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
                     {
                         effectNames.Add(eff);
                     }
@@ -123,7 +183,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
                     {
                         effectNames.Add(eff);
                     }
@@ -134,7 +194,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.GlobalDuration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
                     {
                         effectNames.Add(eff);
                     }
@@ -187,7 +247,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
                 if (debuff.Stats.Stats.ContainsKey(type)) basemult += debuff.Stats.GetStat(type);
             }
 
-            if (basemult < 0) basemult = 0;
+            if (basemult < -100) basemult = 0;
 
             double percentMult = basemult * .01f;
             percentMult = Math.Round(percentMult, 2);

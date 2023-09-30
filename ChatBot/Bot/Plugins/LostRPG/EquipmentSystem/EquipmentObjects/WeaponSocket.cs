@@ -92,17 +92,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             SocketRaritySymbol = "🗡️";
         }
 
-        public string GetName(bool withOverride)
-        {
-            string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First(x => x.Key != StatTypes.Damage).Key);
-            string sufSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.Last(x => x.Key != StatTypes.Damage).Key);
-
-            string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
-            string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
-
-            return (!string.IsNullOrWhiteSpace(NameOverride) || withOverride == true) ? NameOverride : prefix + $" {WeaponType.GetDescription()} of " + suffix;
-        }
-
         public override string GetName()
         {
             string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First(x => x.Key != StatTypes.Damage).Key);
@@ -111,7 +100,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
             string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
 
-            return (!string.IsNullOrWhiteSpace(NameOverride)) ? NameOverride : prefix + $" {WeaponType.GetDescription()} of " + suffix;
+            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"[color=white]{prefix} {WeaponType.GetDescription()} of {suffix}[/color]";
         }
     }
 }

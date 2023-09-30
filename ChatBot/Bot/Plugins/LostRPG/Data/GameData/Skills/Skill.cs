@@ -11,20 +11,34 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
     public class Skill
     {
         public string Name { get; set; }
+
         public int Level { get; set; }
+
         public bool Reaction { get; set; }
+
         public List<string> Tags { get; set; }
 
         public string RawStr { get; set; }
+
         public int Speed { get; set; }
-        public List<Effect> SkillEffects { get; set; }
+
+        public List<int> SkillEffects { get; set; }
+
         public string Description { get; set; }
 
         public int Stamina { get; set; }
 
         public int Cost { get; set; }
+
         public int SkillId { get; set; }
+
         public StatData Stats { get; set; }
+
+        public int MaxCharges { get; set; }
+
+        public TimeSpan Cooldown { get; set; }
+
+        SkillDetails UserSkillDetails { get; set; }
 
         public Skill(string rawStr)
         {
@@ -45,12 +59,45 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             Tags = new List<string>();
             RawStr = string.Empty;
             Speed = 100;
-            SkillEffects = new List<Effect>();
+            SkillEffects = new List<int>();
             Description = string.Empty;
             Stamina = 0;
             Cost = 0;
             SkillId = 0;
             Stats = new StatData();
+            Cooldown = new TimeSpan();
+            MaxCharges = 1;
+            UserSkillDetails = new SkillDetails();
+        }
+
+        public TimeSpan GetRemainingCooldown()
+        {
+            if (Cooldown == TimeSpan.MinValue) return Cooldown;
+
+            DateTime now = DateTime.Now;
+            TimeSpan leftover = now - UserSkillDetails.lastUse;
+
+            if ((Cooldown - leftover).TotalMilliseconds <= 0) return new TimeSpan(0, 0, 0);
+            return (Cooldown - leftover);
+        }
+
+        public string GetChargesString()
+        {
+            string pants = "";
+            if (UserSkillDetails.currentCharges == 0) pants = $"[color=red]{UserSkillDetails.currentCharges}[/color]";
+            else pants = $"{UserSkillDetails.currentCharges}";
+
+            return $"{pants}/{MaxCharges}";
+        }
+
+        public void SetUserSkillDetails(SkillDetails sd)
+        {
+            UserSkillDetails = sd;
+        }
+
+        public SkillDetails GetUserSkillDetails()
+        {
+            return UserSkillDetails;
         }
 
         public static Skill ReadRawString(string rawstring)
@@ -76,11 +123,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             // required checks
             try
             {
-                newSkill.Level = Convert.ToInt32(brokenSkill[RequiredSkillTags.level.ToString()]);
+                if (brokenSkill.ContainsKey("level")) newSkill.Level = Convert.ToInt32(brokenSkill[RequiredSkillTags.level.ToString()]);
+                else newSkill.Level = 1;
                 newSkill.Name = brokenSkill[RequiredSkillTags.name.ToString()].TrimEnd();
                 newSkill.Name = newSkill.Name.Replace("+", " ");
-                newSkill.Speed = Convert.ToInt32(brokenSkill[RequiredSkillTags.speed.ToString()]);
-                newSkill.Tags = brokenSkill[RequiredSkillTags.tags.ToString()].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
+                if (brokenSkill.ContainsKey(RequiredSkillTags.speed.ToString())) newSkill.Speed = Convert.ToInt32(brokenSkill[RequiredSkillTags.speed.ToString()]);
+                else newSkill.Speed = 100;
+                if (brokenSkill.ContainsKey("tags")) newSkill.Tags = brokenSkill[RequiredSkillTags.tags.ToString()].Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 var effects = (brokenSkill.ContainsKey(RequiredSkillTags.effects.ToString()) ? brokenSkill[RequiredSkillTags.effects.ToString()] : null);
                 if (effects != null)
@@ -88,12 +137,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                     var brokenEffects = effects.Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
 
                     // do skill effect stuff
-                    Console.WriteLine("TODO: Skill Effect Stuff :TODO");
-                    newSkill.SkillEffects = new List<Effect>();
+                    newSkill.SkillEffects = new List<int>();
                     foreach (var eff in brokenEffects)
                     {
-                        Effect se = DataDb.EffectDb.GetEffect(Convert.ToInt32(eff));
-                        newSkill.SkillEffects.Add(se);
+                        newSkill.SkillEffects.Add(Convert.ToInt32(eff));
                     }
                 }
 
@@ -127,6 +174,27 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                     return null;
                 }
                 newSkill.Description = newSkill.Description.Replace("\"", "");
+            }
+
+            if (brokenSkill.ContainsKey("cd"))
+            {
+                int dur = Convert.ToInt32(brokenSkill["cd"]);
+                if (dur == 0) newSkill.Cooldown = new TimeSpan(0, 0, 0);
+                else if (dur == 1) newSkill.Cooldown = new TimeSpan(0, 30, 0);
+                else if (dur == 2) newSkill.Cooldown = new TimeSpan(2, 0, 0);
+                else if (dur == 3) newSkill.Cooldown = new TimeSpan(8, 0, 0);
+                else if (dur == 4) newSkill.Cooldown = new TimeSpan(1, 0, 0, 0);
+                else if (dur == 5) newSkill.Cooldown = new TimeSpan(3, 0, 0, 0);
+                else newSkill.Cooldown = new TimeSpan(7, 0, 0, 0);
+            }
+            else
+            {
+                newSkill.Cooldown = new TimeSpan(2, 0, 0);
+            }
+
+            if (brokenSkill.ContainsKey("cmax"))
+            {
+                newSkill.MaxCharges = Convert.ToInt32(brokenSkill["cmax"]);
             }
 
             return newSkill;

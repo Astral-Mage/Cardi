@@ -19,12 +19,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
         /// table name
         /// </summary>
         readonly string SkillsTable = "SkillData";
+        readonly string SkillDetailsTable = "UserSkillDetails";
+
 
         public int AddNewSkill(Skill skill)
         {
             try
             {
-                string query = $"INSERT INTO {SkillsTable} (name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats) VALUES (@name, @reaction, @speed, @level, @stamina, @cost, @description, @effects, @tags, @rawstr, @stats); SELECT last_insert_rowid() as pk;";
+                string query = $"INSERT INTO {SkillsTable} (name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats, maxcharges, cooldown) VALUES (@name, @reaction, @speed, @level, @stamina, @cost, @description, @effects, @tags, @rawstr, @stats, @cmax, @cooldown); SELECT last_insert_rowid() as pk;";
 
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
@@ -44,6 +46,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         command.Parameters.Add(new SQLiteParameter("@tags", JsonConvert.SerializeObject(skill.Tags)));
                         command.Parameters.Add(new SQLiteParameter("@rawstr", skill.RawStr));
                         command.Parameters.Add(new SQLiteParameter("@stats", JsonConvert.SerializeObject(skill.Stats)));
+                        command.Parameters.Add(new SQLiteParameter("@cmax", skill.MaxCharges));
+                        command.Parameters.Add(new SQLiteParameter("@cooldown", skill.Cooldown));
+
 
                         using (SQLiteDataReader reader = command.ExecuteReader())
                         {
@@ -68,7 +73,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
             return 1;
         }
 
-        public Skill GetSkill(int skillid)
+        public Skill GetSkill(int skillid, int userid = -1)
         {
             Skill toReturn = new Skill();
             try
@@ -76,7 +81,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
                 {
                     connection.Open();
-                    string sql = $"SELECT skillid, name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats FROM {SkillsTable} WHERE skillid like @skillid;";
+                    string sql = $"SELECT skillid, name, reaction, speed, level, stamina, cost, description, effects, tags, rawstr, stats, maxcharges, cooldown FROM {SkillsTable} WHERE skillid like @skillid;";
                     using (SQLiteCommand command = new SQLiteCommand(sql, connection))
                     {
                         command.Parameters.Add(new SQLiteParameter("@skillid", skillid));
@@ -93,10 +98,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                                 toReturn.Cost = Convert.ToInt32(reader["cost"]);
                                 toReturn.Description = reader["description"].ToString();
 
-                                toReturn.SkillEffects = JsonConvert.DeserializeObject<List<Effect>>(Convert.ToString(reader["effects"]));
+                                toReturn.SkillEffects = JsonConvert.DeserializeObject<List<int>>(Convert.ToString(reader["effects"]));
                                 toReturn.Tags = (JsonConvert.DeserializeObject<List<string>>(Convert.ToString(reader["tags"])));
                                 toReturn.RawStr = reader["rawstr"].ToString();
                                 toReturn.Stats = JsonConvert.DeserializeObject<StatData>(Convert.ToString(reader["stats"]));
+                                toReturn.MaxCharges = Convert.ToInt32(reader["maxcharges"]);
+                                toReturn.Cooldown = TimeSpan.Parse(Convert.ToString(reader["cooldown"].ToString()));
+
                             }
                             reader.Close();
                         }
@@ -111,7 +119,75 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                 return null;
             }
 
+            if (userid != -1)
+            {
+                try
+                {
+                    using (SQLiteConnection connection = new SQLiteConnection(connstr))
+                    {
+                        connection.Open();
+                        string sql = $"SELECT currentcharges, lastuse FROM {SkillDetailsTable} WHERE userid like @userid and skillid like @skillid;";
+                        using (SQLiteCommand command = new SQLiteCommand(sql, connection))
+                        {
+                            command.Parameters.Add(new SQLiteParameter("@skillid", skillid));
+                            command.Parameters.Add(new SQLiteParameter("@userid", userid));
+                            using (SQLiteDataReader reader = command.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    toReturn.GetUserSkillDetails().currentCharges = Convert.ToInt32(reader["currentcharges"]);
+                                    toReturn.GetUserSkillDetails().lastUse = Convert.ToDateTime(reader["lastuse"]);
+                                }
+                                reader.Close();
+                            }
+                            command.Dispose();
+                        }
+                        connection.Close();
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    return null;
+                }
+            }
+
+            if (toReturn.GetUserSkillDetails().lastUse == DateTime.MinValue) toReturn.GetUserSkillDetails().currentCharges = toReturn.MaxCharges;
+
             return toReturn;
+        }
+
+        public void InsertSkillDetails(int userid, Skill skill)
+        {
+            try
+            {
+                string query = $"INSERT INTO {SkillDetailsTable} (userid, skillid, currentcharges, lastuse) VALUES (@userid, @skillid, @currentcharges, @lastuse;";
+
+                using (SQLiteConnection connection = new SQLiteConnection(connstr))
+                {
+                    connection.Open();
+                    using (SQLiteCommand command = new SQLiteCommand(query, connection))
+                    {
+                        command.CommandText = query;
+                        command.CommandType = System.Data.CommandType.Text;
+                        command.Parameters.Add(new SQLiteParameter("@userid", userid));
+                        command.Parameters.Add(new SQLiteParameter("@skillid", skill.SkillId));
+                        command.Parameters.Add(new SQLiteParameter("@currentcharges", skill.GetUserSkillDetails().currentCharges));
+                        command.Parameters.Add(new SQLiteParameter("@lastuse", skill.GetUserSkillDetails().lastUse));
+                        SQLiteDataReader reader = command.ExecuteReader();
+
+                        command.Dispose();
+                    }
+                    connection.Close();
+                }
+
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Db write error: addnewuser");
+            }
+
+            return;
         }
     }
 }

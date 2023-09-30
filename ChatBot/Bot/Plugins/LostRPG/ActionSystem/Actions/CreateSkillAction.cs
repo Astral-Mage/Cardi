@@ -13,7 +13,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             Description = "";
             SecurityType = CommandSecurity.None;
             ChatRestriction = ChatTypeRestriction.Both;
-            RequiresRegisteredUser = true;
+            RequiresRegisteredUser = false;
+            AlternateNames.Add("cs");
         }
 
         public override void Execute(ActionObject ao, UserCard card)

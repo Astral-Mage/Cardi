@@ -80,7 +80,7 @@ namespace ChatBot.Core
                 return;
             }
 
-            message = $"[color={BaseColor}]{message}[/color]";
+            message = $"{message}";
 
             Api.SendMessage(channel, message, recipient, messagetype);
         }

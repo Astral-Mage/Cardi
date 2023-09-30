@@ -63,7 +63,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 string stu = split.Last();
                 foreach (var s in card.GetUsableSkills())
                 {
-                    if (s.Name.Equals(stu))
+                    if (s.Name.ToLowerInvariant().Equals(stu.ToLowerInvariant()))
                     {
                         skillToUse = s;
                         break;

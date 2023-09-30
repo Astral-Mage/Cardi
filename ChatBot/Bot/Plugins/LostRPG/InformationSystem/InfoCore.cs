@@ -36,9 +36,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     foreach (var c in customs)
                     {
                         tosend += $"[b]⨠ {c.GetName()}[/b]   {c.GetStatString()} " +
-                            $"{c.GetEffectString(EffectTypes.Buff)}" +
-                            $"{c.GetEffectString(EffectTypes.Debuff)}" +
-                            $"{c.GetSkillString()}";
+                            $" {c.GetEffectString(EffectTypes.Buff)}" +
+                            $"  {c.GetEffectString(EffectTypes.Debuff)}" +
+                            $"  {c.GetSkillString()}";
                         if (c != customs.Last()) tosend += "\\n";
                     }
                 }
@@ -57,6 +57,27 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
 
             if (card == null) SystemController.Instance.Respond(channel, tosend, user);
             else SystemController.Instance.Respond(channel, tosend, user);
+        }
+
+        public static string GetAllCustomizationInfoByType(CustomizationTypes ctype, bool includetitle = true)
+        {
+            string toreturn = "";
+            var customs = DataDb.CustomDb.GetAllCustomizationsByType(ctype);
+
+            if (customs.Any())
+            {
+                if (includetitle) toreturn = $"[u][b]Available {ctype} Customizations[/b][/u]\\n\\n";
+                foreach (var c in customs)
+                {
+                    toreturn += $"[b]⨠ {c.GetName()}[/b]   {c.GetStatString()} " +
+                        $"{c.GetEffectString(EffectTypes.Buff)}" +
+                        $"{c.GetEffectString(EffectTypes.Debuff)}" +
+                        $"{c.GetSkillString()}";
+                    if (c != customs.Last()) toreturn += "\\n";
+                }
+            }
+
+            return toreturn;
         }
 
         public static void GetTagInfo(UserCard card, string channel, List<string> splitmsg, string user)

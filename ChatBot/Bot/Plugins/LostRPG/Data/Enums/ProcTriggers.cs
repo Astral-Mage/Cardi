@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.LostRPG.Data.Enums
 {
+    [Serializable]
     public enum ProcTriggers
     {
         Hit,

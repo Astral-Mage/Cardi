@@ -84,29 +84,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         {
                             while (reader.Read())
                             {
-                                BaseCustomization spec = null;
+                                BaseCustomization spec = new BaseCustomization();
                                 var cType = (CustomizationTypes)Convert.ToInt32(reader["ctype"]);
-                                switch (cType)
-                                {
-                                    case CustomizationTypes.Archetype:
-                                        {
-                                            spec = new Archetype();
-
-                                        }
-                                        break;
-                                    case CustomizationTypes.Specialization:
-                                        {
-                                            spec = new Specialization();
-                                        }
-                                        break;
-                                    case CustomizationTypes.Calling:
-                                        {
-                                            spec = new Calling();
-                                        }
-                                        break;
-                                    default:
-                                        throw new Exception();
-                                }
                                 spec.Customization = cType;
                                 spec.Name = Convert.ToString(reader["name"]);
                                 spec.Description = Convert.ToString(reader["description"]);
@@ -150,29 +129,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                         {
                             while (reader.Read())
                             {
-                                BaseCustomization spec = null;
+                                BaseCustomization spec = new BaseCustomization();
                                 var cType = (CustomizationTypes)Convert.ToInt32(reader["ctype"]);
-                                switch (cType)
-                                {
-                                    case CustomizationTypes.Archetype:
-                                        {
-                                            spec = new Archetype();
-
-                                        }
-                                        break;
-                                    case CustomizationTypes.Specialization:
-                                        {
-                                            spec = new Specialization();
-                                        }
-                                        break;
-                                    case CustomizationTypes.Calling:
-                                        {
-                                            spec = new Calling();
-                                        }
-                                        break;
-                                    default:
-                                        throw new Exception();
-                                }
                                 spec.Customization = cType;
 
                                 spec.Name = Convert.ToString(reader["name"]);
@@ -203,7 +161,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
 
         public BaseCustomization GetCustomizationById(int specid)
         {
-            BaseCustomization toReturn = null;
+            BaseCustomization toReturn = new BaseCustomization();
             try
             {
                 using (SQLiteConnection connection = new SQLiteConnection(connstr))
@@ -218,26 +176,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data
                             while (reader.Read())
                             {
                                 CustomizationTypes cType = (CustomizationTypes)Convert.ToInt32(reader["ctype"]);
-                                switch(cType)
-                                {
-                                    case CustomizationTypes.Archetype:
-                                        {
-                                            toReturn = new Archetype();
-                                        }
-                                        break;
-                                    case CustomizationTypes.Specialization:
-                                        {
-                                            toReturn = new Specialization();
-                                        }
-                                        break;
-                                    case CustomizationTypes.Calling:
-                                        {
-                                            toReturn = new Calling();
-                                        }
-                                        break;
-                                    default:
-                                        throw new Exception();
-                                }
+
 
                                 toReturn.Customization = cType;
                                 toReturn.Name = Convert.ToString(reader["name"]);

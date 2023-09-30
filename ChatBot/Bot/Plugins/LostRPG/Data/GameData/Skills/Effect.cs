@@ -17,12 +17,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
         public StatData Stats { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public TimeSpan GlobalDuration { get; set; }
+        public TimeSpan Duration { get; set; }
         public int ProcChance { get; set; }
         public ProcTriggers ProcTrigger { get; set;}
         public int EffectId { get; set; }
         public EffectTargets Target { get; set; }
         public DateTime CreationDate { get; set; }
+        public EffectDetails UserDetails { get; set; }
+        public int Level { get; set; }
 
         public Effect()
         {
@@ -30,12 +32,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             Stats = new StatData();
             Name = string.Empty;
             Description = string.Empty;
-            GlobalDuration = new TimeSpan();
+            Duration = new TimeSpan();
             ProcChance = 0;
             ProcTrigger = ProcTriggers.None;
             EffectId = 0;
             Target = EffectTargets.Self;
             CreationDate = DateTime.Now;
+            Level = 1;
+            UserDetails = new EffectDetails();
         }
 
         public string GetShortDescription()
@@ -45,12 +49,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
 
         public TimeSpan GetRemainingDuration()
         {
-            if (GlobalDuration == TimeSpan.MaxValue) return GlobalDuration;
+            if (Duration == TimeSpan.MaxValue) return Duration;
 
             DateTime now = DateTime.Now;
-            TimeSpan leftover = now - CreationDate;
-
-            return GlobalDuration - leftover;
+            TimeSpan elapsedtime = now - CreationDate;
+            if (Duration.TotalMilliseconds < elapsedtime.TotalMilliseconds) return new TimeSpan(0, 0, 0);
+            else return Duration - elapsedtime;
         }
 
         public static Effect ReadRawString(string str)
@@ -84,11 +88,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                 else be.ProcTrigger = ProcTriggers.None;
 
                 int dur = Convert.ToInt32(brokenEt["dur"]);
-                if (dur == 0) be.GlobalDuration = TimeSpan.MaxValue;
-                else if (dur == 1) be.GlobalDuration = new TimeSpan(1, 0, 0);
-                else if (dur == 2) be.GlobalDuration = new TimeSpan(8, 0, 0);
-                else if (dur == 3) be.GlobalDuration = new TimeSpan(48, 0, 0);
-                else be.GlobalDuration = new TimeSpan(7, 0, 0, 0);
+                if (dur == 0) be.Duration = TimeSpan.MaxValue;
+                else if (dur == 1) be.Duration = new TimeSpan(1, 0, 0);
+                else if (dur == 2) be.Duration = new TimeSpan(8, 0, 0);
+                else if (dur == 3) be.Duration = new TimeSpan(48, 0, 0);
+                else be.Duration = new TimeSpan(7, 0, 0, 0);
                 if (brokenEt.ContainsKey("tags"))
                 {
                     bool found;

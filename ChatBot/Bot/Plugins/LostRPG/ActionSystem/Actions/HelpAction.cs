@@ -21,7 +21,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             string toSend = string.Empty;
 
             toSend += $"[color=white]" +
-                            $"         [b][color=red][/color][/b]!" +
+                            $"         [b][color=red][/color][/b]" +
                 $"\\n    " +
                 $"\\n        * Note that this bot is currently in [color=green]Alpha[/color]. Data resets may happen!" +
                 $"\\n    " +
