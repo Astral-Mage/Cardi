@@ -105,7 +105,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
             string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
             string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
 
-            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"[color=white]{prefix} {GearType.GetDescription()} of {suffix}[/color]";
+            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"{prefix} {GearType.GetDescription()} of {suffix}";
         }
     }
 }

@@ -133,6 +133,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
                         return null;
                     }
                 }
+                if (brokenEt.ContainsKey(StatTypes.Strength.GetDescription())) be.Level = Convert.ToInt32(brokenEt["level"]);
 
                 if (brokenEt.ContainsKey(StatTypes.Strength.GetDescription())) be.Stats.AddStat(StatTypes.Strength, Convert.ToInt32(brokenEt[StatTypes.Strength.GetDescription()]));
                 if (brokenEt.ContainsKey(StatTypes.Dexterity.GetDescription())) be.Stats.AddStat(StatTypes.Dexterity, Convert.ToInt32(brokenEt[StatTypes.Dexterity.GetDescription()]));

@@ -20,16 +20,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         public override void Execute(ActionObject ao, UserCard card)
         {
             // setup spec
-            BaseCustomization newArc = BaseCustomization.ReadRawString(ao.Message);
+            BaseCustomization newArc = BaseCustomization.ReadRawString(ao.Message, out string msg);
             if (newArc == null)
             {
-                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Spec Creation Failure", ao.User);
+                SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Spec Creation Failure   {msg}", ao.User);
                 return;
             }
 
             // save to db
             DataDb.CustomDb.AddNewCustomization(newArc);
-            SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created {newArc.Customization} (Id: {newArc.Id}) || Name: {newArc.Name}", ao.User);
+            if (newArc.Id != -1) SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Created {newArc.Customization} (Id: {newArc.Id}) || Name: {newArc.Name}", ao.User);
+            else SystemController.Instance.Respond(ChatRestriction == ChatTypeRestriction.Whisper ? null : ao.Channel, $"Unknown Spec Creation Failure", ao.User);
 
             return;
         }

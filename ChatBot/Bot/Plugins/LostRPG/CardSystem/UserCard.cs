@@ -33,7 +33,6 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public List<CustomizationDetails> ActiveCustomizations { get; set; }
 
-
         public List<EffectDetails> ActiveEffects { get; set; }
 
         // equipment
@@ -59,7 +58,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         {
             List<BaseCustomization> toReturn = new List<BaseCustomization>();
 
-            foreach (var v in ActiveCustomizations)
+            foreach (var v in ActiveCustomizations.Where(x => x.isactive))
             {
                 toReturn.Add(DataDb.CustomDb.GetCustomizationById(v.cid));
             }
@@ -70,6 +69,27 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public void SetStats(StatData stats)
         {
             Stats = stats;
+        }
+
+        public void Restore()
+        {
+            Stats.SetStat(StatTypes.CurrentLife, GetMultipliedStat(StatTypes.Life));
+            Stats.SetStat(StatTypes.CurrentLust, 0);
+            Stats.SetStat(StatTypes.CurrentLust, 0);
+
+
+            List<EffectDetails> tokill = new List<EffectDetails>();
+            foreach (var ae in ActiveEffects)
+            {
+                if (ae.EffectType == EffectTypes.Debuff) tokill.Add(ae);
+            }
+            tokill.ForEach(x => ActiveEffects.Remove(x));
+            DataDb.CardDb.UpdateUserCard(this);
+        }
+
+        public DamageTypes GetDamageType()
+        {
+            return GetActiveCustomizationByType(CustomizationTypes.Specialization).GetDamageType();
         }
 
         public bool SetActiveCustomization(BaseCustomization oldcustom, BaseCustomization newcustom)
@@ -117,11 +137,46 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public List<Skill> GetUsableSkills()
         {
             List<Skill> toReturn = new List<Skill>();
-            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Calling).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
-            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Archetype).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
-            foreach (var sk in GetActiveCustomizationByType(CustomizationTypes.Specialization).Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
-            foreach (var sk in Skills) toReturn.Add(DataDb.SkillsDb.GetSkill(sk));
+
+            foreach (var sk in GetActiveCustomizations())
+            {
+                if (sk.Skills.Any())
+                {
+                    sk.Skills.ForEach((x) =>
+                    {
+                        var skill = DataDb.SkillsDb.GetSkill(x);
+                        if (skill.Level <= GetStat(StatTypes.Level))
+                        {
+                            //skill.SetUserSkillDetails(skill);
+                            toReturn.Add(skill);
+                        }
+                    });
+                }
+
+
+
+
+
+            }
+
+            foreach (var sk in Skills)
+            {
+                var skill = DataDb.SkillsDb.GetSkill(sk);
+                if (skill.Level <= GetStat(StatTypes.Level))
+                    toReturn.Add(skill);
+            }
             return toReturn;
+        }
+
+        public int GetTotalStatMultiplier(StatTypes type)
+        {
+            int toreturn = 0;
+            foreach(var cus in GetActiveCustomizations())
+            {
+                if (cus.Stats.Stats.ContainsKey(type))
+                    toreturn += cus.Stats.GetStat(type);
+            }
+            return toreturn;
         }
 
         public int GetStat(StatTypes type)
@@ -133,7 +188,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             return Convert.ToInt32(Math.Floor(Stats.Stats[type]));
         }
 
-        public List<Effect> GetActiveEffectByType(EffectTypes types)
+        public List<Effect> GetActiveEffectByType(EffectTypes types, int level = 1)
         {
             List<Effect> eNames = new List<Effect>();
             List<EffectDetails> toRemove = new List<EffectDetails>();
@@ -146,8 +201,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
                 else if (ae.EffectType == types)
                 {
                     var eft = DataDb.EffectDb.GetEffect(ae.eid);
-                    eNames.Add(eft);
-                    eft.UserDetails = ae;
+                    if (eft.Level <= level)
+                    {
+                        eNames.Add(eft);
+                        eft.UserDetails = ae;
+                    }
                 }
             }
 
@@ -161,18 +219,19 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             }
 
             return eNames;
-        } 
+        }
 
-        public List<Effect> GetPassiveEffectsByType(EffectTypes type)
+        public List<Effect> GetPassiveEffectsByType(EffectTypes type, int level = 1)
         {
             List<Effect> effectNames = new List<Effect>();
-
             List<Effect> ListEffects = DataDb.EffectDb.GetAllEffectsByType(type);
+
+
             GetActiveCustomizationByType(CustomizationTypes.Archetype).Effects.ForEach((x) =>
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue && level >= eff.Level)
                     {
                         effectNames.Add(eff);
                     }
@@ -183,7 +242,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue && level >= eff.Level)
                     {
                         effectNames.Add(eff);
                     }
@@ -194,7 +253,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             {
                 foreach (var eff in ListEffects)
                 {
-                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue)
+                    if (eff.EffectId == x && eff.Duration == TimeSpan.MaxValue && level >= eff.Level)
                     {
                         effectNames.Add(eff);
                     }
@@ -204,7 +263,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             return effectNames;
         }
 
-        public int GetMultipliedStat(StatTypes type, bool includeEquipment = true)
+        public int GetMultipliedStat(StatTypes type, bool includeEquipment = true, Skill skillToAdd = null)
         {
             if (!Stats.Stats.ContainsKey(type))
             {
@@ -229,10 +288,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             if (GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.GetStat(type);
             if (GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.GetStat(type);
             if (GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.GetStat(type);
-
+            if (skillToAdd != null && skillToAdd.Stats.Stats.ContainsKey(type)) basemult += skillToAdd.Stats.GetStat(type);
 
             // buffs
             var ebuffs = GetPassiveEffectsByType(EffectTypes.Buff);
+            var db2 = GetActiveEffectByType(EffectTypes.Buff);
+            db2.ForEach(x => ebuffs.Add(x));
             foreach (var buff in ebuffs)
             {
                 if (buff.Stats.Stats.ContainsKey(type)) basemult += buff.Stats.GetStat(type);
@@ -240,7 +301,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
             // debuffs
             var debuffs = GetPassiveEffectsByType(EffectTypes.Debuff);
-            var db2 = GetActiveEffectByType(EffectTypes.Debuff);
+            db2 = GetActiveEffectByType(EffectTypes.Debuff);
             db2.ForEach(x => debuffs.Add(x));
             foreach (var debuff in debuffs)
             {

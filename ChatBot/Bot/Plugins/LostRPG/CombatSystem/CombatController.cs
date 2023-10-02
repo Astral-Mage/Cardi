@@ -1,6 +1,9 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.CardSystem;
+using ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData;
 using ChatBot.Bot.Plugins.LostRPG.Data;
+using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
+using ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects;
 using ChatBot.Core;
 using System;
 using System.Collections.Generic;
@@ -10,6 +13,21 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
 {
     public static class CombatController
     {
+        static readonly int _basehit = 50;
+        static readonly int _basecrit = 0;
+        static readonly int _basespread = 15;
+        static readonly int _basecritmult = 50;
+        static readonly int _baseevasion = 10;
+        static readonly int _basemitigation = 0;
+        static readonly int _baseglancespread = 7;
+        static readonly int _baseeffectresist = 5;
+
+        static readonly int _maxhit = 95;
+        static readonly int _maxcrit = 50;
+        static readonly int _maxeva = 95;
+
+
+
         static List<ImpendingAttack> ImpendingAttacks = new List<ImpendingAttack>();
 
         public static bool CreateImpendingAttack(UserCard attacker, UserCard defender, Skill attackerSkill)
@@ -67,72 +85,467 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             return attack;
         }
 
-        public static void Attack(ImpendingAttack attack, string channel)
+        static int GetFixedStat(ImpendingAttack ia, StatTypes type, bool attacker = true)
         {
+            int toreturn = 0;
+            UserCard target = (attacker) ? ia.Attacker : ia.Defender;
+            Skill tSkill = (attacker) ? ia.AttackerSkill : ia.DefenderSkill;
 
+            toreturn = target.GetMultipliedStat(type, true, tSkill);
+            return toreturn;
+        }
+
+        public static int CalculateHitChance(ImpendingAttack ia, bool attacker = true)
+        {
+            UserCard card = (attacker) ? ia.Attacker : ia.Defender;
+            StatTypes hittype = StatTypes.Dexterity;
+            if (card.GetDamageType() == Data.Enums.DamageTypes.Magic) hittype = StatTypes.Wisdom;
+            if (card.GetDamageType() == Data.Enums.DamageTypes.Lust) hittype = StatTypes.Charisma;
+
+            return 15 + (int)(_basehit * (1 + (.01 * (int)Math.Ceiling(7 * Math.Sqrt(GetFixedStat(ia, hittype, attacker))))));
+        }
+
+        public static int CalculateCritChance(ImpendingAttack ia, bool attacker = true)
+        {
+            UserCard card = (attacker) ? ia.Attacker : ia.Defender;
+            StatTypes hittype = StatTypes.Dexterity;
+            if (card.GetDamageType() == Data.Enums.DamageTypes.Magic) hittype = StatTypes.Wisdom;
+
+            double totalbase = Math.Ceiling(GetFixedStat(ia, hittype, attacker) * 0.7);
+            totalbase += Math.Ceiling(GetFixedStat(ia, StatTypes.Perception, attacker) * 0.3);
+            totalbase = Math.Pow(totalbase, 1.22);
+            double sqrt = Math.Ceiling(1.5 * Math.Sqrt(totalbase));
+            int toreturn = (int)Math.Ceiling(sqrt * 0.9);
+            return toreturn;
+        }
+
+        public static int CalculateCritDamage(ImpendingAttack ia, int basedamage, bool attacker = true)
+        {
+            return (int)Math.Ceiling(basedamage * (.01 * _basecritmult));
+        }
+
+        public static int CalculateBaseDamage(ImpendingAttack ia, bool attacker = true, bool glancinghit = false)
+        {
+            UserCard card = (attacker) ? ia.Attacker : ia.Defender;
+            StatTypes hittype = StatTypes.Strength;
+            int basedmg = 0;
+
+            Skill stu = (attacker) ? ia.AttackerSkill : ia.DefenderSkill;
+            bool matchingDamageType = false;
+            if (card.GetDamageType() == Data.Enums.DamageTypes.Magic) 
+                hittype = StatTypes.Intelligence;
+            if (card.GetDamageType() == Data.Enums.DamageTypes.Lust) 
+                hittype = StatTypes.Libido;
+            if (card.ActiveSockets.Any(x => x.SocketType == Data.Enums.SocketTypes.Weapon))
+            {
+                matchingDamageType = card.GetDamageType() == (card.ActiveSockets.First(x => x.SocketType == SocketTypes.Weapon) as WeaponSocket).DamageType;
+                basedmg = card.ActiveSockets.First(x => x.SocketType == Data.Enums.SocketTypes.Weapon).Stats.GetStat(StatTypes.Damage);
+            }
+
+            int basedmgstat = GetFixedStat(ia, hittype, attacker);
+            int totalmult = card.GetTotalStatMultiplier(StatTypes.Damage);
+            if (stu != null && stu.Stats.Stats.ContainsKey(StatTypes.Damage)) 
+                totalmult += stu.Stats.GetStat(StatTypes.Damage);
+
+            int totalbasedmg = basedmgstat + basedmg;
+            double tmd = totalbasedmg * (1 + (.01 * totalmult));
+            double multiplieddmg = (totalmult > 0) ? tmd : totalbasedmg;
+
+            if (matchingDamageType) multiplieddmg = multiplieddmg * 1.1;
+
+            return (int)Math.Ceiling(multiplieddmg);
+        }
+
+        public static int CalculateDamageSpreadPercent(ImpendingAttack ia, bool attacker = true)
+        { // damage spread: tui and per
+            UserCard card = (attacker) ? ia.Attacker : ia.Defender;
+            double per = card.GetMultipliedStat(StatTypes.Perception) * .5;
+            double tui = card.GetMultipliedStat(StatTypes.Intuition) * .5;
+            double totalbase = per + tui;
+            totalbase = Math.Pow(totalbase, 1.1);
+            totalbase *= .2;
+            return (int)totalbase;
+        }
+
+        public static int CalculateEvasionChance(ImpendingAttack ia, bool defender = true)
+        {
+            UserCard card = (defender) ? ia.Defender : ia.Attacker;
+            // cha and dex
+
+            double totalbasestat = (GetFixedStat(ia, StatTypes.Dexterity, !defender) + GetFixedStat(ia, StatTypes.Charisma, !defender)) * .5;
+
+            return (int)(_baseevasion * (1 + (.01 * (int)Math.Ceiling(7 * Math.Sqrt(totalbasestat))))); ;
+        }
+
+        public static int CalculateDamageMitigation(ImpendingAttack ia, bool defender = true)
+        {
+            // mitigation: per and con
+            // lustresist: cha and tui
+            DamageTypes enemydtype = (defender) ? ia.Attacker.GetDamageType() : ia.Defender.GetDamageType();
+            UserCard card = (defender) ? ia.Defender : ia.Attacker;
+
+            StatTypes t1 = StatTypes.Charisma;
+            StatTypes t2 = StatTypes.Intuition;
+
+            if (enemydtype != DamageTypes.Lust)
+            {
+                t1 = StatTypes.Constitution;
+                t2 = StatTypes.Perception;
+            }
+
+            double stat1 = GetFixedStat(ia, t1, !defender);
+            double stat2 = GetFixedStat(ia, t2, !defender);
+
+            double totalstats = 0;
+            if (enemydtype == DamageTypes.Magic)
+            {
+                totalstats = (stat1 * .3) + (stat2 * .7);
+            }
+            else if (enemydtype == DamageTypes.Physical)
+            {
+                totalstats = (stat1 * .7) + (stat2 * .3);
+            }
+            else
+            {
+                totalstats = (stat1 * .5) + (stat2 * .5);
+            }
+
+
+            double totalbase = Math.Pow(totalstats, 1.6);
+            double sqrt = Math.Ceiling(.5 * Math.Sqrt(totalbase));
+            int toreturn = (int)Math.Ceiling(sqrt);
+            return toreturn;
+        }
+
+        public static string CalculateSingleAttack(ImpendingAttack ia, List<Effect> attackerDebuffs, bool attacker = true)
+        {
+            // deal attacker damage
+            string tosend = "";
+            bool crit = false;
+            bool hit = false;
+            bool glancinghit = false;
+            int hitchance = 0;
+            int hitroll = 0;
+            int critchance = 0;
+            int critroll = 0;
+            int critdamage = 0;
+            int totaldamage = 0;
+            int dmgspread = _basespread;
+            int evasion = 0;
+            int mitigation = 0;
+            int combinedhitchance = 0;
+            int damage = 0;
+            UserCard tdefender = (attacker) ? ia.Defender : ia.Attacker;
+            UserCard tattacker = (!attacker) ? ia.Defender : ia.Attacker;
+            Skill taskill = (attacker) ? ia.AttackerSkill : ia.DefenderSkill;
+
+            // attacker
+            // hit and evade
+            hitchance = CalculateHitChance(ia, attacker);
+            evasion = CalculateEvasionChance(ia, !attacker);
+            if (evasion > _maxeva) evasion = _maxeva;
+            combinedhitchance = hitchance - evasion;
+            if (combinedhitchance > _maxhit) combinedhitchance = _maxhit;
+            hitroll = RNG.Seed.Next(0, 101);
+            if (hitroll < combinedhitchance)
+            {
+                hit = true;
+                if (hitchance - hitroll < _baseglancespread)
+                    glancinghit = true;
+            }
+
+            if (hit)
+            {
+                // damage: str or int or lust
+                damage = CalculateBaseDamage(ia, attacker, glancinghit);
+                if (glancinghit) damage = (int)Math.Ceiling(damage * .75);
+
+                // damage spread: tui and per
+                int dmglow = (int)(damage * (1 - (.01 * _basespread)));
+                int dmghigh = (int)(damage * (1 + (.01 * _basespread)));
+
+                dmgspread = CalculateDamageSpreadPercent(ia, attacker);
+                if (dmgspread > 90) dmgspread = 90;
+                int diff = dmghigh - dmglow;
+                int idk = (int)Math.Ceiling(dmglow + (diff * ((.01 * dmgspread))));
+                damage = RNG.Seed.Next(idk, dmghigh + 1);
+
+                // crit: per and wis/dex - flip on dtype
+                critchance = CalculateCritChance(ia, attacker);
+                if (critchance > _maxcrit) critchance = _maxcrit;
+                critroll = RNG.Seed.Next(0, 101);
+                critdamage = 0;
+                if (critroll < critchance)
+                {
+                    crit = true;
+                    critdamage = CalculateCritDamage(ia, damage, attacker);
+                }
+
+                totaldamage = damage + critdamage;
+
+                if (tattacker.GetDamageType() == DamageTypes.Lust)
+                    totaldamage = (int)Math.Ceiling(totaldamage * 2.0);
+            }
+
+            // stat mitigation
+            mitigation = CalculateDamageMitigation(ia, !attacker);
+            totaldamage = (int)(totaldamage * (1 + (.01 * mitigation)));
+
+            // barrier
+            int barriertotal = GetFixedStat(ia, StatTypes.Barrier, !attacker);
+            if (barriertotal > 100) barriertotal = 100;
+            totaldamage = (int)(totaldamage * (1 + (0.1 * barriertotal)));
+
+            // shield
+            int shieldtotal = GetFixedStat(ia, StatTypes.Shield, !attacker);
+            int amountshielded = 0;
+            int postshielddmg = totaldamage;
+            if (shieldtotal > 0)
+            {
+                postshielddmg = totaldamage - shieldtotal;
+                if (postshielddmg < 0)
+                {
+                    postshielddmg = 0;
+                    amountshielded = totaldamage;
+                }
+                else
+                {
+                    amountshielded = shieldtotal;
+                }
+            }
+
+
+            // apply damage
+            bool orgasmed = false;
+            int lustlifelost = 0;
+            if (tattacker.GetDamageType() == DamageTypes.Lust)
+            {
+                int defenderLust = tdefender.GetMultipliedStat(StatTypes.CurrentLust);
+                defenderLust = defenderLust + postshielddmg;
+                int maxlust = tdefender.GetMultipliedStat(StatTypes.Lust);
+                if (defenderLust >= maxlust)
+                {
+                    defenderLust = defenderLust - maxlust;
+                    int defenderlife = tdefender.GetMultipliedStat(StatTypes.CurrentLife);
+                    lustlifelost = (int)(.45 * tdefender.GetMultipliedStat(StatTypes.Life));
+                    defenderlife -= lustlifelost;
+                    tdefender.Stats.SetStat(StatTypes.CurrentLife, defenderlife);
+                    orgasmed = true;
+                }
+
+                tdefender.Stats.SetStat(StatTypes.CurrentLust, defenderLust);
+            }
+            else
+            {
+                int defenderlife = tdefender.Stats.GetStat(StatTypes.CurrentLife);
+                defenderlife = defenderlife - postshielddmg;
+
+                tdefender.Stats.SetStat(StatTypes.CurrentLife, defenderlife);
+            }
+
+
+            // apply attacker procs
+            foreach (var debuff in attackerDebuffs)
+            {
+                int totalProcChance = 0;
+
+                if (RNG.Seed.Next(0, 101) < totalProcChance)
+                {
+                    if (debuff.ProcTrigger == ProcTriggers.Crit && crit ||
+                        debuff.ProcTrigger == ProcTriggers.Hit && hit)
+                    {
+                        EffectDetails ed = new EffectDetails(debuff.EffectId, debuff.Duration, EffectTypes.Debuff);
+                        debuff.UserDetails = ed;
+                        tdefender.ActiveEffects.Add(ed);
+                    }
+                }
+            }
+
+            if (attacker) ia.Defender = tdefender;
+
+            // create reply string
+            if (hit)
+            {
+                string hitstr = "hit";
+                if (crit) hitstr = "[color=red][b]CRIT[/b][/color]";
+                string skillstr = "";
+                if (taskill != null) skillstr = $"{taskill.GetShortDescription()}";
+                tosend += $"{tattacker.Alias} {hitstr} {tdefender.Alias} for {postshielddmg} {tattacker.GetDamageType()} damage";
+                if (taskill != null) tosend += $" {skillstr}";
+                if (barriertotal > 0) tosend += $" ({barriertotal}% absorbed)";
+                if (shieldtotal > 0) tosend += $" ({amountshielded}% shielded)";
+                tosend += ".";
+                if (orgasmed)
+                    tosend += $" {tdefender.Alias} was unable to resist their lust and had an orgasm, losing {lustlifelost} life!";
+
+            }
+            else
+            {
+                tosend += $"{tattacker.Alias} missed {tdefender.Alias}!";
+            }
+
+
+            return tosend;
+        }
+
+        public static void Attack(ImpendingAttack ia, string channel)
+        {
             string outputstr = string.Empty;
-            int damage = 300 + RNG.Seed.Next(0, 50);
 
-            if (attack.AttackerSkill != null && attack.AttackerSkill.Stats.Stats.ContainsKey(CardSystem.UserData.StatTypes.Damage)) damage = (int)Math.Round( damage * (attack.AttackerSkill.Stats.GetStat(CardSystem.UserData.StatTypes.Damage) * .01), 0);
-
-            int life = attack.Defender.Stats.GetStat(CardSystem.UserData.StatTypes.CurrentLife);
-            int shield = 0;
-            if (attack.DefenderSkill != null)
+            // apply any buff effects to attacker
+            List<Effect> attackerDebuffs = new List<Effect>();
+            if (ia.AttackerSkill != null)
             {
-                if (attack.DefenderSkill.Stats.Stats.ContainsKey(CardSystem.UserData.StatTypes.Shield))
+                foreach (var e in ia.AttackerSkill.SkillEffects)
                 {
-                    shield = attack.DefenderSkill.Stats.GetStat(CardSystem.UserData.StatTypes.Shield);
+                    Effect eft = DataDb.EffectDb.GetEffect(e);
+                    if (eft.EffectType == Data.Enums.EffectTypes.Buff)
+                    {
+                        var ed = new EffectDetails(eft.EffectId, eft.Duration, Data.Enums.EffectTypes.Buff);
+                        eft.UserDetails = ed;
+                        ia.Attacker.ActiveEffects.Add(ed);
+                    }
+                    else attackerDebuffs.Add(eft);
                 }
             }
 
-            int postshielddmg = damage - shield;
-
-            int absorbed = 0;
-            if (damage > shield) absorbed = shield;
-            else absorbed = damage;
-
-            if (postshielddmg < 0) postshielddmg = 0;
-            life -= postshielddmg;
-
-            string skilladd = string.Empty;
-            if (attack.AttackerSkill != null) skilladd += $" with ⟨ {attack.AttackerSkill.Name} ⟩.";
-            if (attack.DefenderSkill != null) skilladd += $" {attack.Defender.Alias} defends with ⟨ {attack.DefenderSkill.Name} ⟩.";
-
-
-            string effectadd = string.Empty;
-            if (attack.AttackerSkill != null && attack.AttackerSkill.SkillEffects.Any())
+            // apply any buff effects to defender
+            List<Effect> defenderDebuffs = new List<Effect>();
+            if (ia.DefenderSkill != null)
             {
-                foreach (var eff in attack.AttackerSkill.SkillEffects)
+                foreach (var e in ia.DefenderSkill.SkillEffects)
                 {
-                    var te = DataDb.EffectDb.GetEffect(eff);
-                    effectadd += $" {attack.Defender.Alias} has been debuffed with ⟪ {te.Name} ⟫.";
-                    te.CreationDate = DateTime.Now;
-                    attack.Defender.ActiveEffects.Add(new CardSystem.UserData.EffectDetails(te.EffectId, te.Duration, te.EffectType));
+                    Effect eft = DataDb.EffectDb.GetEffect(e);
+                    if (eft.EffectType == Data.Enums.EffectTypes.Buff)
+                    {
+                        var ed = new EffectDetails(eft.EffectId, eft.Duration, Data.Enums.EffectTypes.Buff);
+                        eft.UserDetails = ed;
+                        ia.Defender.ActiveEffects.Add(ed);
+                    }
+                    else defenderDebuffs.Add(eft);
                 }
             }
 
-            string dmgadd = $"for {postshielddmg} damage";
-            if (shield != 0)
+            // apply active damage debuffs to attacker
+            int damage = 0;
+            foreach (var debuff in attackerDebuffs)
             {
-                dmgadd += $" ({absorbed} shielded)";
+                if (debuff.Stats.Stats.ContainsKey(StatTypes.Damage) && debuff.UserDetails.DamageType != Data.Enums.DamageTypes.None)
+                {
+                    damage += debuff.UserDetails.DamageSnapshotValue;
+
+                    // calculate dmg resist
+                    if (debuff.UserDetails.DamageType == DamageTypes.Lust)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+
+
+
+
+
+
+                }
             }
 
-            outputstr += $"{attack.Attacker.Alias} attacks {attack.Defender.Alias}{skilladd} {dmgadd}.{effectadd}";
-            
-            if (life <= 0)
+            // check for attacker life
+            if (ia.Attacker.GetStat(StatTypes.CurrentLife) <= 0)
             {
-                outputstr += $" {attack.Defender.Alias} has been downed and is no longer able to continue fighting. You did {life * -1} overkill damage, {attack.Attacker.Alias}";
-                life = 0;
+                ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, 0);
+                ia.Attacker.Stats.AddStat(StatTypes.Loss, 1);
+
+
+                ia.Defender.Stats.AddStat(StatTypes.Win, 1);
+                ia.Defender.Stats.AddStat(StatTypes.Kills, 20 * ia.Attacker.GetStat(StatTypes.Level));
+
+                outputstr += $" {ia.Attacker.Alias} has been downed by {ia.Defender.Alias}!";
+
+                // apply changes
+                DataDb.CardDb.UpdateUserCard(ia.Defender);
+                DataDb.CardDb.UpdateUserCard(ia.Attacker);
+
+                // respond
+                SystemController.Instance.Respond(channel, outputstr, null);
+                return;
             }
 
+            // attack
+            outputstr += CalculateSingleAttack(ia, attackerDebuffs, true);
+
+            // effects to account for...
+            // periodic damage
+            // healing
+            // periodic healing
+            // debuff cleansing
+
+            // TEST
 
 
-            attack.Defender.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, life);
-            
-            DataDb.CardDb.UpdateUserCard(attack.Defender);
-            DataDb.CardDb.UpdateUserCard(attack.Attacker);
 
+
+
+
+
+
+
+
+
+            // check for defender life
+            if (ia.Defender.GetStat(StatTypes.CurrentLife) <= 0)
+            {
+                ia.Defender.Stats.SetStat(StatTypes.CurrentLife, 0);
+                ia.Defender.Stats.AddStat(StatTypes.Loss, 1);
+
+
+                ia.Attacker.Stats.AddStat(StatTypes.Win, 1);
+                ia.Attacker.Stats.AddStat(StatTypes.Kills, 20 * ia.Defender.GetStat(StatTypes.Level));
+
+                outputstr += $" {ia.Defender.Alias} has been downed by {ia.Attacker.Alias}!";
+
+                // apply changes
+                DataDb.CardDb.UpdateUserCard(ia.Defender);
+                DataDb.CardDb.UpdateUserCard(ia.Attacker);
+
+                // respond
+                SystemController.Instance.Respond(channel, outputstr, null);
+                return;
+            }
+
+            // check for defender counterattack
+            bool counterattack = false;
+            if (ia.DefenderSkill != null && ia.DefenderSkill.Stats.Stats.ContainsKey(StatTypes.Damage))
+                counterattack = true;
+
+            // if defender counterattack
+            if (counterattack)
+            {
+                CalculateSingleAttack(ia, defenderDebuffs, false);
+            }
+
+            // check for attacker life
+            if (ia.Attacker.GetStat(StatTypes.CurrentLife) <= 0)
+            {
+                ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, 0);
+                ia.Attacker.Stats.AddStat(StatTypes.Loss, 1);
+
+
+                ia.Defender.Stats.AddStat(StatTypes.Win, 1);
+                ia.Defender.Stats.AddStat(StatTypes.Kills, 20 * ia.Attacker.GetStat(StatTypes.Level));
+
+                outputstr += $" {ia.Attacker.Alias} has been downed by {ia.Defender.Alias}!";
+            }
+
+            // apply changes
+            DataDb.CardDb.UpdateUserCard(ia.Defender);
+            DataDb.CardDb.UpdateUserCard(ia.Attacker);
+
+            // respond
             SystemController.Instance.Respond(channel, outputstr, null);
+
         }
     }
 }

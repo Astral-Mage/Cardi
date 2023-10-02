@@ -70,6 +70,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             UserSkillDetails = new SkillDetails();
         }
 
+        public string GetShortDescription()
+        {
+            return $"⟨ {Name} ⟩";
+        }
+
         public TimeSpan GetRemainingCooldown()
         {
             if (Cooldown == TimeSpan.MinValue) return Cooldown;
@@ -151,7 +156,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.GameData
             }
 
             // stats
-            List<StatTypes> slist = new List<StatTypes>() { StatTypes.Damage, StatTypes.Strength, StatTypes.Dexterity, StatTypes.Constitution, StatTypes.Intelligence, StatTypes.Wisdom, StatTypes.Perception, StatTypes.Libido, StatTypes.Charisma, StatTypes.Intuition, StatTypes.Life, StatTypes.Shield };
+            List<StatTypes> slist = new List<StatTypes>() { StatTypes.Damage, StatTypes.Healing, StatTypes.Strength, StatTypes.Dexterity, StatTypes.Constitution, StatTypes.Intelligence, StatTypes.Wisdom, StatTypes.Perception, StatTypes.Libido, StatTypes.Charisma, StatTypes.Intuition, StatTypes.Life, StatTypes.Shield };
             foreach (var v in slist)
             {
                 if (brokenSkill.ContainsKey(v.GetDescription()))

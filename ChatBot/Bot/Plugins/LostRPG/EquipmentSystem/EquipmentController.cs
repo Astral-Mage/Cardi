@@ -8,7 +8,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem
 {
     public static class EquipmentController
     {
-        public static Socket GenerateSocketItem(SocketTypes socketType)
+        public static Socket GenerateSocketItem(SocketTypes socketType, DamageTypes dtype = DamageTypes.None)
         {
             Socket newItem = new Socket();
 
@@ -16,7 +16,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem
             {
                 case SocketTypes.Weapon:
                     {
-                        newItem = GenereateWeapon();
+                        newItem = GenereateWeapon(dtype);
                     }
                     break;
                 case SocketTypes.Armor:
@@ -36,14 +36,14 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem
             return newItem;
         }
 
-        static Socket GenereateWeapon()
+        static Socket GenereateWeapon(DamageTypes dtype = DamageTypes.None)
         {
             WeaponSocket newItem = new WeaponSocket();
 
             newItem.SocketType = SocketTypes.Weapon;
             newItem.WeaponType = WeaponTypes.Launcher;
             newItem.Stats.AddStat(StatTypes.Damage, 50);
-            newItem.DamageType = DamageTypes.Physical;
+            newItem.DamageType = (dtype == DamageTypes.None) ? (DamageTypes)RNG.Seed.Next(0, 3) : dtype;
 
 
             List<StatTypes> WeaponStats = new List<StatTypes>() { 

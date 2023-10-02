@@ -1,9 +1,5 @@
 ﻿using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
 {
@@ -12,9 +8,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
     {
         public int eid { get; set; }
         public DateTime CreationDate { get; set; }
-
         public TimeSpan Duration { get; set; }
         public EffectTypes EffectType { get; set; }
+        public DamageTypes DamageType { get; set; }
+        public int DamageSnapshotValue { get; set; }
+        public int HealingSnapshotValue { get; set; }
 
         public EffectDetails()
         {
@@ -22,6 +20,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             CreationDate = DateTime.Now;
             Duration = new TimeSpan();
             EffectType = EffectTypes.Buff;
+            DamageType = DamageTypes.None;
+            DamageSnapshotValue = 0;
+            HealingSnapshotValue = 0;
         }
 
         public EffectDetails(int _eid, TimeSpan duration, EffectTypes type)
@@ -30,7 +31,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
             CreationDate = DateTime.Now;
             Duration = duration;
             EffectType = type;
-
+            DamageType = DamageTypes.None;
+            DamageSnapshotValue = 0;
+            HealingSnapshotValue = 0;
         }
 
         public TimeSpan GetRemainingDuration()

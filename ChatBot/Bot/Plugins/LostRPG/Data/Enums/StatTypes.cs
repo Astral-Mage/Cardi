@@ -11,6 +11,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         [Description("life")]
         Life,
         CurrentLife,
+        Lust,
+        CurrentLust,
         [Description("shield")]
         Shield,
         [Description("barrier")]
@@ -59,9 +61,16 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         [Description("damage")]
         Damage,
         MaxDamage,
+        [Description("dtype")]
+        DamageType,
         Healing,
         MaxHealing,
         DebuffAbsorb,
         Speed,
+        Sexdust,
+        MaxLustDamageMultiplier,
+
+        Loss,
+        Win,
     }
 }

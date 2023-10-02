@@ -78,8 +78,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             string tosend = $"{card.Alias} is attacking {enemy.Alias}";
             if (skillToUse != null) tosend += $" with {skillToUse.Name}";
-            tosend += ".";
-            tosend += $" {enemy.Alias} may either -ignore, or -defend.";
+            tosend += $", whom may either -ignore, or -defend.";
 
             var enemyskills = enemy.GetUsableSkills();
             if (enemyskills.Any(x => x.Reaction))
@@ -90,7 +89,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 {
                     if (x.Reaction)
                     {
-                        tosend += $"⟨ {x.Name} ⟩";
+                        tosend += $"{x.GetShortDescription()} ";
                     }
                 });
 

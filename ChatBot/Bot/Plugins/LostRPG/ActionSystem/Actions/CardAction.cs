@@ -41,9 +41,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             // main stats
             string lifestr = $"Life: {cardToUse.Stats.GetStat(StatTypes.CurrentLife)}/{cardToUse.GetMultipliedStat(StatTypes.Life)}{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Life)}[/sup]")}";
+            string sexstr = $"Lust: {cardToUse.Stats.GetStat(StatTypes.CurrentLust)}/{cardToUse.GetMultipliedStat(StatTypes.Lust)}{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Lust)}[/sup]")}";
+
             string expstr = $"[sub]Exp: {cardToUse.Stats.GetStat(StatTypes.Experience)}[/sub]";
             string killsstr = $"[sub]Kills: {cardToUse.Stats.GetStat(StatTypes.Kills)}[/sub]";
             string duststr = $"[sub]Stardust: {cardToUse.Stats.GetStat(StatTypes.Stardust)}[/sub]";
+            string lduststr = $"[sub]Lustdust: {cardToUse.Stats.GetStat(StatTypes.Sexdust)}[/sub]";
+
 
             string strstr = $"[sub]{StatTypes.Strength.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Strength)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Strength)}[/sup]")}";
             string dexstr = $"[sub]{StatTypes.Dexterity.GetDescription().Capitalize()}: {cardToUse.GetMultipliedStat(StatTypes.Dexterity)}[/sub]{(verbose != true ? "" : $"[sup]{cardToUse.Stats.GetStat(StatTypes.Dexterity)}[/sup]")}";
@@ -59,14 +63,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             //   ⋯   
 
-            toSend += $"   [icon]{cardToUse.Name}[/icon]" +
-                $"\\n[color=white][[/color] {cardToUse.Alias} [color=white]]  [[/color] {cardToUse.CurrentTitle} [color=white]][/color]" +
-                $"\\n[color=white]⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Name}⟩ ⟪{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Name}⟫ ⟨{cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Name}⟩[/color]" +
-                $"\\n                                               [color=orange][b]{expstr} {killsstr} {duststr}[/b][/color]" +
-                $"\\n                                                  [color=green][b]{lifestr}[/b][/color]" +
+            toSend += $"\\n[icon]{cardToUse.Name}[/icon]  " +
+                $"[color=white][[/color] {cardToUse.Alias} [color=white]]  [[/color] {cardToUse.CurrentTitle} [color=white]][/color] ⋯ {cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).GetName()} {cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).GetName()} {cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).GetName()}" +
+                $"\\n                                          [color=orange][b]{expstr} {killsstr} {duststr} {lduststr}[/b][/color]" +
+                $"\\n                                          [color=green][b]{lifestr}[/b][/color]  [color=pink][b]{sexstr}[/b][/color]" +
                 $"\\n                   [color=brown][b]{strstr} {dexstr} {constr}[/b][/color] [color=cyan][b]{intstr} {wisstr} {perstr}[/b][/color] [color=pink][b]{libstr} {chastr} {tuistr}[/b][/color]";
 
-            string extra = $"\\n";
+            string extra = $"\\n[color=white]";
 
             // equipment
             if (cardToUse.ActiveSockets.Any(x => x.SocketType == SocketTypes.Weapon))
@@ -99,25 +102,15 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 }
             }
 
-            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).Skills)
-            {
-                var ta = DataDb.CustomDb.GetCustomizationById(s).Name;
-                if (!skillnames.Contains(ta)) skillnames.Add(ta);
-            }
-            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).Skills)
-            {
-                var ta = DataDb.SkillsDb.GetSkill(s).Name;
-                if (!skillnames.Contains(ta)) skillnames.Add(ta);
-            }
-            foreach (var s in cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).Skills)
-            {
-                var ta = DataDb.SkillsDb.GetSkill(s).Name;
-                if (!skillnames.Contains(ta))  skillnames.Add(ta);
-            }
+            string allskills = cardToUse.GetActiveCustomizationByType(CustomizationTypes.Calling).GetSkills();
+            allskills += cardToUse.GetActiveCustomizationByType(CustomizationTypes.Specialization).GetSkills();
+            allskills += cardToUse.GetActiveCustomizationByType(CustomizationTypes.Archetype).GetSkills();
+
             foreach (var sn in skillnames)
             {
                 skilllist += $"⟨ {sn} ⟩  ";
             }
+            skilllist += allskills;
             if (!string.IsNullOrWhiteSpace(skilllist)) extra += $"\\n❇️ {skilllist}";
 
             // passive buffs and debuffs
@@ -130,7 +123,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 extra += $"\\n⏫ ";
                 foreach (var v in enames)
                 {
-                    extra += $"⟪ {v} ⟫  ";
+                    extra += $"⟪ {v} ⟫ ";
                 }
             }
 
@@ -140,9 +133,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
             if (eBuffs.Any()) extra += $"\\n⏬ ";
             foreach (var en in eBuffs)
             {
-                extra += $"⟪ {en.Name} ⟫[sup]{en.UserDetails.GetRemainingDuration().ToHumanReadableString()}[/sup]  ";
+                extra += $"⟪ {en.Name} ⟫[sup]{en.UserDetails.GetRemainingDuration().ToHumanReadableString()}[/sup] ";
             }
-
+            extra += "[/color]";
             if (!verbose) toSend += extra;
             SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
         }

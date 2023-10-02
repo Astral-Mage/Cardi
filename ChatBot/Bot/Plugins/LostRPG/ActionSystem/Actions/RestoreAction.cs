@@ -24,16 +24,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
         {
             string toSend = string.Empty;
 
-            card.Stats.SetStat(CardSystem.UserData.StatTypes.CurrentLife, card.Stats.GetStat(CardSystem.UserData.StatTypes.Life));
-
-            List<EffectDetails> tokill = new List<EffectDetails>();
-            foreach (var ae in card.ActiveEffects)
-            {
-                if (ae.EffectType == EffectTypes.Debuff) tokill.Add(ae);
-            }
-            tokill.ForEach(x => card.ActiveEffects.Remove(x));
-
-            DataDb.CardDb.UpdateUserCard(card);
+            card.Restore();
 
             toSend += $"Alias: {card.Alias} | UserId: {card.UserId}'s health has been restored and all active debuffs have been removed.";
             SystemController.Instance.Respond(ao.Channel, toSend, ao.User);

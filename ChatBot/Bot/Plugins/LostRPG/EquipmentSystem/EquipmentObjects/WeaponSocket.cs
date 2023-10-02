@@ -94,13 +94,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.EquipmentSystem.EquipmentObjects
 
         public override string GetName()
         {
-            string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First(x => x.Key != StatTypes.Damage).Key);
-            string sufSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.Last(x => x.Key != StatTypes.Damage).Key);
+            string preSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.First(x => x.Key != StatTypes.Damage && x.Key != StatTypes.DamageType).Key);
+            string sufSearch = Enum.GetName(typeof(StatTypes), Stats.Stats.Last(x => x.Key != StatTypes.Damage && x.Key != StatTypes.DamageType).Key);
 
             string prefix = Enum.Parse(typeof(StatPrefixes), preSearch).GetDescription();
             string suffix = Enum.Parse(typeof(StatSuffixes), sufSearch).GetDescription();
 
-            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"[color=white]{prefix} {WeaponType.GetDescription()} of {suffix}[/color]";
+            return (!string.IsNullOrWhiteSpace(NameOverride)) ? $"{NameOverride}" : $"{prefix} {WeaponType.GetDescription()} of {suffix}";
         }
     }
 }

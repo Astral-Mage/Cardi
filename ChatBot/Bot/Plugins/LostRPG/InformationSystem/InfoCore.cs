@@ -26,19 +26,20 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                     SystemController.Instance.Respond(channel, $"Please create a character to use this command.", user);
                     return;
                 }
-                tosend += $"[u][b]{ctype} details for {card.Alias}[/b][/u]\\n\\n{card.GetActiveCustomizationByType(ctype).GetInfo()}";
+                tosend += $"[u][b]{ctype} details for {card.Alias}[/b][/u]\\n\\n{card.GetActiveCustomizationByType(ctype).GetInfo(1)}";
             }
             else if (splitmsg.Last().ToLowerInvariant().Equals(InfoTypes.All.GetDescription().ToLowerInvariant()))
             {
                 if (customs.Any())
                 {
                     tosend = $"\\n                   [u][b]Available {ctype} Customizations[/b][/u]\\n\\n";
+                    customs = customs.OrderBy(x => x.Stats.GetStat(CardSystem.UserData.StatTypes.DamageType)).ToList();
                     foreach (var c in customs)
                     {
-                        tosend += $"[b]⨠ {c.GetName()}[/b]   {c.GetStatString()} " +
+                        tosend += $"[b]⨠ {c.GetName()}[/b] {c.GetStatString()} " +
                             $" {c.GetEffectString(EffectTypes.Buff)}" +
-                            $"  {c.GetEffectString(EffectTypes.Debuff)}" +
-                            $"  {c.GetSkillString()}";
+                            $" {c.GetEffectString(EffectTypes.Debuff)}" +
+                            $" {c.GetSkillString()}";
                         if (c != customs.Last()) tosend += "\\n";
                     }
                 }
@@ -49,7 +50,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.InformationSystem
                 {
                     if (spec.Name.ToLowerInvariant().Equals(splitmsg.Last().ToLowerInvariant()))
                     {
-                        tosend += spec.GetInfo();
+                        tosend += spec.GetInfo(4);
                         break;
                     }
                 }

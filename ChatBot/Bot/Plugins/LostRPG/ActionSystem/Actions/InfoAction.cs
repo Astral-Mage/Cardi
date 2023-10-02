@@ -24,8 +24,19 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
             if (string.IsNullOrWhiteSpace(ao.Message))
             {
-                toSend += "Basic Info Return";
-                SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
+                if (card == null)
+                {
+                    toSend += "Basic Info Return";
+                    SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
+                }
+                else
+                {
+                    foreach (var custom in card.GetActiveCustomizations().OrderBy(x => x.Customization))
+                    {
+                        toSend += custom.GetInfo() + "\\n";
+                    }
+                    SystemController.Instance.Respond(ao.Channel, toSend, ao.User);
+                }
                 return;
             }
             var splitmsg = ao.Message.Split(" ".ToCharArray(), 2).ToList();

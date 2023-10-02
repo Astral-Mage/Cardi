@@ -186,18 +186,26 @@ namespace ChatBot.Bot.Plugins.LostRPG.DialogueSystem.Dialogue
             call.Active = true;
             Card.ActiveCustomizations.Add(new CustomizationDetails() { cid = call.Id, isactive = true });
 
-            Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Weapon));
+            Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Weapon, (DamageTypes)Card.GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.GetStat(StatTypes.DamageType)));
             Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Armor));
             Card.ActiveSockets.Add(EquipmentSystem.EquipmentController.GenerateSocketItem(SocketTypes.Passive));
 
             Card.Stats.AddStat(StatTypes.Life, 1000);
+            Card.Stats.AddStat(StatTypes.Lust, 1000);
+
+            Card.Stats.AddStat(StatTypes.MaxLustDamageMultiplier, 55);
+
             Card.Stats.AddStat(StatTypes.CurrentLife, Card.GetMultipliedStat(StatTypes.Life));
+            Card.Stats.AddStat(StatTypes.CurrentLust, 0);
+
             Card.Stats.AddStat(StatTypes.Level, 1);
             Card.Stats.AddStat(StatTypes.Experience, 0);
 
             Card.Stats.AddStat(StatTypes.Kills, 0);
             Card.Stats.AddStat(StatTypes.Gold, 0);
             Card.Stats.AddStat(StatTypes.Stardust, 0);
+            Card.Stats.AddStat(StatTypes.Sexdust, 0);
+
             int baseStat = 20;
             Card.Stats.AddStat(StatTypes.Strength, baseStat);
             Card.Stats.AddStat(StatTypes.Dexterity, baseStat);

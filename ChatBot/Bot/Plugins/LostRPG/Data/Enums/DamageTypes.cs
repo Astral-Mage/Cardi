@@ -12,28 +12,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.Data.Enums
         [Description("brown")]
         Physical,
 
-        [Description("yellow")]
-        Lightning,
 
         [Description("cyan")]
-        Ice,
+        Magic,
 
-        [Description("red")]
-        Fire,
-
-        [Description("purple")]
-        Astral,
-
-        [Description("green")]
-        Nature,
-
-        [Description("blue")]
-        Aqua,
-
-        [Description("black")]
-        Void,
 
         [Description("pink")]
-        Perversion,
+        Lust,
     }
 }
