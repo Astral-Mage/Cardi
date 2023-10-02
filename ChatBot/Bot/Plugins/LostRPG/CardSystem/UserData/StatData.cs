@@ -12,7 +12,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         {
             if (!Stats.ContainsKey(type))
             {
-                Stats.Add(type, 0);
+                return 0;
             }
             var toreturn = Convert.ToInt32(Math.Floor(Stats[type]));
             return toreturn;

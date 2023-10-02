@@ -69,7 +69,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         Speed,
         Sexdust,
         MaxLustDamageMultiplier,
-
+        DebuffsToCleanse,
         Loss,
         Win,
     }

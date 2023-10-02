@@ -265,13 +265,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
 
         public int GetMultipliedStat(StatTypes type, bool includeEquipment = true, Skill skillToAdd = null)
         {
+            int baseVal;
             if (!Stats.Stats.ContainsKey(type))
             {
-                Stats.Stats.Add(type, 0);
+                baseVal =  0;
+            }
+            else
+            {
+                // raw base stat
+                baseVal = Stats.GetStat(type);
             }
 
-            // raw base stat
-            int baseVal = Stats.GetStat(type);
 
             // add equipment
             if (includeEquipment)

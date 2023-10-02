@@ -326,7 +326,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 if (defenderLust >= maxlust)
                 {
                     defenderLust = defenderLust - maxlust;
-                    int defenderlife = tdefender.GetMultipliedStat(StatTypes.CurrentLife);
+                    int defenderlife = tdefender.GetStat(StatTypes.CurrentLife);
                     lustlifelost = (int)(.45 * tdefender.GetMultipliedStat(StatTypes.Life));
                     defenderlife -= lustlifelost;
                     tdefender.Stats.SetStat(StatTypes.CurrentLife, defenderlife);
@@ -392,8 +392,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
         {
             string outputstr = string.Empty;
 
+            List<Effect> attackerdebuffsToApply = new List<Effect>();
+            List<Effect> defenderdebuffsToApply = new List<Effect>();
+
             // apply any buff effects to attacker
-            List<Effect> attackerDebuffs = new List<Effect>();
             if (ia.AttackerSkill != null)
             {
                 foreach (var e in ia.AttackerSkill.SkillEffects)
@@ -405,12 +407,11 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                         eft.UserDetails = ed;
                         ia.Attacker.ActiveEffects.Add(ed);
                     }
-                    else attackerDebuffs.Add(eft);
+                    else attackerdebuffsToApply.Add(eft);
                 }
             }
 
             // apply any buff effects to defender
-            List<Effect> defenderDebuffs = new List<Effect>();
             if (ia.DefenderSkill != null)
             {
                 foreach (var e in ia.DefenderSkill.SkillEffects)
@@ -422,33 +423,86 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                         eft.UserDetails = ed;
                         ia.Defender.ActiveEffects.Add(ed);
                     }
-                    else defenderDebuffs.Add(eft);
+                    else defenderdebuffsToApply.Add(eft);
                 }
             }
 
+            // healing
+            int healing = 0;
+            if (GetFixedStat(ia, StatTypes.Healing) > 0)
+            {
+                foreach (var debuff in ia.Attacker.GetActiveEffectByType(EffectTypes.Buff, 4))
+                { // periodic damage
+                    if (debuff.Stats.Stats.ContainsKey(StatTypes.Healing))
+                    {
+                        healing += debuff.UserDetails.HealingSnapshotValue;
+
+                        int clife = ia.Attacker.GetStat(StatTypes.CurrentLife);
+                        int mlife = ia.Attacker.GetMultipliedStat(StatTypes.Life);
+
+                        clife += healing;
+                        if (clife > mlife) clife = mlife;
+                        ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, clife);
+                    }
+                }
+            }
+
+            // debuff cleansing
+            int debuffstocleanse = 0;
+            if (GetFixedStat(ia, StatTypes.DebuffsToCleanse) > 0)
+            {
+                foreach (var debuff in ia.Attacker.GetActiveEffectByType(EffectTypes.Buff, 4))
+                { // periodic damage
+                    if (debuff.Stats.Stats.ContainsKey(StatTypes.DebuffsToCleanse))
+                    {
+                        debuffstocleanse += debuff.Stats.GetStat(StatTypes.DebuffsToCleanse);
+                    }
+                }
+            }
+
+            var dbl = ia.Attacker.GetActiveEffectByType(EffectTypes.Debuff).OrderBy(x => x.GetRemainingDuration()).ToList();
+            for (int x = 0; x < debuffstocleanse; x++)
+            {
+                var tr = dbl.Last();
+                ia.Attacker.ActiveEffects.Remove(tr.UserDetails);
+                dbl.ToList().Remove(tr);
+            }
+
+
             // apply active damage debuffs to attacker
             int damage = 0;
-            foreach (var debuff in attackerDebuffs)
-            {
+
+            foreach (var debuff in ia.Attacker.GetActiveEffectByType(EffectTypes.Debuff, 4))
+            { // periodic damage
                 if (debuff.Stats.Stats.ContainsKey(StatTypes.Damage) && debuff.UserDetails.DamageType != Data.Enums.DamageTypes.None)
                 {
                     damage += debuff.UserDetails.DamageSnapshotValue;
 
-                    // calculate dmg resist
+                    int lustlifelost = 0;
                     if (debuff.UserDetails.DamageType == DamageTypes.Lust)
                     {
+                        int defenderLust = ia.Attacker.GetMultipliedStat(StatTypes.CurrentLust);
+                        defenderLust = defenderLust + damage;
+                        int maxlust = ia.Attacker.GetMultipliedStat(StatTypes.Lust);
+                        if (defenderLust >= maxlust)
+                        {
+                            defenderLust = defenderLust - maxlust;
+                            int defenderlife = ia.Attacker.GetStat(StatTypes.CurrentLife);
+                            lustlifelost = (int)(.45 * ia.Attacker.GetMultipliedStat(StatTypes.Life));
+                            defenderlife -= lustlifelost;
+                            ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, defenderlife);
+                            outputstr += $" {ia.Attacker.Alias} was unable to resist their lust and had an orgasm, losing {lustlifelost} life!";
+                        }
 
+                        ia.Attacker.Stats.SetStat(StatTypes.CurrentLust, defenderLust);
                     }
                     else
                     {
+                        int defenderlife = ia.Attacker.Stats.GetStat(StatTypes.CurrentLife);
+                        defenderlife = defenderlife - damage;
 
+                        ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, defenderlife);
                     }
-
-
-
-
-
-
                 }
             }
 
@@ -469,30 +523,15 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 DataDb.CardDb.UpdateUserCard(ia.Attacker);
 
                 // respond
-                SystemController.Instance.Respond(channel, outputstr, null);
+                SystemController.Instance.Respond(channel, outputstr, ia.Attacker.Name);
                 return;
             }
 
             // attack
-            outputstr += CalculateSingleAttack(ia, attackerDebuffs, true);
-
-            // effects to account for...
-            // periodic damage
-            // healing
-            // periodic healing
-            // debuff cleansing
-
-            // TEST
-
-
-
-
-
-
-
-
-
-
+            if (GetFixedStat(ia, StatTypes.Damage) > 0)
+            {
+                outputstr += CalculateSingleAttack(ia, attackerdebuffsToApply, true);
+            }
 
             // check for defender life
             if (ia.Defender.GetStat(StatTypes.CurrentLife) <= 0)
@@ -511,8 +550,49 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 DataDb.CardDb.UpdateUserCard(ia.Attacker);
 
                 // respond
-                SystemController.Instance.Respond(channel, outputstr, null);
+                SystemController.Instance.Respond(channel, outputstr, ia.Attacker.Name);
                 return;
+            }
+
+            // healing
+            healing = 0;
+            if (GetFixedStat(ia, StatTypes.Healing, false) > 0)
+            {
+                foreach (var debuff in ia.Defender.GetActiveEffectByType(EffectTypes.Buff, 4))
+                { // periodic damage
+                    if (debuff.Stats.Stats.ContainsKey(StatTypes.Healing))
+                    {
+                        healing += debuff.UserDetails.HealingSnapshotValue;
+
+                        int clife = ia.Defender.GetStat(StatTypes.CurrentLife);
+                        int mlife = ia.Defender.GetMultipliedStat(StatTypes.Life);
+
+                        clife += healing;
+                        if (clife > mlife) clife = mlife;
+                        ia.Defender.Stats.SetStat(StatTypes.CurrentLife, clife);
+                    }
+                }
+            }
+
+            // debuff cleansing
+            debuffstocleanse = 0;
+            if (GetFixedStat(ia, StatTypes.DebuffsToCleanse) > 0)
+            {
+                foreach (var debuff in ia.Defender.GetActiveEffectByType(EffectTypes.Buff, 4))
+                { // periodic damage
+                    if (debuff.Stats.Stats.ContainsKey(StatTypes.DebuffsToCleanse))
+                    {
+                        debuffstocleanse += debuff.Stats.GetStat(StatTypes.DebuffsToCleanse);
+                    }
+                }
+            }
+
+            dbl = ia.Defender.GetActiveEffectByType(EffectTypes.Debuff).OrderBy(x => x.GetRemainingDuration()).ToList();
+            for (int x = 0; x < debuffstocleanse; x++)
+            {
+                var tr = dbl.Last();
+                ia.Defender.ActiveEffects.Remove(tr.UserDetails);
+                dbl.ToList().Remove(tr);
             }
 
             // check for defender counterattack
@@ -521,9 +601,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 counterattack = true;
 
             // if defender counterattack
-            if (counterattack)
+            if (counterattack && GetFixedStat(ia, StatTypes.Damage, false) > 0)
             {
-                CalculateSingleAttack(ia, defenderDebuffs, false);
+                CalculateSingleAttack(ia, defenderdebuffsToApply, false);
             }
 
             // check for attacker life
@@ -544,7 +624,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             DataDb.CardDb.UpdateUserCard(ia.Attacker);
 
             // respond
-            SystemController.Instance.Respond(channel, outputstr, null);
+            SystemController.Instance.Respond(channel, outputstr, ia.Attacker.Name);
 
         }
     }
