@@ -85,19 +85,19 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             return attack;
         }
 
-        static int GetFixedStat(ImpendingAttack ia, StatTypes type, bool attacker = true)
+        public static int GetFixedStat(ImpendingAttack ia, StatTypes type, bool attacker = true, bool addasflatval = false)
         {
             int toreturn = 0;
             UserCard target = (attacker) ? ia.Attacker : ia.Defender;
             Skill tSkill = (attacker) ? ia.AttackerSkill : ia.DefenderSkill;
 
-            toreturn = target.GetMultipliedStat(type, true, tSkill);
+            toreturn = target.GetMultipliedStat(type, true, tSkill, addasflatval);
             return toreturn;
         }
 
         public static int CalculateHitChance(ImpendingAttack ia, bool attacker = true)
         {
-            UserCard card = (attacker) ? ia.Attacker : ia.Defender;
+                           UserCard card = (attacker) ? ia.Attacker : ia.Defender;
             StatTypes hittype = StatTypes.Dexterity;
             if (card.GetDamageType() == Data.Enums.DamageTypes.Magic) hittype = StatTypes.Wisdom;
             if (card.GetDamageType() == Data.Enums.DamageTypes.Lust) hittype = StatTypes.Charisma;
@@ -297,7 +297,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             totaldamage = (int)(totaldamage * (1 + (0.1 * barriertotal)));
 
             // shield
-            int shieldtotal = GetFixedStat(ia, StatTypes.Shield, !attacker);
+            int shieldtotal = GetFixedStat(ia, StatTypes.Shield, !attacker, true);
             int amountshielded = 0;
             int postshielddmg = totaldamage;
             if (shieldtotal > 0)
@@ -347,7 +347,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             // apply attacker procs
             foreach (var debuff in attackerDebuffs)
             {
-                int totalProcChance = 0;
+                int totalProcChance = debuff.ProcChance > 0 ? debuff.ProcChance : 50;
 
                 if (RNG.Seed.Next(0, 101) < totalProcChance)
                 {
@@ -371,9 +371,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 string skillstr = "";
                 if (taskill != null) skillstr = $"{taskill.GetShortDescription()}";
                 tosend += $"{tattacker.Alias} {hitstr} {tdefender.Alias} for {postshielddmg} {tattacker.GetDamageType()} damage";
-                if (taskill != null) tosend += $" {skillstr}";
+                if (taskill != null) tosend += $" with [b][color=white]{skillstr}[/color][/b]";
                 if (barriertotal > 0) tosend += $" ({barriertotal}% absorbed)";
-                if (shieldtotal > 0) tosend += $" ({amountshielded}% shielded)";
+                if (shieldtotal > 0) tosend += $" ({amountshielded} shielded)";
                 tosend += ".";
                 if (orgasmed)
                     tosend += $" {tdefender.Alias} was unable to resist their lust and had an orgasm, losing {lustlifelost} life!";
@@ -388,6 +388,35 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             return tosend;
         }
 
+        public static void Cast(ImpendingAttack ia, string channel, bool targetself = true)
+        {
+            string outputstr = string.Empty;
+            UserCard target = (targetself) ? ia.Attacker : ia.Defender;
+
+            List<Effect> targetbuffsToApply = new List<Effect>();
+
+            // apply any buff effects to attacker
+
+            foreach (var e in ia.AttackerSkill.SkillEffects)
+            {
+                Effect eft = DataDb.EffectDb.GetEffect(e);
+                if (eft.EffectType == EffectTypes.Buff)
+                {
+                    var ed = new EffectDetails(eft.EffectId, eft.Duration, EffectTypes.Buff);
+                    eft.UserDetails = ed;
+                    target.ActiveEffects.Add(ed);
+                }
+                else targetbuffsToApply.Add(eft);
+            }
+
+        }
+
+
+        /// <summary>
+        /// our main entry point
+        /// </summary>
+        /// <param name="ia"></param>
+        /// <param name="channel"></param>
         public static void Attack(ImpendingAttack ia, string channel)
         {
             string outputstr = string.Empty;
@@ -401,9 +430,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 foreach (var e in ia.AttackerSkill.SkillEffects)
                 {
                     Effect eft = DataDb.EffectDb.GetEffect(e);
-                    if (eft.EffectType == Data.Enums.EffectTypes.Buff)
+                    if (eft.EffectType == EffectTypes.Buff)
                     {
-                        var ed = new EffectDetails(eft.EffectId, eft.Duration, Data.Enums.EffectTypes.Buff);
+                        var ed = new EffectDetails(eft.EffectId, eft.Duration, EffectTypes.Buff);
                         eft.UserDetails = ed;
                         ia.Attacker.ActiveEffects.Add(ed);
                     }
@@ -417,9 +446,9 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
                 foreach (var e in ia.DefenderSkill.SkillEffects)
                 {
                     Effect eft = DataDb.EffectDb.GetEffect(e);
-                    if (eft.EffectType == Data.Enums.EffectTypes.Buff)
+                    if (eft.EffectType == EffectTypes.Buff)
                     {
-                        var ed = new EffectDetails(eft.EffectId, eft.Duration, Data.Enums.EffectTypes.Buff);
+                        var ed = new EffectDetails(eft.EffectId, eft.Duration, EffectTypes.Buff);
                         eft.UserDetails = ed;
                         ia.Defender.ActiveEffects.Add(ed);
                     }
@@ -428,23 +457,32 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             }
 
             // healing
-            int healing = 0;
-            if (GetFixedStat(ia, StatTypes.Healing) > 0)
+            int healing = GetFixedStat(ia, StatTypes.Healing, true, true);
+            int periodichealing = 0;
+            if (healing > 0)
             {
                 foreach (var debuff in ia.Attacker.GetActiveEffectByType(EffectTypes.Buff, 4))
                 { // periodic damage
                     if (debuff.Stats.Stats.ContainsKey(StatTypes.Healing))
                     {
-                        healing += debuff.UserDetails.HealingSnapshotValue;
+                        periodichealing += debuff.UserDetails.HealingSnapshotValue;
 
-                        int clife = ia.Attacker.GetStat(StatTypes.CurrentLife);
-                        int mlife = ia.Attacker.GetMultipliedStat(StatTypes.Life);
+                        int clifew = ia.Attacker.GetStat(StatTypes.CurrentLife);
+                        int mlifew = ia.Attacker.GetMultipliedStat(StatTypes.Life);
 
-                        clife += healing;
-                        if (clife > mlife) clife = mlife;
-                        ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, clife);
+                        clifew += healing;
+                        if (clifew > mlifew) clifew = mlifew;
+                        ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, clifew);
                     }
                 }
+
+                int clife = ia.Attacker.GetStat(StatTypes.CurrentLife);
+                int mlife = ia.Attacker.GetMultipliedStat(StatTypes.Life);
+
+                clife += healing;
+                if (clife > mlife) clife = mlife;
+                ia.Attacker.Stats.SetStat(StatTypes.CurrentLife, clife);
+                outputstr += $" {ia.Attacker.Alias} has been healed for {healing + periodichealing}. ";
             }
 
             // debuff cleansing
@@ -555,23 +593,32 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             }
 
             // healing
-            healing = 0;
-            if (GetFixedStat(ia, StatTypes.Healing, false) > 0)
+            healing = GetFixedStat(ia, StatTypes.Healing, false, true);
+            periodichealing = 0;
+            if (healing > 0)
             {
                 foreach (var debuff in ia.Defender.GetActiveEffectByType(EffectTypes.Buff, 4))
                 { // periodic damage
                     if (debuff.Stats.Stats.ContainsKey(StatTypes.Healing))
                     {
-                        healing += debuff.UserDetails.HealingSnapshotValue;
+                        periodichealing += debuff.UserDetails.HealingSnapshotValue;
 
-                        int clife = ia.Defender.GetStat(StatTypes.CurrentLife);
-                        int mlife = ia.Defender.GetMultipliedStat(StatTypes.Life);
+                        int clifew = ia.Defender.GetStat(StatTypes.CurrentLife);
+                        int mlifew = ia.Defender.GetMultipliedStat(StatTypes.Life);
 
-                        clife += healing;
-                        if (clife > mlife) clife = mlife;
-                        ia.Defender.Stats.SetStat(StatTypes.CurrentLife, clife);
+                        clifew += healing;
+                        if (clifew > mlifew) clifew = mlifew;
+                        ia.Defender.Stats.SetStat(StatTypes.CurrentLife, clifew);
                     }
                 }
+
+                int clife = ia.Defender.GetStat(StatTypes.CurrentLife);
+                int mlife = ia.Defender.GetMultipliedStat(StatTypes.Life);
+
+                clife += healing;
+                if (clife > mlife) clife = mlife;
+                ia.Defender.Stats.SetStat(StatTypes.CurrentLife, clife);
+                outputstr += $" {ia.Defender.Alias} has been healed for {healing + periodichealing}. ";
             }
 
             // debuff cleansing
@@ -603,7 +650,8 @@ namespace ChatBot.Bot.Plugins.LostRPG.CombatSystem
             // if defender counterattack
             if (counterattack && GetFixedStat(ia, StatTypes.Damage, false) > 0)
             {
-                CalculateSingleAttack(ia, defenderdebuffsToApply, false);
+                outputstr += " Counterattack - ";
+                outputstr += CalculateSingleAttack(ia, defenderdebuffsToApply, false);
             }
 
             // check for attacker life

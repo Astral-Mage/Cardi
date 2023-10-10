@@ -171,7 +171,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
         public int GetTotalStatMultiplier(StatTypes type)
         {
             int toreturn = 0;
-            foreach(var cus in GetActiveCustomizations())
+            foreach (var cus in GetActiveCustomizations())
             {
                 if (cus.Stats.Stats.ContainsKey(type))
                     toreturn += cus.Stats.GetStat(type);
@@ -263,12 +263,12 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             return effectNames;
         }
 
-        public int GetMultipliedStat(StatTypes type, bool includeEquipment = true, Skill skillToAdd = null)
+        public int GetMultipliedStat(StatTypes type, bool includeEquipment = true, Skill skillToAdd = null, bool addAsFlatValue = false)
         {
             int baseVal;
             if (!Stats.Stats.ContainsKey(type))
             {
-                baseVal =  0;
+                baseVal = 0;
             }
             else
             {
@@ -292,7 +292,13 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             if (GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Specialization).Stats.GetStat(type);
             if (GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Calling).Stats.GetStat(type);
             if (GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.Stats.ContainsKey(type)) basemult += GetActiveCustomizationByType(CustomizationTypes.Archetype).Stats.GetStat(type);
-            if (skillToAdd != null && skillToAdd.Stats.Stats.ContainsKey(type)) basemult += skillToAdd.Stats.GetStat(type);
+            if (skillToAdd != null && skillToAdd.Stats.Stats.ContainsKey(type))
+            {
+                if (type == StatTypes.Healing || type == StatTypes.Shield)
+                    baseVal += skillToAdd.Stats.GetStat(type);
+                else
+                    basemult += skillToAdd.Stats.GetStat(type);
+            }
 
             // buffs
             var ebuffs = GetPassiveEffectsByType(EffectTypes.Buff);
@@ -300,7 +306,17 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             db2.ForEach(x => ebuffs.Add(x));
             foreach (var buff in ebuffs)
             {
-                if (buff.Stats.Stats.ContainsKey(type)) basemult += buff.Stats.GetStat(type);
+                if (buff.Stats.Stats.ContainsKey(type))
+                {
+                    if (addAsFlatValue)
+                    {
+                        baseVal += buff.Stats.GetStat(type);
+                    }
+                    else
+                    {
+                        basemult += buff.Stats.GetStat(type);
+                    }
+                }
             }
 
             // debuffs
@@ -309,16 +325,26 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem
             db2.ForEach(x => debuffs.Add(x));
             foreach (var debuff in debuffs)
             {
-                if (debuff.Stats.Stats.ContainsKey(type)) basemult += debuff.Stats.GetStat(type);
+                if (debuff.Stats.Stats.ContainsKey(type))
+                {
+                    if (addAsFlatValue)
+                    {
+                        baseVal += debuff.Stats.GetStat(type);
+                    }
+                    else
+                    {
+                        basemult += debuff.Stats.GetStat(type);
+                    }
+                }
             }
 
             if (basemult < -100) basemult = 0;
 
-            double percentMult = basemult * .01f;
-            percentMult = Math.Round(percentMult, 2);
+                double percentMult = basemult * .01f;
+                percentMult = Math.Round(percentMult, 2);
 
-            // deliver stat
-            return Convert.ToInt32(Math.Floor(baseVal * (1 + percentMult)));
+                // deliver stat
+                return Convert.ToInt32(Math.Floor(baseVal * (1 + percentMult)));
+            }
         }
     }
-}

@@ -4,6 +4,7 @@ using ChatBot.Bot.Plugins.LostRPG.Data;
 using ChatBot.Bot.Plugins.LostRPG.Data.Enums;
 using ChatBot.Bot.Plugins.LostRPG.Data.GameData;
 using ChatBot.Core;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
@@ -22,7 +23,10 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
 
         public override void Execute(ActionObject ao, UserCard card)
         {
-            var split = ao.Message.Split(ao.CommandChar.ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries).ToList();
+            List<string> split = new List<string>();
+            if (ao.Message.Contains(ao.CommandChar)) split = ao.Message.Split(ao.CommandChar.ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries).ToList();
+            else if (ao.Message.ToLowerInvariant().Contains("with")) split = ao.Message.ToLowerInvariant().Split(new string[] { "with" }, System.StringSplitOptions.RemoveEmptyEntries).ToList();
+            else split.Add(ao.Message.Trim());
 
             // target checks
             if (split.Count < 1)
@@ -63,7 +67,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.ActionSystem.Actions
                 string stu = split.Last();
                 foreach (var s in card.GetUsableSkills())
                 {
-                    if (s.Name.ToLowerInvariant().Equals(stu.ToLowerInvariant()))
+                    if (s.Name.ToLowerInvariant().Equals(stu.Trim().ToLowerInvariant()))
                     {
                         skillToUse = s;
                         break;

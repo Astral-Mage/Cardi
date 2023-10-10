@@ -63,6 +63,7 @@ namespace ChatBot.Bot.Plugins.LostRPG.CardSystem.UserData
         MaxDamage,
         [Description("dtype")]
         DamageType,
+        [Description("healing")]
         Healing,
         MaxHealing,
         DebuffAbsorb,
